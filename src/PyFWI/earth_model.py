@@ -23,14 +23,34 @@ class Model_generator():
         self.nx = width // dx
         self.nz = height //dz
 
-    def circle(self, bc, circle_prop, center, radius):
+    def layer(self, bp, multilayers=[]):
+        """
+        add_layer genearte a layer of property.
+
+        This method generates one layer with property "bp"
+
+        Args:
+            bp (dict): Background property
+            multilayers (array): An array  containing the depth of multilayers
+        """
+        model = {}
+        for params in bp:
+            model[params] = np.empty((self.nz, self.nx), dtype=np.float32)
+            model[params][:, :] = bp[params]
+
+        # for depth in multilayers:
+
+
+        return model
+
+    def circle(self, bp, circle_prop, center, radius):
         """
         circle Provides a medium with  acircle inside it.
 
         This method generates the known circle model in the FWI studies. 
 
         Args:
-            bc (dict): Background property
+            bp (dict): Background property
             circle (dict): Circle property
             radius (float): radius
             center (array): Center of circle as [x0, z0]
@@ -39,9 +59,9 @@ class Model_generator():
         cx, cz = [center[0]//self.dx, center[1]//self.dz]
         radius = radius// self.dx
         model = {}
-        for params in bc:
+        for params in bp:
             model[params] = np.empty((self.nz, self.nx), dtype=np.float32)
-            model[params][:, :] = bc[params]
+            model[params][:, :] = bp[params]
 
         model = add_circle(model, circle_prop, radius, cx, cz)
 
@@ -72,11 +92,12 @@ class Model_generator():
 
         return model
 
+
 def add_circle (model, circle_prop, r, cx, cz):
     """
-    add_circle [summary]
+    add_circle adds a circle to the model
 
-    [extended_summary]
+    This function generates a circle in the model.
 
     Args:
         model (dict): Already created model.
@@ -97,6 +118,39 @@ def add_circle (model, circle_prop, r, cx, cz):
                     model[params][i, j] = circle_prop[params]
 
     return model
+
+
+def add_layer (model, property, lt, lb, rt=None, rb=None):
+    """
+    add_layer add alyer to the model
+
+    This function add a layer to the mdoel
+
+    Args:
+        model (dict): Already created model.
+        property (dict): Property of the new layer
+        lt (array, int): Sample number ([x ,z]) of the top of the layer in the most left part
+        lb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most left part
+        rt (array, int): Sample number ([x ,z]) of the top of the layer in the most right part
+        rb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most right part #TODO: to develop for dipping layers
+
+    Returns:
+        model(dict): Return the model.
+    """
+    [nz, nx] = model[list(model.keys())[0]].shape
+    
+
+    rt = (rt, [nx])[rt is None]
+
+
+    for param in property:
+        try:
+            model[param][lt[1]:lb[1], lt[0]:rt[0]] = property[param]
+        except:
+            print("{} is not a common key in two models.".format(param))
+            pass
+    return model
+
         
 
 if __name__ == "__main__":
