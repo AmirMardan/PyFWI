@@ -4,7 +4,18 @@ import matplotlib.pyplot as plt
 
 class Model_generator():
 
-    def __init__(self, width, height, dx, dz):
+    def __init__(self, width, height, dx=1.0, dz=1.0):
+        """
+        A class to create the synthetic model.
+
+        This calss contain different moudulus to generate different types of synthetic models.
+
+        Args:
+            width (float):  Width of the model
+            height (float): Depth of the model
+            dx (float, optional): Spatial sampling rate. Defaults to 1 (for importing the other parameters as number of samples).
+            dz (float, optional): [description]. Defaults to 1 (for importing the other parameters as number of samples).
+        """
         self.width = width
         self.height = height
         self.dx = dx
@@ -22,7 +33,7 @@ class Model_generator():
             bc (dict): Background property
             circle (dict): Circle property
             radius (float): radius
-            center (array): Center of circle
+            center (array): Center of circle as [x0, z0]
             
         """
         cx, cz = [center[0]//self.dx, center[1]//self.dz]
