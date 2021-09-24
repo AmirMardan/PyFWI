@@ -27,7 +27,7 @@ class Density:
             units (str, optional): Specify the system of the units fo measurements (Metric or Imperial) . Defaults to "metric".
         """
         coeff = (0.31, 0.23) [units in ['imperial', 'Imperial', 'ft', 'ft/s']]
-        model['rho'] = 0.31 * model['vp'] ** 0.25
+        model['rho'] = coeff * model['vp'] ** 0.25
     
         return model
 
@@ -59,6 +59,25 @@ class ShearVelocity:
         model['vs'] = model['vp'] * np.sqrt((0.5 - sigma) / (1.0 - sigma))
         return model
     
+class Mu:
+    def __init__(self):
+        pass
+
+    def vs_rho(self, model): 
+        """
+        vs_rho generate mu
+
+        This function add mu to to the imported model based on S-wave velocity and density.
+
+        Args:
+            model (dict): Model of Earth's properties which must contain vs (S-wave velocity) and rho (density).
+
+        Returns:
+            model: It returns the model back while mu is added.
+        """
+        model['mu'] = model['vs'] ** 2 * model['rho']
+
+        return model
 
 
 if __name__ == "__main__":
