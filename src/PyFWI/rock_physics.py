@@ -59,6 +59,7 @@ class ShearVelocity:
         model['vs'] = model['vp'] * np.sqrt((0.5 - sigma) / (1.0 - sigma))
         return model
     
+
 class Mu:
     def __init__(self):
         pass
@@ -78,6 +79,20 @@ class Mu:
         model['mu'] = model['vs'] ** 2 * model['rho']
 
         return model
+
+
+
+class Lame:
+    def __init__(self):
+        pass
+    
+    def vp_rho_mu(self, model):
+
+        # TODO: CHECK IF THERE IS NO MU BUT MODEL HAS VS, CREATE MU BASED ON THE VS AND THEN GENERATE MU
+        
+        model['lam'] = model['rho'] * model['vp'] ** 2 - 2 * model['mu']
+        return model
+
 
 
 if __name__ == "__main__":
