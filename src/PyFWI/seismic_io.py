@@ -5,7 +5,7 @@ import os
 from urllib.request import urlretrieve
 import shutil
 import requests
-from scipy.io import savemat, loadmat
+import scipy.io as sio
 import datetime
 
 
@@ -26,7 +26,7 @@ def read_segy(path):
     return data
 
 
-def load_mat(path, unique=None, **kwarg):
+def save_mat(path, unique=None, **kwarg):
     """This function save python dictionary as a .mat file.
 
     Parameters
@@ -49,4 +49,25 @@ def load_mat(path, unique=None, **kwarg):
         pass
     for params in kwarg:
         path_case = path + params + ".mat"
-        savemat(path_case, kwarg[params], oned_as='row')
+        sio.savemat(path_case, kwarg[params], oned_as='row')
+
+
+def loadmat(path):
+    """This function load python dictionary as a .mat file.
+
+    Parameters
+    ----------
+    path : String
+        The path to save the data.
+    """
+
+    data = sio.loadmat(path)
+
+    try:
+        data.pop("__header__")
+        data.pop("__version__")
+        data.pop("__globals__")
+    except:
+        pass
+
+    return data
