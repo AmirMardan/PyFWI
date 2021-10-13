@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from seiplot import seismic_section
+from PyFWI.seiplot import seismic_section
 
 class Gain():
 

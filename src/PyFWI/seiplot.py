@@ -5,7 +5,7 @@ import numpy as np
 
 import plotly.express as px
 
-from model_dataset import ModelGenerator
+from PyFWI.model_dataset import ModelGenerator
 
 def earth_model(model, keys=[]):
 
