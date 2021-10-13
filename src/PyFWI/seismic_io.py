@@ -26,7 +26,7 @@ def read_segy(path):
     return data
 
 
-def save_mat(path, unique=None, **kwarg):
+def savemat(path, unique=None, **kwarg):
     """This function save python dictionary as a .mat file.
 
     Parameters
