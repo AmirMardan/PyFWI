@@ -39,6 +39,11 @@ def inpa_loading(path):
     inpa['dt'] = inpa['dt'].item()
     inpa['nt'] = inpa['nt'].item()
     inpa['fdom'] = inpa['fdom'].item()
+    inpa["cost_function_type"] = inpa["cost_function_type"].item()
+    inpa["sdo"] = inpa["sdo"].item()
+    inpa["ns"] = inpa["ns"].item()
+    inpa['offsetx'] = inpa['offsetx'].item()
+    inpa['offsetz'] = inpa['offsetz'].item()
 
     return inpa
 
