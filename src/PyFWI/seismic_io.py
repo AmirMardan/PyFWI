@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.lib.function_base import kaiser
 import segyio
 import gzip
 import os
@@ -26,7 +27,7 @@ def read_segy(path):
     return data
 
 
-def savemat(path, unique=None, **kwarg):
+def savemat(path, **kwargs):
     """This function save python dictionary as a .mat file.
 
     Parameters
@@ -35,21 +36,30 @@ def savemat(path, unique=None, **kwarg):
         The path to save the data.
     unique : Boolean
         If true, it will add current date and time to the name of folder
-    **kwarg : type
+    **kwargs : type
         Dictionaries containing the data.
 
     """
+    if path in ["", "/"] :
+        path = os.getcwd() + "/"
 
-    if unique:
-        path += datetime.datetime.now().strftime("_%b_%d_%Y_%H_%M/")
+    if path[-1] != '/':
+        path += '/'
+        
+    keys = kwargs.keys()
+    
+    if "unique" in keys:
+        if kwargs["unique"] == True:
+            path += datetime.datetime.now().strftime("%b_%d_%Y_%H_%M/")
+        kwargs.pop("unique")
 
     try:
         os.makedirs(path)
     except:
         pass
-    for params in kwarg:
+    for params in kwargs:
         path_case = path + params + ".mat"
-        sio.savemat(path_case, kwarg[params], oned_as='row')
+        sio.savemat(path_case, kwargs[params], oned_as='row')
 
 
 def loadmat(path):
