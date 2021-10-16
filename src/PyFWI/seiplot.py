@@ -5,7 +5,10 @@ import numpy as np
 
 import plotly.express as px
 
-from PyFWI.model_dataset import ModelGenerator
+try:
+    from PyFWI.model_dataset import ModelGenerator
+except:
+    from model_dataset import ModelGenerator
 
 def earth_model(model, keys=[]):
 
@@ -46,6 +49,7 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False)
 
     ax.invert_yaxis()
     ax.axis([0, x_axis[-1], t_axis[-1], 0])
+    plt.show(block=False)
 
     return ax
 

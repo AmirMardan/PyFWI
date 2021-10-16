@@ -1,5 +1,10 @@
-from seismic_io import loadmat
 import os 
+
+try:
+    from PyFWI.seismic_io import loadmat
+except:
+    from seismic_io import loadmat
+
 
 def inpa_loading(path):
     """
@@ -13,7 +18,7 @@ def inpa_loading(path):
     Returns:
         inpa (dict): input of FWI program 
     """
-    
+
     if os.path.isfile(path):
         inpa = loadmat(path)
 
