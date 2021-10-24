@@ -44,6 +44,35 @@ def inpa_loading(path):
     inpa["ns"] = inpa["ns"].item()
     inpa['offsetx'] = inpa['offsetx'].item()
     inpa['offsetz'] = inpa['offsetz'].item()
+    inpa['f_inv'] = inpa['f_inv'].reshape(-1)
+    inpa['iteration'] = inpa['iteration'].item()
+    inpa['TL_inversion_method'] = inpa['TL_inversion_method'].item()
+
+    inpa['regularization'] = {
+    'tv': {
+        'az': inpa['regularization'][0][0][0][0][0][0].item(),
+        'ax': inpa['regularization'][0][0][0][0][0][1].item(),
+        'lambda_weight':  inpa['regularization'][0][0][0][0][0][2].item(),
+        'iteration_number': inpa['regularization'][0][0][0][0][0][3].item(),
+        'az_tl': inpa['regularization'][0][0][0][0][0][4].item(),
+        'ax_tl': inpa['regularization'][0][0][0][0][0][5].item(),
+        'lambda_weight_tl': inpa['regularization'][0][0][0][0][0][6].item(),
+        'iteration_number_tl': inpa['regularization'][0][0][0][0][0][7].item(),
+
+    },
+    'tikhonov': {
+        'az': inpa['regularization'][0][0][1][0][0][0].item(),
+        'ax': inpa['regularization'][0][0][1][0][0][1].item(),
+        'lambda_weight': inpa['regularization'][0][0][1][0][0][2].item(),
+        'iteration_number': inpa['regularization'][0][0][1][0][0][3].item(),
+        'az_tl': inpa['regularization'][0][0][1][0][0][4].item(),
+        'ax_tl': inpa['regularization'][0][0][1][0][0][5].item(),
+        'lambda_weight_tl': inpa['regularization'][0][0][1][0][0][6].item(),
+    },
+    'tikhonov0': {
+        'lambda_weight': inpa['regularization'][0][0][2][0][0][0].item()
+    }
+}
 
     return inpa
 
