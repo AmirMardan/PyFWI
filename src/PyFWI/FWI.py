@@ -1,9 +1,9 @@
 import os 
 
 try:
-    from PyFWI.seismic_io import loadmat
+    from PyFWI.seismic_io import load_mat
 except:
-    from seismic_io import loadmat
+    from seismic_io import load_mat
 
 
 def inpa_loading(path):
@@ -20,12 +20,12 @@ def inpa_loading(path):
     """
 
     if os.path.isfile(path):
-        inpa = loadmat(path)
+        inpa = load_mat(path)
 
     elif os.path.isdir(path):
         if path[-1] != "/":
             path += "/"
-        inpa = loadmat(path + "INPA.mat")
+        inpa = load_mat(path + "INPA.mat")
     
     inpa['nx'] = inpa['nx'].item()
     inpa['nz'] = inpa['nz'].item()

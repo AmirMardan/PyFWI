@@ -8,6 +8,7 @@ import shutil
 import requests
 import scipy.io as sio
 import datetime
+import pickle
 
 
 def read_segy(path):
@@ -27,7 +28,7 @@ def read_segy(path):
     return data
 
 
-def savemat(path, **kwargs):
+def save_mat(path, **kwargs):
     """This function save python dictionary as a .mat file.
 
     Parameters
@@ -40,11 +41,11 @@ def savemat(path, **kwargs):
         Dictionaries containing the data.
 
     """
-    if path in ["", "/"] :
-        path = os.getcwd() + "/"
-
-    if path[-1] != '/':
-        path += '/'
+    try:
+        if path[-1] != "/":
+            path += "/"
+    except:
+        pass
         
     keys = kwargs.keys()
     
@@ -62,7 +63,7 @@ def savemat(path, **kwargs):
         sio.savemat(path_case, kwargs[params], oned_as='row')
 
 
-def loadmat(path):
+def load_mat(path):
     """This function load python dictionary as a .mat file.
 
     Parameters
@@ -81,3 +82,69 @@ def loadmat(path):
         pass
 
     return data
+
+#%% pkl
+def save_pkl(path, **kwargs):
+    """
+    save_pkl saves pkl file.
+
+    save_pkl saves file with pkl format. That is better than .mat file
+    for preserving the structure of dictionaries. 
+
+    Args:
+        path (string): path to save the file(s).
+
+        **kwargs (data): Variable(s) to be saved.
+        A boolean argument with name of "unique" can be given to make the 
+        path based on the data. 
+
+    """
+    try:
+        if path[-1] != "/":
+            path += "/"
+    except:
+        pass
+
+    keys = kwargs.keys()
+    if "unique" in keys:
+        if kwargs["unique"] == True:
+            path += datetime.datetime.now().strftime("%b_%d_%Y_%H_%M/")
+        kwargs.pop("unique")
+
+    try:
+        os.makedirs(path)
+    except:
+        pass
+
+    for params in kwargs:
+        path_case = path + params + ".pkl"
+
+        a_file = open(path_case, "wb")
+        pickle.dump(kwargs[params], a_file)
+        a_file.close()
+
+
+def load_pkl(file_path):
+    """
+    load_pkl loads pkl file.
+
+    load_pkl loads pkl file.
+
+    Args:
+        file_path (string): Path of file to be loaded.
+
+    Returns:
+        output: Loaded file.
+    """
+    a_file = open(file_path, "rb")
+    output = pickle.load(a_file)
+    return output
+
+if __name__ == "__main__":
+    test = {'vp':1,
+            'vs':{
+                'k':1,
+                'c':1
+            }}
+
+    save_mat("", test=test, unique=False)
