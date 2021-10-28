@@ -15,7 +15,7 @@ class Density:
     def __call__(self, rp_model):
         pass
 
-    def gardner (self, model, units="metric"):
+    def gardner (self, vp, units="metric"):
         """
         gardner method to estimate the density
 
@@ -23,76 +23,99 @@ class Density:
         uses the Gardner's eqution.
 
         Args:
-            model (dict): A dictionary containg Earth's properties (must containg 'vp')
+            vp (float): P-wave velocity
             units (str, optional): Specify the system of the units fo measurements (Metric or Imperial) . Defaults to "metric".
+        
+        Returns:
+            rho: density
         """
-        coeff = (0.31, 0.23) [units in ['imperial', 'Imperial', 'ft', 'ft/s']]
-        model['rho'] = coeff * model['vp'] ** 0.25
+        coeff = (0.31, 0.23)[units in ['imperial', 'Imperial', 'ft', 'ft/s']]
+        rho = coeff * vp ** 0.25
     
-        return model
+        return rho
 
 
 class ShearVelocity:
     def __init__(self):
         pass
 
-    def poisson_ratio_vs(self, model, sigma=None):
+    def poisson_ratio_vs(self, vp, sigma=0.25):
         """
         poisson_ratio_vs calculates the shear velocity.
 
         Calculates the shear velocity based on Poisson's ration.
 
         Args:
-            model (dict): Model containing the P-wave velocity.
+            vp (float): P-wave velocity.
             sigma (float, optional): Poisson's ration. It could be None if parameter "model" has this property. Defaults to None.
 
         Returns:
-            model (dict): The input model and shear velocity is added.
-        """
-
-        if sigma is None:
-            try:
-                sigma = model["poisson_ration"]
-            except:
-                raise NameError("To calculate the S-wave velocity based on Poisson's ratio, this parameter has to be imported.")
-
-        model['vs'] = model['vp'] * np.sqrt((0.5 - sigma) / (1.0 - sigma))
-        return model
+            vs: The input model and shear velocity is added.
+        """            
+        vs = vp * np.sqrt((0.5 - sigma) / (1.0 - sigma))
+        return vs
     
 
 class Mu:
     def __init__(self):
         pass
 
-    def vs_rho(self, model): 
+    def vs_rho(self, vs, rho=None): 
         """
         vs_rho generate mu
 
         This function add mu to to the imported model based on S-wave velocity and density.
 
         Args:
-            model (dict): Model of Earth's properties which must contain vs (S-wave velocity) and rho (density).
+            vs (float or dict): S-wave velocity. if dict, it has to contain value for density.
+            rho (float, option): Density
 
         Returns:
-            model: It returns the model back while mu is added.
+            mu: Shear modulus
         """
-        model['mu'] = model['vs'] ** 2 * model['rho']
+        if rho is None:
+            try:
+                rho = vs['rho']
+                vs = vs['vs']
+            except:
+                error_lack_of_data
 
-        return model
+        mu = vs ** 2 * rho
+
+        return mu
 
 
 
-class Lame:
+class Lamb:
     def __init__(self):
         pass
     
-    def vp_rho_mu(self, model):
+    def vp_rho_mu(self, rho, vp=None, mu=None):
 
         # TODO: CHECK IF THERE IS NO MU BUT MODEL HAS VS, CREATE MU BASED ON THE VS AND THEN GENERATE MU
-        
-        model['lam'] = model['rho'] * model['vp'] ** 2 - 2 * model['mu']
-        return model
+        if vp is None or mu is None:
+            try:
+                vp = rho['vp']
+                mu = rho['mu']
+                rho = rho['rho']
+            except:
+                error_lack_of_data()
 
+        lam = rho * vp ** 2 - 2 * mu
+        return lam
+
+
+def error_lack_of_data():
+    raise "Not appropriate data are provided to calculate Lambda"
+
+
+class p_velocity:
+    def __init__(self):
+        pass
+    
+    def lam_mu_rho(self, lam, mu, rho):        
+        vp = np.sqrt((lam + 2*mu)/rho)
+        return vp
 
 
 if __name__ == "__main__":
