@@ -1,9 +1,12 @@
 import os 
+import numpy as np
 
 try:
     from PyFWI.seismic_io import load_mat
+    from PyFWI import rock_physics as RP 
 except:
     from seismic_io import load_mat
+    import rock_physics as RP 
 
 
 def inpa_loading(path):
@@ -76,3 +79,134 @@ def inpa_loading(path):
 
     return inpa
 
+
+def _acoustic_model_preparation(model, med_type):
+    keys = [*model]
+
+    len_keys = len(keys)
+    shape = model[[*model][0]].shape
+
+    model['vs'] = np.zeros(shape, np.float32)
+    if len_keys == 1:
+        model['rho'] = np.ones(shape, np.float32)
+            
+        # if keys[0] == 'lam':
+        #     model['vp'] =  RP.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
+    
+    elif len_keys == 2:
+        if 'rho' not in keys:
+            model['rho'] = np.ones(shape, np.float32)
+            print("Density is considered constant.")
+
+    if keys[0] == 'lam':
+        model['vp'] = RP.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
+
+    return model
+            
+
+def _elastic_model_preparation(model, med_type):
+    keys = [*model]
+
+    len_keys = len(keys)
+    shape = model[[*model][0]].shape
+
+    if len_keys < 3:
+        raise "For Elastic case (med_type=1), vp, vs, and density have to be provided."
+
+    
+    return model
+
+
+def prepare_model(model, med_type):
+
+    if med_type in [0, 'acoustic']:
+        model = _acoustic_model_preparation(model, med_type)
+
+    elif med_type in [1, 'elastic']:
+       model = _elastic_model_preparation(model, med_type)
+
+    return model
+
+
+# def _model_rearanging(model0, med_type):
+#     model = {}
+    
+#     if med_type == 1:
+#         try:
+
+
+
+
+def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
+    """
+    grad_lmr_to_vd [summary]
+
+    [extended_summary]
+
+    Args:
+        glam ([type]): [description]
+        gmu ([type]): [description]
+        grho ([type]): [description]
+        mu ([type]): [description]
+        lam ([type]): [description]
+        vp ([type]): [description]
+        vs ([type]): [description]
+        rho ([type]): [description]
+    
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    glam_vp = glam * 2 * vp * rho
+    gmu_vp = gmu * (- rho * vp)
+    grho_vp = grho * (- 2 * (lam - 2*mu)/vp**3)
+    gvp = glam_vp + gmu_vp + grho_vp  # gvp
+
+    glam_vs = glam * 0
+    gmu_vs = gmu * 2 * vs * rho
+    grho_vs = grho * (-2*mu/vs ** 3)
+    gvs = glam_vs + gmu_vs + grho_vs  # gvs
+
+    glam_rho = glam * vp ** 2
+    gmu_rho = gmu * vs ** 2
+    grho_rho = grho
+    grho = glam_rho + gmu_rho + grho_rho
+
+    return gvp, gvs, grho
+
+def grad_vd_to_pcs(gvp, gvs, grho, mu, lam, vp, vs, rho):
+    """
+    grad_lmr_to_vd [summary]
+
+    [extended_summary]
+
+    Args:
+        glam ([type]): [description]
+        gmu ([type]): [description]
+        grho ([type]): [description]
+        mu ([type]): [description]
+        lam ([type]): [description]
+        vp ([type]): [description]
+        vs ([type]): [description]
+        rho ([type]): [description]
+    
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    gvp_phi = gvp * (-6.94)
+    gvs_phi = gvs * (- 4.94)
+    grho_phi = grho * (- 2 * (lam - 2*mu)/vp**3)
+    gvp = glam_vp + gmu_vp + grho_vp  # gvp
+
+    glam_vs = glam * 0
+    gmu_vs = gmu * 2 * vs * rho
+    grho_vs = grho * (-2*mu/vs ** 3)
+    gvs = glam_vs + gmu_vs + grho_vs  # gvs
+
+    glam_rho = glam * vp ** 2
+    gmu_rho = gmu * vs ** 2
+    grho_rho = grho
+    grho = glam_rho + gmu_rho + grho_rho
+
+    return gvp, gvs, grho
