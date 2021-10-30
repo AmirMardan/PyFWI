@@ -19,8 +19,8 @@ class ModelGenerator():
         self.height = height
         self.dx = dx
         self.dz = dz
-        self.nx = width // dx
-        self.nz = height //dz
+        self.nx = np.int(width // dx)
+        self.nz = np.int(height // dz)
 
     def background(self, bp):
         """
