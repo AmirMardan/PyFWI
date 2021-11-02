@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 try:
     from PyFWI.seiplot import seismic_section
 except:
-    from seismic_io import seismic_section
+    from seiplot import seismic_section
 
 class Gain():
 

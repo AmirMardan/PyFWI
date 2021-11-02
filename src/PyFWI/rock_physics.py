@@ -54,6 +54,23 @@ class ShearVelocity:
         """            
         vs = vp * np.sqrt((0.5 - sigma) / (1.0 - sigma))
         return vs
+
+    def Han(self, phi, cc, **kwargs):
+        """
+        Han calulates vs based on Han empirical model.
+
+        Han calulates vs based on Han empirical model.
+
+        Args:
+            phi ([type]): Porosity
+            cc ([type]): Clay content
+
+        Returns:
+            vp: S-wave velocity
+        """
+        _, vs = Han(phi, cc, kwargs)
+        return vs
+    
     
 
 class Mu:
@@ -116,6 +133,50 @@ class p_velocity:
     def lam_mu_rho(self, lam, mu, rho):        
         vp = np.sqrt((lam + 2*mu)/rho)
         return vp
+
+    def Han(self, phi, cc, **kwargs):
+        """
+        Han calulates vp based on Han empirical model.
+
+        Han calulates vp based on Han empirical model.
+
+        Args:
+            phi ([type]): Porosity
+            cc ([type]): Clay content
+
+        Returns:
+            vp: P-wave velocity
+        """
+        vp, _ = Han(phi, cc, kwargs)
+        return vp
+    
+
+def Han(phi, cc, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
+    """
+    Han estimates velocity based on porosity and clasy content
+
+    Han found empirical regressions relating ultrasonic (laboratory) velocities to porosity and clay content
+
+    Args:
+        phi ([type]): [porosity
+        cc ([type]): clay content
+        a1 (float, optional): Constant value for Vp. Defaults to 5.77.
+        a2 (float, optional): Constant value for Vp. Defaults to 6.94.
+        a3 (float, optional): Constant value for Vp. Defaults to 1.728.
+        b1 (float, optional): Constant value for Vs. Defaults to 5.77.
+        b2 (float, optional): Constant value for Vs. Defaults to 6.94.
+        b3 (float, optional): Constant value for Vs. Defaults to 1.728.
+
+    Returns:
+        vp: P-wave velocity (km/s)
+        vs = S-wave velocity (km/s)
+    References:
+        1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+        2. Mavko, G., Mukerji, T., & Dvorkin, J., 2020, The rock physics handbook. Cambridge university press.
+    """
+    vp = a1 - a2 * phi - a3* np.sqrt(cc)
+    vs = b1 - b2 * phi - b3 * np.sqrt(cc)
+    return vp, vs
 
 
 if __name__ == "__main__":
