@@ -184,8 +184,8 @@ def Hu_circle(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, i
 
     }
 
-    rho_m = rho['Clay'] * model['cc'] + rho['Q']*(1-model['cc'])
-    rho_f = rho['Water'] * model['sw'] + rho['hydro']*(1-model['sw'])
+    rho_m = rp.Density().matrix(rho['Clay'], model['cc'], rho['Q'])
+    rho_f = rp.Density().fluid(rho['hydro'], rho['Water'], model['sw'])
 
     vp, vs = rp.Han(model['phi'], model['cc'], a1=5.77, a2=6.94, a3=1.728, b1=3.7, b2=4.94, b3=1.57)
 

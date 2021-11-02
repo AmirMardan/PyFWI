@@ -34,6 +34,45 @@ class Density:
     
         return rho
 
+    
+    def fluid(self, r_hydro, rho_w, sw):
+        """
+        fluid [summary]
+
+        [extended_summary]
+
+        Args:
+            r_hydro ([type]): [description]
+            rho_w ([type]): [description]
+            sw ([type]): [description]
+
+        Returns:
+            rho_f [type]: Density of fluid
+        """
+        sh = 1 - sw
+        rho_f = rho_w * sw + r_hydro * sh
+
+        return rho_f
+
+    def matrix(self, rho_clay, cc, rho_q, **kwargs):
+        """
+        matrix [summary]
+
+        [extended_summary]
+
+        Args:
+            rho_clay ([type]): [description]
+            cc ([type]): [description]
+            rho_q ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        q = 1 - cc 
+        rho_m = rho_clay * cc + rho_q * q
+
+        return rho_m
+
 
 class ShearVelocity:
     def __init__(self):

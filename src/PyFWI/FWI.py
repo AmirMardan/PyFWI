@@ -3,10 +3,10 @@ import numpy as np
 import copy 
 try:
     from PyFWI.seismic_io import load_mat
-    from PyFWI import rock_physics as RP 
+    from PyFWI import rock_physics as rp 
 except:
     from seismic_io import load_mat
-    import rock_physics as RP 
+    import rock_physics as rp 
 
 
 def inpa_loading(path):
@@ -100,7 +100,7 @@ def _acoustic_model_preparation(model, med_type):
             print("Density is considered constant.")
 
     if keys[0] == 'lam':
-        model['vp'] = RP.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
+        model['vp'] = rp.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
 
     return model
             
@@ -119,7 +119,7 @@ def _elastic_model_preparation(model0, med_type):
     return model
 
 
-def prepare_model(model, med_type):
+def modeling_model(model, med_type):
 
     if med_type in [0, 'acoustic']:
         model = _acoustic_model_preparation(model, med_type)
@@ -166,7 +166,13 @@ def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
 
     glam_vs = glam * 0
     gmu_vs = gmu * 2 * vs * rho
-    grho_vs = grho * (-2*mu/vs ** 3)
+    
+    # vs is zeros for acoustic case
+    if np.all(vs==0):
+        grho_vs  = 0
+    else:
+        grho_vs = grho * (-2*mu/vs ** 3)
+
     gvs = glam_vs + gmu_vs + grho_vs  # gvs
 
     glam_rho = glam * vp ** 2
@@ -176,7 +182,7 @@ def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
 
     return gvp, gvs, grho
 
-def grad_vd_to_pcs(gvp, gvs, grho, cc, rho_c, rho_q, phi, rho_w, rho_g, rho_f):
+def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
     """
     grad_vd_to_pcs [summary]
 
@@ -201,22 +207,32 @@ def grad_vd_to_pcs(gvp, gvs, grho, cc, rho_c, rho_q, phi, rho_w, rho_g, rho_f):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
+    rho_q = 2.65
+    rho_c = 2.55
+    rho_w = 1.0
+    rho_g = 0.1
 
-    rho_m = rho_c * cc + rho_q * (1-cc)
+    rho_f = rp.Density().fluid(rho_g, rho_w, sw)
+
+    gvp = np.copy(gvp0)
+    gvs = np.copy(gvs0)
+    grho = np.copy(grho0)
+
+    rho_m = rp.Density().matrix(rho_c, cc, rho_q)
 
     gvp_phi = gvp * (-6.94 * 1000)
     gvs_phi = gvs * (- 4.94 * 1000)
     grho_phi = grho * (- rho_m + rho_f)
-    gvp = gvp_phi + gvs_phi + grho_phi  # gvp
+    gphi = gvp_phi + gvs_phi + grho_phi  # gvp
 
     gvp_cc = gvp * (-1728/2 /np.sqrt(cc))
     gvs_cc = gvs * (-1570/2 /np.sqrt(cc))
     grho_cc = grho * (1 - phi) * (rho_c - rho_q)
-    gvs = gvp_cc + gvs_cc + grho_cc  # gvs
+    gcc = gvp_cc + gvs_cc + grho_cc  # gvs
 
     gvp_s = gvp * 0
     gvs_s = gvs * 0
     grho_s = grho * phi * (rho_w - rho_g)
     grho = gvp_s + gvs_s + grho_s
 
-    return gvp, gvs, grho
+    return gphi, gcc, grho
