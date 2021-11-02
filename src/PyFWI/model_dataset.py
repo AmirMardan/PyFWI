@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import rock_physics as rp
 
 class ModelGenerator():
 
@@ -137,7 +138,62 @@ def add_circle (model, circle_prop, r, cx, cz):
     return model
 
 
+def Hu_circle(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, initial=False, monitor=False):
+    # GET the model if we are looking for monitor model 
 
+    if not rho:
+        rho = {
+            "Q": 2.65,
+            "Clay": 2.55,
+            "Water": 1.0,
+            "hydro": 0.1
+            }
+
+    if not prop_back:
+        prop_back = {
+            "phi": 0.2,
+            'cc': 0.2,
+            'sw': 0.4
+        }
+
+    if initial: # For initial mode, we don't have the circle
+        prop_circle = prop_back
+    if monitor: # For monitor model, sw decreases
+        if not prop_circle:
+            prop_circle = {
+                "phi": 0.3,
+                'cc': 0.4,
+                'sw': 0.8
+            }
+
+    else:
+        if not prop_circle:
+            prop_circle = {
+                "phi": 0.3,
+                'cc': 0.4,
+                'sw': 0.6
+            }
+
+    Model = ModelGenerator(nz, nx, 1, 1)
+
+    loc = np.array([nz//4, nx//4])
+
+    model = {'phi': Model.circle(prop_back['phi'], prop_circle['phi'], loc, r),
+             'cc': Model.circle(prop_back['cc'], prop_circle['cc'], 2*loc, r),
+             'sw': Model.circle(prop_back['sw'], prop_circle['sw'], 3*loc, r)
+
+    }
+
+    rho_m = rho['Clay'] * model['cc'] + rho['Q']*(1-model['cc'])
+    rho_f = rho['Water'] * model['sw'] + rho['hydro']*(1-model['sw'])
+
+    vp, vs = rp.Han(model['phi'], model['cc'], a1=5.77, a2=6.94, a3=1.728, b1=3.7, b2=4.94, b3=1.57)
+
+    model['vp'] = 1000 * vp
+    model['vs'] = 1000 * vs
+    model['rho'] = (1-model['phi']) * rho_m + model['phi'] * rho_f
+
+    return model
         
 
 if __name__ == "__main__":
