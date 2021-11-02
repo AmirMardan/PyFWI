@@ -1,6 +1,6 @@
 import os 
 import numpy as np
-
+import copy 
 try:
     from PyFWI.seismic_io import load_mat
     from PyFWI import rock_physics as RP 
@@ -87,6 +87,7 @@ def _acoustic_model_preparation(model, med_type):
     shape = model[[*model][0]].shape
 
     model['vs'] = np.zeros(shape, np.float32)
+    
     if len_keys == 1:
         model['rho'] = np.ones(shape, np.float32)
             
@@ -104,7 +105,8 @@ def _acoustic_model_preparation(model, med_type):
     return model
             
 
-def _elastic_model_preparation(model, med_type):
+def _elastic_model_preparation(model0, med_type):
+    model = model0.copy()
     keys = [*model]
 
     len_keys = len(keys)
@@ -174,39 +176,47 @@ def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
 
     return gvp, gvs, grho
 
-def grad_vd_to_pcs(gvp, gvs, grho, mu, lam, vp, vs, rho):
+def grad_vd_to_pcs(gvp, gvs, grho, cc, rho_c, rho_q, phi, rho_w, rho_g, rho_f):
     """
-    grad_lmr_to_vd [summary]
+    grad_vd_to_pcs [summary]
 
     [extended_summary]
 
     Args:
-        glam ([type]): [description]
-        gmu ([type]): [description]
+        gvp ([type]): [description]
+        gvs ([type]): [description]
         grho ([type]): [description]
-        mu ([type]): [description]
-        lam ([type]): [description]
-        vp ([type]): [description]
-        vs ([type]): [description]
-        rho ([type]): [description]
-    
+        cc ([type]): [description]
+        rho_c ([type]): [description]
+        rho_q ([type]): [description]
+        phi ([type]): [description]
+        rho_w ([type]): [description]
+        rho_g ([type]): [description]
+        rho_f ([type]): [description]
+
+    Returns:
+        [type]: [description]
+
     Refrences:
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
-    gvp_phi = gvp * (-6.94)
-    gvs_phi = gvs * (- 4.94)
-    grho_phi = grho * (- 2 * (lam - 2*mu)/vp**3)
-    gvp = glam_vp + gmu_vp + grho_vp  # gvp
 
-    glam_vs = glam * 0
-    gmu_vs = gmu * 2 * vs * rho
-    grho_vs = grho * (-2*mu/vs ** 3)
-    gvs = glam_vs + gmu_vs + grho_vs  # gvs
+    rho_m = rho_c * cc + rho_q * (1-cc)
 
-    glam_rho = glam * vp ** 2
-    gmu_rho = gmu * vs ** 2
-    grho_rho = grho
-    grho = glam_rho + gmu_rho + grho_rho
+    gvp_phi = gvp * (-6.94 * 1000)
+    gvs_phi = gvs * (- 4.94 * 1000)
+    grho_phi = grho * (- rho_m + rho_f)
+    gvp = gvp_phi + gvs_phi + grho_phi  # gvp
+
+    gvp_cc = gvp * (-1728/2 /np.sqrt(cc))
+    gvs_cc = gvs * (-1570/2 /np.sqrt(cc))
+    grho_cc = grho * (1 - phi) * (rho_c - rho_q)
+    gvs = gvp_cc + gvs_cc + grho_cc  # gvs
+
+    gvp_s = gvp * 0
+    gvs_s = gvs * 0
+    grho_s = grho * phi * (rho_w - rho_g)
+    grho = gvp_s + gvs_s + grho_s
 
     return gvp, gvs, grho
