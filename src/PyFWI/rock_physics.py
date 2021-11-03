@@ -186,7 +186,7 @@ class p_velocity:
         Returns:
             vp: P-wave velocity
         """
-        vp, _ = Han(phi, cc, kwargs)
+        vp, _ = Han(phi, cc)
         return vp
     
 
@@ -213,7 +213,7 @@ def Han(phi, cc, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
         2. Mavko, G., Mukerji, T., & Dvorkin, J., 2020, The rock physics handbook. Cambridge university press.
     """
-    vp = a1 - a2 * phi - a3* np.sqrt(cc)
+    vp = a1 - a2 * phi - a3 * np.sqrt(cc)
     vs = b1 - b2 * phi - b3 * np.sqrt(cc)
     return vp, vs
 

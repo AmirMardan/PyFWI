@@ -1,6 +1,7 @@
 import os 
 import numpy as np
 import copy 
+import logging 
 try:
     from PyFWI.seismic_io import load_mat
     from PyFWI import rock_physics as rp 
@@ -87,7 +88,8 @@ def _acoustic_model_preparation(model, med_type):
     shape = model[[*model][0]].shape
 
     model['vs'] = np.zeros(shape, np.float32)
-    
+    model['mu'] = np.zeros(shape, np.float32)
+
     if len_keys == 1:
         model['rho'] = np.ones(shape, np.float32)
             
@@ -112,6 +114,14 @@ def _elastic_model_preparation(model0, med_type):
     len_keys = len(keys)
     shape = model[[*model][0]].shape
 
+    if 'vp' not in keys:
+        try:
+            model['vp'] = rp.p_velocity().Han(model['phi'], model['cc'])
+            logging.info("P-wave velocity is estimated based on Han method")
+
+        except:
+            raise Exception ("Model has to have P-wave velocity")
+
     if len_keys < 3:
         raise "For Elastic case (med_type=1), vp, vs, and density have to be provided."
 
@@ -126,6 +136,7 @@ def modeling_model(model, med_type):
 
     elif med_type in [1, 'elastic']:
        model = _elastic_model_preparation(model, med_type)
+
 
     return model
 
