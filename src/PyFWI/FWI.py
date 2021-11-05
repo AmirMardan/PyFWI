@@ -1,7 +1,9 @@
 import os 
 import numpy as np
 import copy 
-import logging 
+import logging
+
+from numpy.core.arrayprint import dtype_is_implied 
 try:
     from PyFWI.seismic_io import load_mat
     from PyFWI import rock_physics as rp 
@@ -9,6 +11,58 @@ except:
     from seismic_io import load_mat
     import rock_physics as rp 
 
+
+def inpa_generator(**kwargs):
+    inpa = {
+        "SeisCL": False,
+        "seisout": 4,
+        "no_use_GPUs": np.array([-1]),
+        "cost_function_type": "l2",
+        "cost_function_intensity": "l2_intensity",
+        "device": 0,
+        "medium": 1,
+        "ns": 1,
+        "Npml": 20,
+        "pmlR": 1e-5,
+        "gain": 0,
+        # PML in 0:z-, 1:x-, 2: z- and x-direction, 3: free surface
+        "pml_dir": 2,
+
+        # 0: vp, vs, rho; 1: lambda, mu, rho; 2: PCS
+        "param_type": 0,
+
+        # Number of check points relative to all time samples based on percentage
+        "chpR": 15,
+
+        # Defining the data type (0: circle, 1: Simple two layers, 2: Dupuy, 3: Marmousi,
+        #                         4: st Lawrence, 5: perturbation, 6: SEAM, 7:Hu1)
+        "models_name": 5,
+
+        "ITER_intensity": 0,
+        "iteration": np.array([40, 40, 40], dtype=np.int),
+        # Dominant frequency for wavelet
+        "fdom": 20,
+        "f_inv": np.array([15, 25, 30], dtype=np.float32),
+        
+        # Choosing the order of spatial derivative (Could be 2, 4, 8)
+        "sdo": 8,
+
+        # Specify the acquisition type (0: crosswell, 1: surface, 2: both)
+        "acq_type": 2,
+        "energy_balancing": True,
+        "gradient_smoothing": 0,
+
+        "offset_weighting": False,
+
+        "vel_unit": "m/s",
+        "dh": np.float32(7),
+        "dt": 0.00061
+    }
+
+    for key, value in kwargs.items():
+        inpa[key] = value
+
+    return inpa
 
 def inpa_loading(path):
     """
@@ -90,16 +144,9 @@ def _acoustic_model_preparation(model, med_type):
     model['vs'] = np.zeros(shape, np.float32)
     model['mu'] = np.zeros(shape, np.float32)
 
-    if len_keys == 1:
+    if 'rho' not in keys:
         model['rho'] = np.ones(shape, np.float32)
-            
-        # if keys[0] == 'lam':
-        #     model['vp'] =  RP.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
-    
-    elif len_keys == 2:
-        if 'rho' not in keys:
-            model['rho'] = np.ones(shape, np.float32)
-            print("Density is considered constant.")
+        print("Density is considered constant.")
 
     if keys[0] == 'lam':
         model['vp'] = rp.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
@@ -116,7 +163,7 @@ def _elastic_model_preparation(model0, med_type):
 
     if 'vp' not in keys:
         try:
-            model['vp'] = rp.p_velocity().Han(model['phi'], model['cc'])
+            model['vp'] = 1000 * rp.p_velocity().Han(model['phi'], model['cc'])
             logging.info("P-wave velocity is estimated based on Han method")
 
         except:
@@ -247,3 +294,7 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
     grho = gvp_s + gvs_s + grho_s
 
     return gphi, gcc, grho
+
+if __name__ == "__main__":
+    inpa = inpa_generator()
+    print(inpa)
