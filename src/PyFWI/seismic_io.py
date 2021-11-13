@@ -9,6 +9,7 @@ import requests
 import scipy.io as sio
 import datetime
 import pickle
+import hdf5storage as hdf5
 
 
 def read_segy(path):
@@ -71,15 +72,8 @@ def load_mat(path):
     path : String
         The path to save the data.
     """
-
-    data = sio.loadmat(path)
-
-    try:
-        data.pop("__header__")
-        data.pop("__version__")
-        data.pop("__globals__")
-    except:
-        pass
+    data = {}
+    hdf5.loadmat(path, data)
 
     return data
 

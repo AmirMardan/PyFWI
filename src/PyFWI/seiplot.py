@@ -8,7 +8,7 @@ import plotly.express as px
 try:
     from PyFWI.model_dataset import ModelGenerator
 except:
-    from model_dataset import ModelGenerator
+    from PyFWI.model_dataset import ModelGenerator
 
 def earth_model(model, keys=[]):
 
@@ -54,13 +54,15 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False)
     return ax
 
 if __name__ == "__main__":
-    import model_dataset as md
-    import rock_physics as rp
+    # import PyFWI.model_dataset as md
+    import PyFWI.rock_physics as rp
 
     [nz, nx] = [100, 100]
     Model = ModelGenerator(nx, nz, 1, 1)
-    model = Model.circle({"vp":2500}, {"vp": 3000}, [50, 50], 10)
-    model = rp.Density().gardner(model)
+    model = {
+        'vp': Model.circle(2500, 3000, [50, 50], 10)
+    }
+    model['rho'] = rp.Density().gardner(model['vp'])
 
     earth_model(model)
     plt.show()

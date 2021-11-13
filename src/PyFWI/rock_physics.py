@@ -188,9 +188,14 @@ class p_velocity:
         """
         vp, _ = Han(phi, cc)
         return vp
+
+    def gardner(rho, units='metric'):
+        coeff = (0.31, 0.23)[units in ['imperial', 'Imperial', 'ft', 'ft/s']]
+        vp = (rho/coeff)**4
+        return vp
     
 
-def Han(phi, cc, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
+def Han(phi=None, cc=None, vp=None, vs=None, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
     """
     Han estimates velocity based on porosity and clasy content
 
@@ -213,24 +218,120 @@ def Han(phi, cc, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
         2. Mavko, G., Mukerji, T., & Dvorkin, J., 2020, The rock physics handbook. Cambridge university press.
     """
-    vp = a1 - a2 * phi - a3 * np.sqrt(cc)
-    vs = b1 - b2 * phi - b3 * np.sqrt(cc)
-    return vp, vs
+    if phi is not None: # To calculate p_wave (p1) and s_wave (p2) velocities
+        p1 = a1 - a2 * phi - a3 * np.sqrt(cc) 
+        p2 = b1 - b2 * phi - b3 * np.sqrt(cc)
+
+        # p2 = p2.astype(np.float32)
+        # p1 = p1.astype(np.float32)
+        # p1 *= 1000
+        # p2 *= 1000
+    elif vp is not None:
+        original_shape = np.shape(vp)
+
+        vp = np.copy(vp)#/1000
+        vs = np.copy(vs)#/1000
+
+        vp = vp.reshape(1, -1)
+        vs = vs.reshape(1, -1)
+
+        y1 = vp - a1
+        y2 = vs - b1
+        y = np.vstack((y1, y2))
+
+        n = vp.shape[0]
+        A1 = np.hstack((-a2*np.ones((n, n)), -a3*np.ones((n, n))))
+        A2 = np.hstack((-b2*np.ones((n, n)), -b3*np.ones((n, n))))
+        A = np.vstack((A1, A2))
+
+        p = np.linalg.solve(A, y)
+
+        p1 = p[0, :]
+        p2 = (p[1, :]) ** 1
+        # print(p2) 
+
+        p1 = p1.reshape(original_shape)
+        p2 = p2.reshape(original_shape)
+
+        p1[p1<0] = 0
+        p2[p2<0] = 0
+    return np.round(p1,2) , np.round(p2, 2)
+
+
+def drained_moduli(phi, k_s, g_s, cs):
+    if (phi >= 1).any():
+        phi /= 100
+
+    k_d = k_s * ((1 - phi) / (1 + cs * phi))
+
+    g_d = g_s * ((1 - phi) / (1 + 1.5 * cs * phi))
+    return k_d, g_d
+
+
+def voigt_berie(k_l, rho_l, k_g, rho_g, s_g):
+    k_f = (k_l - k_g) * ((1 - s_g) ** 5) + k_g
+    rho_f = rho_l * (1 - s_g) + rho_g * s_g
+    return k_f, rho_f
+
+
+def effective_density(phi, rho_f, rho_s):
+    return rho_f * phi + rho_s * (1 - phi)
+
+
+def biot_gassmann(phi, k_f, k_s, k_d):
+    Delta = delta_biot_gassmann(phi, k_f, k_s, k_d)
+
+    denom = phi * (1 + Delta)
+
+    k_u = (phi * k_d + (1 - (1 + phi) * (k_d / k_s)) * k_f) / denom
+    C = k_f * (1 - k_d / k_s) / denom
+    M = k_f / denom
+    return k_u, C, M
+
+
+def delta_biot_gassmann(phi, k_f, k_s, k_d):
+    if (phi >= 1).any():
+        phi /= 100
+    return ((1 - phi) / phi) * (k_f / k_s) * (1 - (k_d / (k_s - k_s * phi)))
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    import earth_model as em
+    from  PyFWI import model_dataset as em
 
 
-    Model = em.Model_generator(100, 100, 1, 1)
-    model = Model.layer({"vp": 2500}) 
-    model = em.add_layer(model, {'vp':2400}, [0, 50], [0, 70], [100, 50] )
+    Model = em.ModelGenerator(100, 100, 1, 1)
+    model = {'vp': Model.background(2500)}
 
-    model = Density().gardner(model, "metric")
-    model = ShearVelocity().poisson_ratio_vs(model, 0.25)
+    model['vp'] = Model.add_layer(model['vp'], 2400, [0, 50], [0, 70], [100, 50] )
+
+    model['rho'] = Density().gardner(model['vp'], "metric")
+    model['vs'] = ShearVelocity().poisson_ratio_vs(model['vp'], 0.25)
     
-    im = plt.imshow(model["vs"])
-    plt.colorbar()
-    plt.show()
+    vp1, vs1 = Han(phi=0.55, cc=0.25)
+    
+    vp1 = np.array([vp1])
+    vs1 = np.array([vs1])
+
+    # vp1= np.array([model['vp'][50,50]])/1000
+    # vs1= np.array([model['vs'][50,50]])/1000
+    
+    print("VP: {}, VS: {}".format(vp1, vs1))
+    phi1, cc1 = Han(vp=vp1, vs=vs1)
+
+    print("phi: {}, cc: {}".format(phi1, cc1))
+    
+    a=1
+    # print("=================")
+    # evp, evs = Han(phi=phi, cc=cc)
+
+    # print(evp*1000)
+    # print(vp)
+    # print(" ------- ")
+    # print(evs*1000)
+    # print(vs)
+
+    # im = plt.imshow(cc)
+    # plt.colorbar()
+    # plt.show()
     
