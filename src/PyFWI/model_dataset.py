@@ -12,37 +12,41 @@ import shutil
 import segyio
 
 class Circular():
-    def __init__(self, vintage):
+    def __init__(self, vintage, smoothing):
         self.vintage = vintage
-
-    def louboutin(self, smoothing=False):
+        self.smoothing = smoothing
+        
+    def louboutin(self):
         # louboutin et al., 2018, FWI, part2
         self.nx = self.nz = 100
         model = background((100, 100), {'vp': 2500.0})
-        if self.vintage !=0:  # Not m0
+        if not self.smoothing:  # Not m0
             model['vp'] = add_circle(model['vp'], 3000, r=10, cx=50, cz=50)
-        if self.vintage == 2:  # Monitor model
-            model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
-        return model
-
-    def perturbation_pcs(self, smoothing=False):
-        # Based on Hu et al., 2020, Direct rock physics inversion
-        # Make another one based on DV
-        model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.8})
-        if self.vintage !=0:  # Not m0
-            model['phi'] = add_circle(model['phi'], 0.3, r=6, cx=25, cz=25)
-            model['cc'] = add_circle(model['cc'], 0.4, r=6, cx=50, cz=50)
-            model['sw'] = add_circle(model['sw'], 0.2, r=6, cx=75, cz=75)
-        if self.vintage == 2:  # Monitor model
-            model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
+            if self.vintage == 2:  # Monitor model
+                model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
         
         return model
 
-class Laminar():
-    def __init__(self, vintage) -> None:
-        self.vintage = vintage
+    def perturbation_pcs(self):
+        # Based on Hu et al., 2020, Direct rock physics inversion
+        # Make another one based on DV
+        model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.8})
+        if not self.smoothing:  # Not m0
+            model['phi'] = add_circle(model['phi'], 0.3, r=6, cx=25, cz=25)
+            model['cc'] = add_circle(model['cc'], 0.4, r=6, cx=50, cz=50)
+            model['sw'] = add_circle(model['sw'], 0.2, r=6, cx=75, cz=75)
+            if self.vintage == 2:  # Monitor model
+                model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
+        
+            
+        return model
 
-    def Hu_laminar(self, smoothing=None):
+class Laminar():
+    def __init__(self, vintage, smoothing) -> None:
+        self.vintage = vintage
+        self.smoothing = smoothing
+        
+    def Hu_laminar(self):
         # Based on Hu et al., 2020, Direct rock physics inversion 
         
         model = background((50, 50), {'phi':0.3, 'cc':0.1, 'sw':0.8})
@@ -52,12 +56,12 @@ class Laminar():
         if self.vintage == 2:
             model = add_layer(model, {'sw':0.2}, [22, 17], [22, 25], rt=[28, 17])
         
-        if smoothing:
-            model = model_smoother(model, smoothing)
+        if self.smoothing:
+            model = model_smoother(model, self.smoothing)
         return model
 
 
-    def dupuy(self, smoothing):
+    def dupuy(self):
         # based on Dupuy et al, 2016, 
         # Estimation of rock physics properties from seismic attributes — Part 2: Applications
 
@@ -87,16 +91,16 @@ class Laminar():
         for param in model:
             model[param] = model[param].astype(np.float32)
 
-        if smoothing:
-            model = model_smoother(model, smoothing)
+        if self.smoothing:
+            model = model_smoother(model, self.smoothing)
         return model
 
 
 class ModelGenerator(Circular, Laminar):
 
-    def __init__(self, width=None, height=None, dx=1.0, dz=1.0, vintage=1):
-        Circular.__init__(self, vintage)
-        Laminar.__init__(self, vintage)
+    def __init__(self, width=None, height=None, dx=1.0, dz=1.0, vintage=1, smoothing=False):
+        Circular.__init__(self, vintage, smoothing)
+        Laminar.__init__(self, vintage, smoothing)
         """
         A class to create the synthetic model.
 
@@ -112,16 +116,17 @@ class ModelGenerator(Circular, Laminar):
         self.height = height
         self.dx = dx
         self.dz = dz
+        self.smoothing = smoothing
         # self.nx = np.int(width // dx)
         # self.nz = np.int(height // dz)
 
 
     def __call__(self, name, smoothing=False):
         # name of the model
-        model = eval("self."+name)(smoothing)
+        model = eval("self."+name)()
         return model 
     
-    def marmousi(self, smoothing=False):
+    def marmousi(self):
         path = os.path.dirname(__file__) + '/data/'
     
         target_path = path + "elastic-marmousi-model.tar.gz"
@@ -228,8 +233,8 @@ class ModelGenerator(Circular, Laminar):
                 model = io.load_mat(path)
                              
         
-        if smoothing:
-            model = model_smoother(model, smoothing)
+        if self.smoothing:
+            model = model_smoother(model, self.smoothing)
         return model
 
 
