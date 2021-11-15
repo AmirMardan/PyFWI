@@ -74,7 +74,14 @@ def load_mat(path):
     """
     data = {}
     hdf5.loadmat(path, data)
-
+    
+    try:
+        data.pop("__header__")
+        data.pop("__version__")
+        data.pop("__globals__")
+    except:
+        pass
+    
     return data
 
 #%% pkl
