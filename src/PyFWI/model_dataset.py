@@ -6,12 +6,16 @@ import hdf5storage as hdf5
 from PyFWI import seismic_io as io
 from scipy.ndimage.filters import gaussian_filter
 import os
+from scipy import interpolate as intp
+import requests
+import shutil
+import segyio
 
 class Circular():
     def __init__(self, vintage):
         self.vintage = vintage
 
-    def louboutin(self):
+    def louboutin(self, smoothing=False):
         # louboutin et al., 2018, FWI, part2
         self.nx = self.nz = 100
         model = background((100, 100), {'vp': 2500.0})
@@ -56,7 +60,7 @@ class Laminar():
     def dupuy(self, smoothing):
         # based on Dupuy et al, 2016, 
         # Estimation of rock physics properties from seismic attributes — Part 2: Applications
-        a = os.getcwdb()
+
         path = os.path.dirname(__file__) + '/data/Dupuy2011_Moduli_data.mat'
         # path = "src/PyFWI/data/Dupuy2011_Moduli_data.mat"
         # path = os.path.dirname(path)
@@ -116,6 +120,117 @@ class ModelGenerator(Circular, Laminar):
         # name of the model
         model = eval("self."+name)(smoothing)
         return model 
+    
+    def marmousi(self, smoothing=False):
+        path = os.path.dirname(__file__) + '/data/'
+    
+        target_path = path + "elastic-marmousi-model.tar.gz"
+
+        models_url = "https://s3.amazonaws.com/open.source.geoscience/open_data/elastic-marmousi/elastic-marmousi-model.tar.gz"
+
+        models_segy = {}
+        models_segy['density'] = "MODEL_DENSITY_1.25m.segy"
+        models_segy['p'] = "MODEL_P-WAVE_VELOCITY_1.25m.segy"
+        models_segy['s'] = "MODEL_S-WAVE_VELOCITY_1.25m.segy"
+
+        new_name = {}
+        new_name['density'] = "Marmousi_rho.segy"
+        new_name['p'] = "Marmousi_P.segy"
+        new_name['s'] = "Marmousi_S.segy"
+
+        models_gz = {}
+        models_gz['density'] = path + "elastic-marmousi-model/model/MODEL_DENSITY_1.25m.segy.tar.gz"
+        models_gz['p'] = path + "elastic-marmousi-model/model/MODEL_P-WAVE_VELOCITY_1.25m.segy.tar.gz"
+        models_gz['s'] = path + "elastic-marmousi-model/model/MODEL_S-WAVE_VELOCITY_1.25m.segy.tar.gz"
+
+        if not os.path.isfile(path + "Marmousi_P.segy"):
+            response = requests.get(models_url, stream=True)
+
+            if response.status_code == 200:
+                with open(target_path, "wb") as f:
+                    f.write(response.raw.read())
+                shutil.unpack_archive(target_path, path)
+            for par in models_segy:
+                shutil.unpack_archive(models_gz[par], path)
+
+                os.replace(path + models_segy[par], path + new_name[par])
+            shutil.rmtree(path + "elastic-marmousi-model")
+            os.remove(target_path)
+            
+        with segyio.open(path + "Marmousi_P.segy", "r", strict=False) as segy:
+            models = np.transpose(np.array([segy.trace[trid]
+                                            for trid in range(segy.tracecount)]))
+            vp = models.astype(np.float32)
+
+        with segyio.open(path + "Marmousi_S.segy", "r", strict=False) as segy:
+            models = np.transpose(np.array([segy.trace[trid]
+                                            for trid in range(segy.tracecount)]))
+            vs = models.astype(np.float32)
+
+        with segyio.open(path + "Marmousi_rho.segy", "r", strict=False) as segy:
+            models = np.transpose(np.array([segy.trace[trid]
+                                            for trid in range(segy.tracecount)]))
+            rho = models.astype(np.float32)
+        
+        model = {
+            'vp': vp,
+            'vs': vs,
+            'rho': rho
+        }
+        
+        if self.vintage == 1:
+            if not os.path.isfile(path + "baseline_Marmousi.mat"):
+                diff={}
+                for param in model:
+                    vp = model[param]
+                    vp2 = np.copy(model[param])
+
+                    vp_diff = np.zeros(vp.shape)
+                    ''' ====== First point ======= '''
+                    loc1 = np.where(vp[:]==vp[910,8300])
+                    vp2[loc1] = vp[870, 8300]
+                    diff1 = vp2 - vp
+                    mask = np.ones(vp.shape, bool)
+                    mask[800:1100, 8000:8500] = False
+                    diff1[mask] = 0
+                    vp_diff += diff1
+    
+                    ''' ====== Second point ======= '''
+                    loc1 = np.where(vp[:]==vp[860, 2380])
+                    vp2[loc1] = vp[890, 2352]
+                    diff1 = vp2 - vp
+                    mask = np.ones(vp.shape, bool)
+                    mask[800:1000, 2000:2750] = False
+                    diff1[mask] = 0
+                    vp_diff += diff1
+        
+                    ''' ====== Third point ======= '''
+                    loc1 = np.where(vp[:]==vp[1020, 6900])
+                    vp2[loc1] = vp[1085, 6830]
+                    diff1 = vp2 - vp
+                    mask = np.ones(vp.shape, bool)
+                    mask[970:1100, 6820:6990] = False
+                    diff1[mask] = 0
+                    vp_diff += diff1
+        
+                    diff[param] = vp_diff
+
+                baseline = {}
+                for param in model:
+                    baseline[param] = model[param] + diff[param]
+                # {(key: value) for (key, value) in baseline.items()}
+                io.save_mat(path, baseline_Marmousi=baseline)
+                
+                path = path + 'baseline_Marmousi.mat'
+                model = io.load_mat(path)
+            else:
+                path = path + 'baseline_Marmousi.mat'
+                model = io.load_mat(path)
+                             
+        
+        if smoothing:
+            model = model_smoother(model, smoothing)
+        return model
 
 
 def add_anomaly(model, anomaly, x, z, dx, dz, height, type="circle"):
@@ -140,7 +255,7 @@ def add_anomaly(model, anomaly, x, z, dx, dz, height, type="circle"):
     if type in ["circle", "Circle"]:
         r = (height // 2)/dx
         model = add_circle(model, anomaly, r, x//dx, z//dz)
-
+    
     return model
 
 
@@ -162,29 +277,6 @@ def background(size, params):
 
     return model
 
-    # def circle(self, bp, circle_prop, center, radius):
-    #     """
-    #     circle Provides a medium with  acircle inside it.
-
-    #     This method generates the known circle model in the FWI studies. 
-
-    #     Args:
-    #         bp (float): Background property
-    #         circle (flaot): Circle property
-    #         radius (float): radius
-    #         center (array): Center of circle as [x0, z0]
-            
-    #     """
-    #     cx, cz = [center[0]//self.dx, center[1]//self.dz]
-    #     radius = radius// self.dx
-    #     model = {}
-        
-    #     model = self.background(bp)
-        
-    #     model = add_circle(model, circle_prop, radius, cx, cz)
-
-    #     return model
-
 
 def add_layer (model, property, lt, lb, rt=None, rb=None):
         """
@@ -198,7 +290,9 @@ def add_layer (model, property, lt, lb, rt=None, rb=None):
             lt (array, int): Sample number ([x ,z]) of the top of the layer in the most left part
             lb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most left part
             rt (array, int): Sample number ([x ,z]) of the top of the layer in the most right part
-            rb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most right part #TODO: to develop for dipping layers
+            rb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most right part 
+            
+            #TODO: to develop for dipping layers
 
         Returns:
             model(dict): Return the model.
@@ -291,7 +385,22 @@ def Hu_circle(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, m
     model['rho'] = (1-model['phi']) * rho_m + model['phi'] * rho_f
 
     return model
-        
+
+
+def model_resizing(model,  bx, ex, bz, ez, ssr=(1, 1)):
+    for param in model:
+        gz, gx = np.mgrid[:model[param].shape[0], :model[param].shape[1]]
+        x = np.arange(0, model[param].shape[1], 1)
+        z = np.arange(0, model[param].shape[0], 1)
+        interpolator = intp.interp2d(x, z, model[param])
+        xi = np.arange(0, model[param].shape[1], ssr[1])
+        zi = np.arange(0, model[param].shape[0], ssr[0])
+        model[param] = interpolator(xi, zi)
+        model[param] = model[param].astype(np.float32, order='C')
+
+        model[param] = model[param][bz:ez, bx:ex]
+    return model
+
 
 if __name__ == "__main__":
     Model = ModelGenerator()
