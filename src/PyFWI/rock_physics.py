@@ -34,7 +34,11 @@ class Density:
     
         return rho
 
-    
+    @staticmethod
+    def effective_density(self, phi, rho_f, rho_s):
+        return rho_f * phi + rho_s * (1 - phi)
+
+    @staticmethod
     def fluid(self, r_hydro, rho_w, sw):
         """
         fluid [summary]
@@ -54,6 +58,7 @@ class Density:
 
         return rho_f
 
+    @staticmethod
     def matrix(self, rho_clay, cc, rho_q, **kwargs):
         """
         matrix [summary]
@@ -73,6 +78,38 @@ class Density:
 
         return rho_m
 
+    
+    def rho_from_pcs(self, rho_c, rho_q, rho_w, rho_g, cc, sw, phi):
+        """
+        This function calculate density from Porosity, clay content, and water Saturation
+
+        Parameters:
+        -----------
+            rho_c:
+                Density of clay
+            rho_q:
+                Density of quartz
+            rho_w:
+                Density of water
+            rho_g:
+                Density of gas
+            cc:
+                clay content
+            sw:
+                water saturation
+            phi:
+                Porosity
+
+        Returns:
+        --------
+        rho: float
+            Effective density
+        """
+        rho_s = self.matrix(rho_c, c, rho_q)
+        rho_f = self.fluid(rho_g, rho_w, sw )
+
+        rho = self.effective_density(phi, rho_f, rho_s)
+        return rho.astype(np.float32) 
 
 class ShearVelocity:
     def __init__(self):
@@ -272,10 +309,6 @@ def voigt_berie(k_l, rho_l, k_g, rho_g, s_g):
     k_f = (k_l - k_g) * ((1 - s_g) ** 5) + k_g
     rho_f = rho_l * (1 - s_g) + rho_g * s_g
     return k_f, rho_f
-
-
-def effective_density(phi, rho_f, rho_s):
-    return rho_f * phi + rho_s * (1 - phi)
 
 
 def biot_gassmann(phi, k_f, k_s, k_d):
