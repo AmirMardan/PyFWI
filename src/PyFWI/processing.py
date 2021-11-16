@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from numpy.core.shape_base import block
+import PyFWI.seismic_io as io
 try:
     from PyFWI.seiplot import seismic_section
 except:
@@ -36,20 +37,15 @@ class Gain():
             GF (class): A class for applying the processing method.
         """
         # Create the gain function
-        gain_function = np.arange(np.finfo(np.float32).eps, self.t, self.dt)
+        self.gain_function = np.arange(np.finfo(np.float32).eps, self.t, self.dt)
         
-        if len(gain_function) != self.nt:
-            gain_function = np.linspace(np.finfo(np.float32).eps, self.t, self.nt)
-        
-        # Create the gain object to apply the gain function
-        GF = Gain_function(gain_function)
+        if len(self.gain_function) != self.nt:
+            self.gain_function = np.linspace(np.finfo(np.float32).eps, self.t, self.nt)
 
         if show_gain:
             # If asked to show the data
-            self._show_gain(GF.gain_function)
+            self._show_gain(G.gain_function)
         
-        return GF
-
     @property
     def test(self):
         return self._test
@@ -75,9 +71,8 @@ class Gain():
         ax.set_xlabel("Gain amplitude")
         ax.set_ylabel("Time sample")
 
-
-class Gain_function:
-    def __init__(self, gain_function):
+class Gain_function(Gain):
+    def __init__(self, t, dt, nt):
         """
         This class works with the choosen gain
 
@@ -86,7 +81,7 @@ class Gain_function:
         Args:
             gain_function (float32): The gain function
         """
-        self.gain_function = gain_function
+        Gain.__init__(self, t, dt, nt)
 
     def apply(self, data,  show=False):
         """
@@ -103,23 +98,46 @@ class Gain_function:
         """
         self.data = data
         gain = self.gain_function.reshape(-1,1)
-        self.gain_2d = gain @ np.ones((1, data[0].shape[1]), np.float32)
+        
+        if type(data).__name__ == 'list':
+            self.gain_2d = gain @ np.ones((1, data[0].shape[1]), np.float32)
+            self.gained_data = [self.gain_2d * comp_i for comp_i in data]
+            
+        elif type(data).__name__ == 'ndarray':
+            self.gain_2d = gain @ np.ones((1, data.shape[1]), np.float32)
+            self.gained_data = self.gain_2d *  data
 
-        self.gained_data = [self.gain_2d * comp_i for comp_i in data]
         
         if show:
             fig = plt.figure()
 
             ax = fig.add_subplot(1, 2, 1)
-            seismic_section(ax, data[0])
+            seismic_section(ax, data)
 
             ax = fig.add_subplot(1, 2, 2)
-            seismic_section(ax, self.gained_data[0])
+            seismic_section(ax, self.gained_data)
             ax.set_yticks([])
 
         return self.gained_data
 
     
 if __name__ == "__main__":
-    G = Gain(1.0, 0.002, 100)
-    G.time_linear(1,2)
+    data = io.load_mat('/Users/amir/repos/seismic/src/PyFWI/data/test/bl_data.mat')
+    data = data['bl']
+    G = Gain_function(t=0.45, dt=0.00061, nt=data.shape[0])
+    G.time_linear(False)
+    plt.show()
+    
+    gained = G.apply(data)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 2, 1)
+    seismic_section(ax, data)
+    ax.set_title("Original data")
+    
+    ax = fig.add_subplot(1, 2, 2)
+    seismic_section(ax, gained)
+    ax.set_title("Gained data")
+    plt.show()
+    
+    
