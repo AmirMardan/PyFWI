@@ -35,11 +35,11 @@ class Density:
         return rho
 
     @staticmethod
-    def effective_density(self, phi, rho_f, rho_s):
+    def effective_density(phi, rho_f, rho_s):
         return rho_f * phi + rho_s * (1 - phi)
 
     @staticmethod
-    def fluid(self, r_hydro, rho_w, sw):
+    def fluid(r_hydro, rho_w, sw):
         """
         fluid [summary]
 
@@ -59,7 +59,7 @@ class Density:
         return rho_f
 
     @staticmethod
-    def matrix(self, rho_clay, cc, rho_q, **kwargs):
+    def matrix(rho_clay, cc, rho_q, **kwargs):
         """
         matrix [summary]
 
@@ -105,8 +105,8 @@ class Density:
         rho: float
             Effective density
         """
-        rho_s = self.matrix(rho_c, c, rho_q)
-        rho_f = self.fluid(rho_g, rho_w, sw )
+        rho_s = self.matrix(rho_c, cc, rho_q)
+        rho_f = self.fluid(rho_g, rho_w, sw)
 
         rho = self.effective_density(phi, rho_f, rho_s)
         return rho.astype(np.float32) 
