@@ -17,6 +17,14 @@ class Circular():
         self.smoothing = smoothing
         
     def louboutin(self):
+        """
+        louboutin Generate perturbation model based on only vp.
+
+        [extended_summary]
+
+        Returns:
+            [type]: [description]
+        """
         # louboutin et al., 2018, FWI, part2
         self.nx = self.nz = 100
         model = background((100, 100), {'vp': 2500.0})
@@ -38,6 +46,38 @@ class Circular():
             if self.vintage == 2:  # Monitor model
                 model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
         
+        return model
+    
+    
+    def perturbation_dv(self):
+        """
+        perturbation_dv creates perturbation model in different locations
+
+        perturbation_dv creates perturbation model in different locations
+        based on vp, vs, density
+        
+        Returns:
+            [type]: [description]
+        """
+        # Make another one based on DV
+        vp_back = 2500.0
+        vs_back = rp.ShearVelocity().poisson_ratio_vs(vp_back)
+        rho_back = rp.Density().gardner(vp_back)
+        
+        
+        vp_circle = 3000.0
+        vs_circle = rp.ShearVelocity().poisson_ratio_vs(vp_circle)
+        rho_circle = rp.Density().gardner(vp_circle)
+        
+        model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})
+        if not self.smoothing:  # Not m0
+            model['vp'] = add_circle(model['vp'], vp_circle, r=6, cx=25, cz=25)
+            model['vs'] = add_circle(model['vs'], vs_circle, r=6, cx=50, cz=50)
+            model['rho'] = add_circle(model['rho'], rho_circle, r=6, cx=75, cz=75)
+            if self.vintage == 2:  # Monitor model
+                # TODO: Work on it
+                # model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
+                raise Exception("Monitor line for this model is not defined yet.")
             
         return model
 
