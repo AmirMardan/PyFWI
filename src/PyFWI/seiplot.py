@@ -3,6 +3,8 @@ import matplotlib as mlp
 from numpy.core.shape_base import block
 import numpy as np
 
+import plotly.express as px
+
 try:
     from PyFWI.model_dataset import ModelGenerator
 except:
