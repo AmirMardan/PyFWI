@@ -296,24 +296,29 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
     return gphi, gcc, grho
 
 class recorder:
-    def __init__(self, components, nt, rec_loc, ns, dh):
-        for component in components:
-            # exec("self." + component + "=np.empty((" + str(nt) + ", " + str(ns*nr) + "))")
-            self.rec_loc = np.int32(rec_loc//dh)
-            nr = rec_loc.shape[0]
+    def __init__(self, nt, rec_loc, ns, dh):
+                
+        self.rec_loc = np.int32(rec_loc//dh)
+        self.nr = rec_loc.shape[0]
             
-            self.vx = np.zeros((nt, ns*nr))
-            self.vz = np.zeros((nt, ns*nr))
-            self.taux = np.zeros((nt, ns*nr))
-            self.tauz = np.zeros((nt, ns*nr))
-            self.tauxz = np.zeros((nt, ns*nr))
+        self.vx = np.zeros((nt, ns * self.nr))
+        self.vz = np.zeros((nt, ns * self.nr))
+        self.taux = np.zeros((nt, ns * self.nr))
+        self.tauz = np.zeros((nt, ns * self.nr))
+        self.tauxz = np.zeros((nt, ns * self.nr))
             
-    def __call__(self, t, **kargs):
+    def __call__(self, t, s, **kargs):
         for key, value in kargs.items():
-            exec("self." + key + "[t, :] = value[self.rec_loc[:, 1], self.rec_loc[:, 0]]")
+            exec("self." + key + "[t, s*self.nr:(s+1)*self.nr] = value[self.rec_loc[:, 1], self.rec_loc[:, 0]]")
             
     def acquire(self):
-        data = [self.vx, self.vz, self.taux, self.tauz, self.tauxz] 
+        data = {
+            'vx': self.vx,
+            'vz': self.vz,
+            'taux': self.taux,
+            'tauz': self.tauz,
+            'tauxz': self.tauxz
+        }
         return data     
         
 if __name__ == "__main__":
