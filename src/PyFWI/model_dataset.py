@@ -10,6 +10,7 @@ from scipy import interpolate as intp
 import requests
 import shutil
 import segyio
+import copy
 
 class Circular():
     def __init__(self, name):
@@ -24,14 +25,26 @@ class Circular():
         Returns:
             [type]: [description]
         """
+        
         # louboutin et al., 2018, FWI, part2
         self.nx = self.nz = 100
-        model = background((100, 100), {'vp': 2500.0})
+        
+        vp_back = 2500.0
+        vs_back = rp.ShearVelocity().poisson_ratio_vs(vp_back)
+        rho_back = rp.Density().gardner(vp_back)
+        
+        vp_circle = 3000.0
+        vs_circle = rp.ShearVelocity().poisson_ratio_vs(vp_circle)
+        rho_circle = rp.Density().gardner(vp_circle)
+        
+        model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})        
         if not smoothing:  # Not m0
             model['vp'] = add_circle(model['vp'], 3000, r=10, cx=50, cz=50)
+            model['vs'] = add_circle(model['vs'], vs_circle, r=10, cx=50, cz=50)
+            model['rho'] = add_circle(model['rho'], rho_circle, r=10, cx=50, cz=50)
             if vintage == 2:  # Monitor model
                 model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
-        
+               
         return model
 
     def perturbation_pcs(self, vintage, smoothing):
@@ -78,7 +91,7 @@ class Circular():
                 # model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
                 raise Exception("Monitor line for this model is not defined yet.")
             
-        return model
+        return copy.deepcopy(model)
 
 class Laminar():
     def __init__(self,name) -> None:
@@ -151,9 +164,15 @@ class ModelGenerator(Circular, Laminar):
         self.model = None
 
     def __call__(self, vintage=1, smoothing=0):
+        try:  # in case if there is a model from before, it should be deleted
+            self.__dict__.pop('model')
+        except:
+            pass
+        
         # name of the model
-        self.model = eval("self." + self.name)(vintage, smoothing)
-        return self.model 
+        model = eval("self." + self.name)(vintage, smoothing)
+        self.model = copy.deepcopy(model)
+        return model
     
     def show(self, property=['vp']):
         assert type(property).__name__ == 'list', '`property` has to be in form of a list.'
