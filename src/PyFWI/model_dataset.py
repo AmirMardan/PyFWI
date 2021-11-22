@@ -12,11 +12,10 @@ import shutil
 import segyio
 
 class Circular():
-    def __init__(self, vintage, smoothing):
-        self.vintage = vintage
-        self.smoothing = smoothing
+    def __init__(self, name):
+        self.name = name
         
-    def louboutin(self):
+    def louboutin(self, vintage, smoothing):
         """
         louboutin Generate perturbation model based on only vp.
 
@@ -28,28 +27,28 @@ class Circular():
         # louboutin et al., 2018, FWI, part2
         self.nx = self.nz = 100
         model = background((100, 100), {'vp': 2500.0})
-        if not self.smoothing:  # Not m0
+        if not smoothing:  # Not m0
             model['vp'] = add_circle(model['vp'], 3000, r=10, cx=50, cz=50)
-            if self.vintage == 2:  # Monitor model
+            if vintage == 2:  # Monitor model
                 model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
         
         return model
 
-    def perturbation_pcs(self):
+    def perturbation_pcs(self, vintage, smoothing):
         # Based on Hu et al., 2020, Direct rock physics inversion
         # Make another one based on DV
         model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.8})
-        if not self.smoothing:  # Not m0
+        if not smoothing:  # Not m0
             model['phi'] = add_circle(model['phi'], 0.3, r=6, cx=25, cz=25)
             model['cc'] = add_circle(model['cc'], 0.4, r=6, cx=50, cz=50)
             model['sw'] = add_circle(model['sw'], 0.2, r=6, cx=75, cz=75)
-            if self.vintage == 2:  # Monitor model
+            if vintage == 2:  # Monitor model
                 model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
         
         return model
     
     
-    def perturbation_dv(self):
+    def perturbation_dv(self, vintage, smoothing):
         """
         perturbation_dv creates perturbation model in different locations
 
@@ -70,11 +69,11 @@ class Circular():
         rho_circle = rp.Density().gardner(vp_circle)
         
         model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})
-        if not self.smoothing:  # Not m0
+        if not smoothing:  # Not m0
             model['vp'] = add_circle(model['vp'], vp_circle, r=6, cx=25, cz=25)
             model['vs'] = add_circle(model['vs'], vs_circle, r=6, cx=50, cz=50)
             model['rho'] = add_circle(model['rho'], rho_circle, r=6, cx=75, cz=75)
-            if self.vintage == 2:  # Monitor model
+            if vintage == 2:  # Monitor model
                 # TODO: Work on it
                 # model['sw'] = add_circle(model['sw'], 0.8, r=6, cx=75, cz=75)
                 raise Exception("Monitor line for this model is not defined yet.")
@@ -82,26 +81,25 @@ class Circular():
         return model
 
 class Laminar():
-    def __init__(self, vintage, smoothing) -> None:
-        self.vintage = vintage
-        self.smoothing = smoothing
+    def __init__(self,name) -> None:
+        self.name = name
         
-    def Hu_laminar(self):
+    def Hu_laminar(self, vintage, smoothing):
         # Based on Hu et al., 2020, Direct rock physics inversion 
         
         model = background((50, 50), {'phi':0.3, 'cc':0.1, 'sw':0.8})
         model = add_layer(model, {'phi':0.1, 'cc':0.5, 'sw':0.8}, [0, 35], [0, 50])
         model = add_layer(model, {'phi':0.2, 'cc':0.3, 'sw':0.8}, [0, 17], [0, 35])
             
-        if self.vintage == 2:
+        if vintage == 2:
             model = add_layer(model, {'sw':0.2}, [22, 17], [22, 25], rt=[28, 17])
         
-        if self.smoothing:
+        if smoothing:
             model = model_smoother(model, self.smoothing)
         return model
 
 
-    def dupuy(self):
+    def dupuy(self, vintage, smoothing):
         # based on Dupuy et al, 2016, 
         # Estimation of rock physics properties from seismic attributes — Part 2: Applications
 
@@ -111,7 +109,7 @@ class Laminar():
         model ={}
         model = io.load_mat(path)
 
-        if self.vintage == 1:
+        if vintage == 1:
             model['s_gas'] *= 0
         
         model['k_d'], model['g_d'] = rp.drained_moduli(model['phi'], model['k_s'], model['g_s'], model['cs'])
@@ -131,42 +129,42 @@ class Laminar():
         for param in model:
             model[param] = model[param].astype(np.float32)
 
-        if self.smoothing:
+        if smoothing:
             model = model_smoother(model, self.smoothing)
         return model
 
 
 class ModelGenerator(Circular, Laminar):
 
-    def __init__(self, width=None, height=None, dx=1.0, dz=1.0, vintage=1, smoothing=False):
-        Circular.__init__(self, vintage, smoothing)
-        Laminar.__init__(self, vintage, smoothing)
+    def __init__(self, name):
+        Circular.__init__(self, name)
+        Laminar.__init__(self, name)
         """
         A class to create the synthetic model.
 
         This calss contain different moudulus to generate different types of synthetic models.
 
         Args:
-            width (float):  Width of the model
-            height (float): Depth of the model
-            dx (float, optional): Spatial sampling rate in x-direction. Defaults to 1 (for importing the other parameters as number of samples).
-            dz (float, optional): Spatial sampling rate in z-direction. Defaults to 1 (for importing the other parameters as number of samples).
+            name (str): Name of desired model
         """
-        self.width = width
-        self.height = height
-        self.dx = dx
-        self.dz = dz
-        self.smoothing = smoothing
-        # self.nx = np.int(width // dx)
-        # self.nz = np.int(height // dz)
 
+        self.model = None
 
-    def __call__(self, name, smoothing=False):
+    def __call__(self, vintage=1, smoothing=0):
         # name of the model
-        model = eval("self."+name)()
-        return model 
+        self.model = eval("self." + self.name)(vintage, smoothing)
+        return self.model 
     
-    def marmousi(self):
+    def show(self, property=['vp']):
+        assert type(property).__name__ == 'list', '`property` has to be in form of a list.'
+        n = len(property)
+        
+        fig = plt.figure(figsize=(4, n*4))
+        ax = fig.add_subplot(1, 1, 1)
+        ax.imshow(self.model[property[0]])
+        
+    
+    def marmousi(self, vintage, smoothing):
         path = os.path.dirname(__file__) + '/data/'
     
         target_path = path + "elastic-marmousi-model.tar.gz"
@@ -223,7 +221,7 @@ class ModelGenerator(Circular, Laminar):
             'rho': rho
         }
         
-        if self.vintage == 1:
+        if vintage == 1:
             if not os.path.isfile(path + "baseline_Marmousi.mat"):
                 diff={}
                 for param in model:
@@ -273,7 +271,7 @@ class ModelGenerator(Circular, Laminar):
                 model = io.load_mat(path)
                              
         
-        if self.smoothing:
+        if smoothing:
             model = model_smoother(model, self.smoothing)
         return model
 
