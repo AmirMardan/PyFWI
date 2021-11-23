@@ -321,6 +321,16 @@ class recorder:
         }
         return data     
         
+def cost_function(d_est, d_obs):
+    
+    res = [d_est[key] - d_obs[key] for key in d_obs]
+    res = np.array(res).reshape(-1, 1) 
+    
+    rms = 0.5 * np.dot(res.T, res)
+    return np.squeeze(rms)
+
+
+    
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
     print(R.vx)
