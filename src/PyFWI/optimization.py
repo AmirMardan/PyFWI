@@ -44,12 +44,13 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
 
     if count == 0: # If we need to increase the alpha
         while (fval_new < fval_old) & (count < max_call):
-            alpha0 += rho_inc * alpha0
-            fval_new_inc = phi(alpha0)
+            alpha_inc = alpha0 + rho_inc * alpha0
+            fval_new_inc = phi(alpha_inc)
 
             count += 1
-            print(f"{alpha0 = } .......... {fval_new_inc = :.4f} .......... {fval_old = :.4f}")
+            print(f"{alpha_inc = } .......... {fval_new_inc = :.4f} .......... {fval_old = :.4f}")
             if fval_new_inc < fval_new:
+                alpha0 = np.copy(alpha_inc)
                 fval_new = np.copy(fval_new_inc)
             else:
                 break
