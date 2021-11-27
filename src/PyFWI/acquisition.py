@@ -223,3 +223,16 @@ class Source:
         self.t = np.arange(-1.0/fdom, 1.0/fdom + self.dt/3, self.dt)
         self.w = np.float32((1.0 - 2.0*(np.pi*fdom*self.t)**2) * \
             np.exp(-(np.pi*fdom*self.t)**2))
+
+    def delta(self):
+        """
+        Amethod to generate Ricker wavelet.
+
+        Parameters
+        ----------
+            fdom: float32
+                Dominant frequency of wavelet
+
+        """
+        
+        self.w = np.float32(np.array([1]))
