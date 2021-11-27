@@ -39,9 +39,39 @@ class Circular():
         
         model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})        
         if not smoothing:  # Not m0
-            model['vp'] = add_circle(model['vp'], 3000, r=10, cx=50, cz=50)
+            model['vp'] = add_circle(model['vp'], vp_circle, r=10, cx=50, cz=50)
             model['vs'] = add_circle(model['vs'], vs_circle, r=10, cx=50, cz=50)
             model['rho'] = add_circle(model['rho'], rho_circle, r=10, cx=50, cz=50)
+            if vintage == 2:  # Monitor model
+                model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
+               
+        return model
+    
+    def yang(self, vintage, smoothing):
+        """
+        Yang et al., 2018 for Truncated Newton method.
+
+        [extended_summary]
+
+        Returns:
+            [type]: [description]
+        """
+        
+        self.nx = self.nz = 100
+        
+        vp_back = 1500.0
+        vs_back = rp.ShearVelocity().poisson_ratio_vs(vp_back)
+        rho_back = 1000.0
+        
+        vp_circle = 1600.0
+        vs_circle = rp.ShearVelocity().poisson_ratio_vs(vp_circle)
+        rho_circle = 1080
+        
+        model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})        
+        if not smoothing:  # Not m0
+            model['vp'] = add_circle(model['vp'], vp_circle, r=4, cx=35, cz=40)
+            model['vs'] = add_circle(model['vs'], vs_circle, r=4, cx=50, cz=50)
+            model['rho'] = add_circle(model['rho'], rho_circle, r=4, cx=55, cz=55)
             if vintage == 2:  # Monitor model
                 model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
                
