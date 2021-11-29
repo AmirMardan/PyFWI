@@ -203,11 +203,11 @@ class derivatives(object):
          else:
              return self._dxp8(x, dx)
          
-    def dxn(self, x, dx):
+    def dxm(self, x, dx):
          if self.order == 4:
-             return self._dxn4(x, dx)
+             return self._dxm4(x, dx)
          else:
-             return self._dxn8(x, dx)
+             return self._dxm8(x, dx)
          
     def dzp(self, x, dx):
          if self.order == 4:
@@ -215,11 +215,11 @@ class derivatives(object):
          else:
              return self._dzp8(x, dx)
          
-    def dzn(self, x, dx):
+    def dzm(self, x, dx):
          if self.order == 4:
-             return self._dzn4(x, dx)
+             return self._dzm4(x, dx)
          else:
-             return self._dzn8(x, dx)
+             return self._dzm8(x, dx)
          
     def _dxp4(self, x, dx):
         y = np.zeros(x.shape)
@@ -238,14 +238,14 @@ class derivatives(object):
         return y
 
 
-    def _dxn4(self, x, dx):        
+    def _dxm4(self, x, dx):        
         y = np.zeros((x.shape))
         
         y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) + 
                          self._c2 * (x[2:-2, 3:-1] - x[2:-2, :-4])) / dx
         return y 
     
-    def _dxn8(self, x, dx):
+    def _dxm8(self, x, dx):
         y = np.zeros((x.shape))
         
         y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 4:-4] - x[4:-4, 3:-5]) +
@@ -271,14 +271,14 @@ class derivatives(object):
         return y
 
 
-    def _dzn4(self, x, dx):
+    def _dzm4(self, x, dx):
         y = np.zeros((x.shape))
         
         y[2:-2, 2:-2] = (self.c1 * (x[2:-2, 2:-2] - x[1:-3, 2:-2]) +
                          self.c2 * (x[3:-1, 2:-2] - x[:-4, 2:-2])) / dx
         return y 
     
-    def _dzn8(self, x, dx):
+    def _dzm8(self, x, dx):
         y = np.zeros((x.shape))
         
         y[4:-4, 4:-4] = (self.c1 * (x[4:-4, 4:-4] - x[3:-5, 4:-4]) +
@@ -296,8 +296,8 @@ class derivatives(object):
         y = np.random.rand(100, 100)
         y[:4, :] = y[-4:, :] = y[:, :4] = y[:, -4:] = 0
 
-        error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxn(x, 1) * y)
-        error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzn(x, 1) * y)
+        error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxm(x, 1) * y)
+        error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzm(x, 1) * y)
 
         print(f"Errors for derivatives are \n {error_x = }, {error_z = }")    
 
