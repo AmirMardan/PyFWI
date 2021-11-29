@@ -71,7 +71,7 @@ class Circular():
         if not smoothing:  # Not m0
             model['vp'] = add_circle(model['vp'], vp_circle, r=4, cx=35, cz=40)
             model['vs'] = add_circle(model['vs'], vs_circle, r=4, cx=50, cz=50)
-            model['rho'] = add_circle(model['rho'], rho_circle, r=4, cx=55, cz=55)
+            model['rho'] = add_circle(model['rho'], rho_circle, r=4, cx=65, cz=65)
             if vintage == 2:  # Monitor model
                 model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
                
