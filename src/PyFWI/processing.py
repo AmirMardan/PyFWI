@@ -221,8 +221,6 @@ class derivatives(object):
          else:
              return self._dzn8(x, dx)
          
-         
-        
     def _dxp4(self, x, dx):
         y = np.zeros(x.shape)
         
@@ -236,7 +234,7 @@ class derivatives(object):
         y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 5:-3] - x[4:-4, 4:-4]) +
                          self._c2 * (x[4:-4, 6:-2] - x[4:-4, 3:-5]) + 
                          self._c3 * (x[4:-4, 7:-1] - x[4:-4, 2:-6]) + 
-                         self._c4 * (x[4:-4, 8:] - x[4:-4, 1:-7])) / dx
+                         self._c4 * (x[4:-4, 8:  ] - x[4:-4, 1:-7])) / dx
         return y
 
 
@@ -268,8 +266,8 @@ class derivatives(object):
         
         y[4:-4, 4:-4] = (self.c1 * (x[5:-3, 4:-4] - x[4:-4, 4:-4]) +
                          self.c2 * (x[6:-2, 4:-4] - x[3:-5, 4:-4]) +
-                         self.c2 * (x[7:-1, 4:-4] - x[2:-6, 4:-4]) +
-                         self.c2 * (x[8:, 4:-4] - x[1:-7, 4:-4])) / dx
+                         self.c3 * (x[7:-1, 4:-4] - x[2:-6, 4:-4]) +
+                         self.c4 * (x[8: , 4:-4] - x[1:-7, 4:-4])) / dx
         return y
 
 
@@ -285,8 +283,8 @@ class derivatives(object):
         
         y[4:-4, 4:-4] = (self.c1 * (x[4:-4, 4:-4] - x[3:-5, 4:-4]) +
                          self.c2 * (x[5:-3, 4:-4] - x[2:-6, 4:-4]) +
-                         self.c2 * (x[6:-2, 4:-4] - x[1:-7, 4:-4]) +
-                         self.c2 * (x[7:-1, 4:-4] - x[:-8, 4:-4])) / dx
+                         self.c3 * (x[6:-2, 4:-4] - x[1:-7, 4:-4]) +
+                         self.c4 * (x[7:-1, 4:-4] - x[ :-8, 4:-4])) / dx
         return y 
 
 
