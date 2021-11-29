@@ -56,7 +56,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
                 break
 
     if (fval_new > fval_old) & (count == max_call):
-        alpha = None
+        alpha = 0
         logging.warning("Linesearch didn't converge.")
     else:
         alpha = alpha0 
