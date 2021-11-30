@@ -197,7 +197,7 @@ def modeling_model(model, med_type):
 
 
 
-def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
+def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     """
     grad_lmr_to_vd [summary]
 
@@ -207,38 +207,79 @@ def grad_lmr_to_vd(glam, gmu, grho, mu, lam, vp, vs, rho):
         glam ([type]): [description]
         gmu ([type]): [description]
         grho ([type]): [description]
-        mu ([type]): [description]
         lam ([type]): [description]
-        vp ([type]): [description]
-        vs ([type]): [description]
+        mu ([type]): [description]
         rho ([type]): [description]
     
     Refrences:
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
+    vp = np.sqrt((lam + 2 * mu) / rho)
+    vs = np.sqrt(mu / rho)
+    
     glam_vp = glam * 2 * vp * rho
-    gmu_vp = gmu * (- rho * vp)
-    grho_vp = grho * (- 2 * (lam - 2*mu)/vp**3)
-    gvp = glam_vp + gmu_vp + grho_vp  # gvp
+    gmu_vp = gmu * rho * vp
+    grho_vp = grho * (- 2 * (lam + 2*mu)/vp**3)
+    gvp = glam_vp + gmu_vp + grho_vp  
 
     glam_vs = glam * 0
     gmu_vs = gmu * 2 * vs * rho
     
-    # vs is zeros for acoustic case
+    # To not get ZeroDivisionError in acoustic case
     if np.all(vs==0):
         grho_vs  = 0
     else:
-        grho_vs = grho * (-2*mu/vs ** 3)
+        grho_vs = grho * (-2*mu/(vs ** 3))
 
     gvs = glam_vs + gmu_vs + grho_vs  # gvs
 
     glam_rho = glam * vp ** 2
-    gmu_rho = gmu * vs ** 2
+    gmu_rho = gmu * 0.5 * vp ** 2
     grho_rho = grho
     grho = glam_rho + gmu_rho + grho_rho
 
     return gvp, gvs, grho
+
+
+def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
+    """
+    grad_lmr_to_vd [summary]
+
+    [extended_summary]
+
+    Args:
+        glam ([type]): [description]
+        gmu ([type]): [description]
+        grho ([type]): [description]
+        lam ([type]): [description]
+        mu ([type]): [description]
+        rho ([type]): [description]
+    
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    vp = np.sqrt((lam + 2 * mu) / rho)
+    vs = np.sqrt(mu / rho)
+    
+    gvp_lam = gvp / (2 * np.sqrt(rho * ( lam + 2 * mu)))
+    gvs_lam = gvs * 0
+    grho_lam = grho / (vp * vp)
+    glam = gvp_lam + gvs_lam + grho_lam  # glam
+
+    gvp_mu = gvp * (1/np.sqrt(rho * (lam + 2 * mu)))
+    gvs_mu = gvs / (2 * np.sqrt(mu * rho))
+    grho_mu = grho * 2 / (vp * vp)
+    gmu = gvp_mu + gvs_mu + grho_mu  # gmu
+
+    grho_vp = gvp * (- ((lam + 2 * mu) ** .5)/ (2 * rho ** 1.5))
+    grho_vs = gvs * (- mu**0.5 / rho**1.5)
+    grho_rho = grho
+    grho = grho_vp + grho_vs + grho_rho
+
+    return glam, gmu, grho
+
 
 def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
     """
