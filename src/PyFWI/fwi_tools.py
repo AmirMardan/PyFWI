@@ -339,7 +339,7 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
 class recorder:
     def __init__(self, nt, rec_loc, ns, dh):
                 
-        self.rec_loc = np.int32(rec_loc//dh)
+        self.rec_loc = np.int32(rec_loc/dh)
         self.nr = rec_loc.shape[0]
             
         self.vx = np.zeros((nt, ns * self.nr))

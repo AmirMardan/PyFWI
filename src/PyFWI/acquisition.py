@@ -1,3 +1,4 @@
+from logging import exception
 import numpy as np
 
 
@@ -24,7 +25,8 @@ def AcqParameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
         rec-loc: float32
             Location of receivers
     """
-
+    if rec_dis < dh:
+        raise Exception("Receiver distance should be larger than spatial sampling")
     if acq_type == 0:
         # In case of crosswell seismic
 
