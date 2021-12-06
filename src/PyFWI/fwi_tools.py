@@ -2,7 +2,7 @@ import os
 import numpy as np
 import copy 
 import logging
-
+import pyopencl as cl
 from numpy.core.arrayprint import dtype_is_implied 
 try:
     from PyFWI.seismic_io import load_mat
@@ -22,7 +22,7 @@ def inpa_generator(**kwargs):
         "device": 0,
         "medium": 1,
         "ns": 1,
-        "Npml": 20,
+        "npml": 20,
         "pmlR": 1e-5,
         "gain": 0,
         # PML in 0:z-, 1:x-, 2: z- and x-direction, 3: free surface
@@ -33,10 +33,6 @@ def inpa_generator(**kwargs):
 
         # Number of check points relative to all time samples based on percentage
         "chpR": 15,
-
-        # Defining the data type (0: circle, 1: Simple two layers, 2: Dupuy, 3: Marmousi,
-        #                         4: st Lawrence, 5: perturbation, 6: SEAM, 7:Hu1)
-        "models_name": 5,
 
         "ITER_intensity": 0,
         "iteration": np.array([40, 40, 40], dtype=np.int),
@@ -361,7 +357,15 @@ class recorder:
             'tauxz': self.tauxz
         }
         return data     
-        
+
+
+def residual(d_est, d_obs):
+    res = {}
+    for key in d_obs:
+        res[key] = d_est[key] - d_obs[key]
+    return res
+
+
 def cost_function(d_est, d_obs):
     
     res = [d_est[key] - d_obs[key] for key in d_obs]
@@ -371,7 +375,299 @@ def cost_function(d_est, d_obs):
     return np.squeeze(rms)
 
 
-    
+def expand_model(parameter, TNz, TNx, n_pml=10):
+    """
+    This function make room around the 'parameter' to stick the pml layer.
+
+    Parameters
+    ----------
+        parameter : float
+            Matrix of property that we are going to consider pml around.
+
+        TNz : int
+            Number of samples in z-direction (`n_z + 2 * n_pml`).
+
+        TNx : int
+            Number of samples in x-direction (`n_x + 2 * n_pml`).
+
+        n_pml : int, optional = 10
+            Number of pml layer
+
+    Returns
+    --------
+        nu : float
+            A matrix with the size of [TNz, TNx] with zero value
+            everywhere excpet in center which consisting the model.
+
+    """
+
+    nu = np.zeros((TNz, TNx)).astype(np.float32, order='C')
+    nu[n_pml:TNz - n_pml, n_pml:TNx - n_pml] = \
+        parameter.astype(np.float32, order='C')
+
+    nu[:n_pml, :] = nu[n_pml, :]
+    nu[TNz - n_pml:, :] = nu[TNz - n_pml - 1, :]
+
+    nu[:, TNx - n_pml:] = nu[:, TNx - n_pml - 1].reshape(-1, 1)
+    nu[:, :n_pml] = nu[:, n_pml].reshape(-1, 1)
+    return nu
+
+
+class CPML:
+    def __init__(self, dh, dt, N, nd=2.0, Rc=0.001, nu0=2.0, nnu=2.0,
+                 alpha0=20 * np.pi, nalpha=1.0):
+        """
+        Input
+            N      : nombre de couches PML
+            nd     : ordre du profile du facteur d'amortissement
+            Rc     : coefficient de réflexion théorique à la limite des PML
+            nu0    : valeur max du paramètre nu
+            nnu    : ordre du profile du paramètre nu
+            nalpha : ordre du profile du paramètre alpha
+            alpha0 : valeur max du paramètre alpha
+        """
+        self.dh = dh
+        self.dt = dt
+        self.Npml = N
+        self.nd = np.float32(nd)
+        self.Rc = np.float32(Rc)
+        self.nu0 = np.float32(nu0)
+        self.nnu = np.float32(nnu)
+        self.alpha0 = np.float32(alpha0)
+        self.nalpha = np.float32(nalpha)
+
+    def pml_prepare(self, V):
+        v_max = V.max()
+        [TNz, TNx] = V.shape
+        nx = TNx - self.Npml
+        nz = TNz - self.Npml
+
+        zp1 = np.repeat(self.dh * np.arange(self.Npml + 1, 1, -1), TNx).reshape(self.Npml, TNx)
+        zp = np.zeros((TNz, TNx), np.float32)
+        zp[:self.Npml, :] = zp1
+        zp[nz:, :] = zp1[::-1]
+
+        a = self.dh * np.arange(self.Npml + 1, 1, -1).reshape(self.Npml, 1)
+        xp1 = np.repeat(a, TNz).reshape(self.Npml, TNz).T
+        xp = np.zeros((TNz, TNx), np.float32)
+        xp[:, :self.Npml] = xp1
+        a = xp1[:, ::-1]
+        xp[:, nx:] = a
+
+        if self.Npml != 0:
+
+            d0 = (self.nd + 1) * np.log(1 / self.Rc) * v_max / (2 * self.Npml * self.dh)
+
+            dz_pml = d0 * (zp / (self.Npml * self.dh)) ** self.nd
+            dx_pml = d0 * (xp / (self.Npml * self.dh)) ** self.nd
+
+            nuz = 1. + (self.nu0 - 1.) * (zp / (self.Npml * self.dh)) ** self.nnu
+            nux = 1. + (self.nu0 - 1.) * (xp / (self.Npml * self.dh)) ** self.nnu
+
+            alpha_z = self.alpha0 * (1. - (zp / (self.Npml * self.dh)) ** self.nalpha)
+            alpha_x = self.alpha0 * (1. - (xp / (self.Npml * self.dh)) ** self.nalpha)
+
+        else:
+
+            dz_pml = np.zeros((TNz, TNx), np.float32)
+            dx_pml = np.zeros((TNz, TNx), np.float32)
+
+            nuz = 1. + np.zeros((TNz, TNx), np.float32)
+            nux = 1. + np.zeros((TNz, TNx), np.float32)
+
+            alpha_z = np.zeros((TNz, TNx), np.float32)
+            alpha_x = np.zeros((TNz, TNx), np.float32)
+
+        bz = np.exp(-(dz_pml * nuz + alpha_z) * self.dt)
+        bx = np.exp(-(dx_pml * nux + alpha_x) * self.dt)
+
+        with np.errstate(divide='ignore', invalid='ignore'):
+            cz = dz_pml * nuz * (bz - 1.) / (dz_pml + alpha_z / nuz)
+        cz[np.isnan(cz)] = 0.0
+
+        with np.errstate(divide='ignore', invalid='ignore'):
+            cx = dx_pml * nux * (bx - 1.) / (dx_pml + alpha_x / nux)
+        cx[np.isnan(cx)] = 0.0
+
+        self.bx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=bx)
+        self.bz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=bz)
+        self.cx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=cx)
+        self.cz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=cz)
+        self.nux_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                               self.mf.COPY_HOST_PTR, hostbuf=nux)
+        self.nuz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                               self.mf.COPY_HOST_PTR, hostbuf=nuz)
+
+        buufer_purpose = np.zeros((TNz, TNx), np.float32)
+
+        self.psi_txxx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                    self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_txzz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                    self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_txzx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                    self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_tzzz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                    self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_vxx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_vzz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_vxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+        self.psi_vzx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=buufer_purpose)
+
+        # pml for acoustic
+        # dx_pml, dz_pml = pml_counstruction(TNz, TNx, self.dh, self.Npml, self.pmlR)
+        vdx_pml = self.dx_pml * v_max
+        vdz_pml = self.dz_pml * v_max
+
+        self.vdx_pml_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=vdx_pml)
+        self.vdz_pml_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                   self.mf.COPY_HOST_PTR, hostbuf=vdz_pml)
+
+    def psi_reset(self, TNz, TNx):
+        self.psi_txxx = np.zeros((TNz, TNx))
+        self.psi_txzz = np.zeros((TNz, TNx))
+        self.psi_txzx = np.zeros((TNz, TNx))
+        self.psi_tzzz = np.zeros((TNz, TNx))
+        self.psi_vxx = np.zeros((TNz, TNx))
+        self.psi_vzz = np.zeros((TNz, TNx))
+        self.psi_vxz = np.zeros((TNz, TNx))
+        self.psi_vzx = np.zeros((TNz, TNx))
+        
+
+def pml_counstruction(TNz, TNx, dh,
+                      n_pml=10, pml_r=1e-5, pml_dir=3):
+    """
+    pml_counstruction(TNz, TNx, dh, n_pml=10, pml_r=1e-5)
+
+    PML construction generate two matrices for x- and z-directions with the
+    size of velocity model plus number of pml samples in each direction.
+
+    Extended Summary
+    ----------------
+    dx_pml and dz_pml are obtained based on Gao et al., 2017, Comparison of
+    artiﬁcial absorbing boundaries for acoustic wave equation modelling.
+
+    Parameters
+    ----------
+        TNz : int
+            Number of samples in z-direction (`n_z + 2 * n_pml`).
+
+        TNx : int
+            Number of samples in x-direction (`n_x + 2 * n_pml`).
+
+        dh : float
+            Spatial ampling rate in x-direction.
+
+        n_pml : int, optional = 10
+            Number of pml layer
+
+        pml_r : float, optional = 1e-5
+            Theoretical reﬂection coefﬁcient.
+
+    Returns
+    --------
+        dx_pml : float
+            A matrix with the size of [TNz, TNx] with zero value
+            everywhere excpete inside PML in right and left of model.
+
+        dz_pml : float
+                A matrix with the size of [TNz, TNx] with zero value
+            everywhere excpet inside PML in above and bottom of model.
+
+    References
+    ----------
+        [1] Gao et al., 2017, Comparison of artiﬁcial absorbing boundaries
+        for acoustic wave equation modelling, Exploration Geophysics,
+        2017, 48, 76–93.
+
+        [2] Araujo and Pestana, 2020, Perfectly matched layer boundary conditions
+        for the second-order acoustic wave equation solved by the rapid
+        expansion method, Geophysical Prospecting, 2020, 68, 572–590.
+    """
+    dx_pml = np.zeros((TNz, TNx)).astype(np.float32, order='C')
+    dz_pml = np.zeros((TNz, TNx)).astype(np.float32, order='C')
+
+    # For x-direction
+    a = pml_delta_calculation(dh, n_pml, pml_r)
+    dx_pml[:, TNx - n_pml:] = a
+    # np.fliplr(a.reshape(-1,1).T).reshape(-1)
+    dx_pml[:, :n_pml] = np.flip(a, 0)
+
+    # For z-direction
+    a = pml_delta_calculation(dh, n_pml, pml_r)
+
+    dz_pml[TNz - n_pml:, :] = a.reshape(-1, 1)
+    dz_pml[:n_pml, :] = np.flip(a, 0).reshape(-1, 1)
+
+    if pml_dir == 0:
+        dx_pml = np.zeros(dx_pml.shape, np.float32)
+    elif pml_dir == 1:
+        dz_pml = np.zeros(dz_pml.shape, np.float32)
+    elif pml_dir == 3:
+        dz_pml[:n_pml, :] = np.zeros((len(a), dz_pml.shape[1]), dtype=np.float32)
+
+    return dx_pml, dz_pml
+
+
+def pml_delta_calculation(dh, n_pml=10, pml_r=1e-5):
+    """
+        pml_delta_calculation(n_pml, dh, pml_r)
+
+        This function generates delta vector for PML construction function which put this vector
+        around the model matrices.
+
+        Extended Summary
+        ----------------
+        dx_pml and dz_pml are obtained based on Gao et al., 2017, Comparison of
+        artiﬁcial absorbing boundaries for acoustic wave equation modelling.
+
+        Warns
+        -----
+        TODO: I have to add dz as well
+
+        Parameters
+        ----------
+            dh : float
+                Sampling rate in x-direction.
+
+            n_pml : int, optional = 10
+                Number of pml layers
+
+            pml_r : float, optional = 1e-5
+                Theoretical reﬂection coefﬁcient.
+
+        Returns
+        --------
+            delta : float
+                A vector containing the absorbant value for putting in absorbant
+                layer
+
+        References
+        ----------
+            [1] Gao et al., 2017, Comparison of artiﬁcial absorbing boundaries
+            for acoustic wave equation modelling, Exploration Geophysics,
+            2017, 48, 76–93.
+
+            [2] Araujo and Pestana, 2020, Perfectly matched layer boundary conditions
+            for the second-order acoustic wave equation solved by the rapid
+            expansion method, Geophysical Prospecting, 2020, 68, 572–590.
+        """
+    delta1 = n_pml * dh
+    r = (np.arange(n_pml) * dh)
+    if delta1 != 0:
+        delta = np.float32(-(3 / (2 * delta1)) * ((r / delta1) ** 2) * (np.log10(pml_r)))
+    else:
+        delta = np.array([])
+    return delta
+
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
     print(R.vx)
