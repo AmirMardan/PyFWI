@@ -10,9 +10,16 @@ try:
 except:
     from seismic_io import load_mat
     import rock_physics as rp 
+import PyFWI.processing as seis_process
 
 
-def inpa_generator(**kwargs):
+def inpa_generator(vp, sdo, fn, **kwargs):
+    D = seis_process.derivatives(order=sdo)
+    dh = vp.min()/(D.dh_n * fn)
+    
+    dt = D.dt_computation(vp.max(), dh)
+    
+    
     inpa = {
         "SeisCL": False,
         "seisout": 4,
@@ -41,7 +48,7 @@ def inpa_generator(**kwargs):
         "f_inv": np.array([15, 25, 30], dtype=np.float32),
         
         # Choosing the order of spatial derivative (Could be 2, 4, 8)
-        "sdo": 8,
+        "sdo": sdo,
 
         # Specify the acquisition type (0: crosswell, 1: surface, 2: both)
         "acq_type": 2,
@@ -51,8 +58,8 @@ def inpa_generator(**kwargs):
         "offset_weighting": False,
 
         "vel_unit": "m/s",
-        "dh": np.float32(7),
-        "dt": 0.00061
+        "dh": dh,
+        "dt": dt
     }
 
     for key, value in kwargs.items():
