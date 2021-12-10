@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import PyFWI.seiplot as seiplt
 
 class wave_preparation():
-    def __init__(self, inpa, src, rec_loc, model_size, n_surface_rec, n_well_rec, chpr=10, components=4):
+    def __init__(self, inpa, src, rec_loc, model_size, n_surface_rec=None, n_well_rec=None, chpr=10, components=4):
         '''
         A class to prepare the variable and basic functions for wave propagation.
         
@@ -57,20 +57,24 @@ class wave_preparation():
         self.rec_loc = rec_loc
         self.nr = rec_loc.shape[0]
         
+        if (n_surface_rec is None) and (n_well_rec is None):
+            self.n_surface_rec = self.nr
+            self.n_well_rec = 0
+        else:
+            self.n_surface_rec = n_surface_rec
+            self.n_well_rec = n_well_rec
+        
         self.acq_type = inpa["acq_type"]
         
+        self.dxr = np.int32((rec_loc[1, 1] - rec_loc[0, 1]) / self.dh)
         if inpa["acq_type"] == 0:
             self.rec_cts = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
             self.rec_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])
-            self.dxr = np.int32((rec_loc[1, 1] - rec_loc[0, 1]) / self.dh)
             
         elif inpa["acq_type"] in [1, 2]:
             self.rec_cts = np.int32(rec_loc[0, 1] / self.dh + inpa['npml'])
             self.rec_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])
             self.dxr = np.int32((rec_loc[1, 1] - rec_loc[1, 0]) / self.dh)
-
-        self.n_surface_rec = n_surface_rec
-        self.n_well_rec = n_well_rec
         
         # ======== Parameters Boundary condition ======
         self.dx_pml, self.dz_pml = tools.pml_counstruction(self.tnz, self.tnx, self.dh, self.npml,
@@ -421,7 +425,7 @@ class wave_preparation():
         
         
 class wave_propagator(wave_preparation):
-    def __init__(self, inpa, src, rec_loc, model_size, n_surface_rec, n_well_rec, chpr=10, components=4):
+    def __init__(self, inpa, src, rec_loc, model_size, n_surface_rec=None, n_well_rec=None, chpr=10, components=4):
         wave_preparation.__init__(self, inpa, src, rec_loc, model_size, n_surface_rec, n_well_rec, chpr=chpr, components=components)
         # CPML.__init__(self, self.dh, self.dt, N=self.npml, nd=2, Rc=1e-5, nu0=1, nnu=2, nalpha=1, alpha0=0)
     
@@ -548,8 +552,8 @@ if __name__ == "__main__":
     
     inpa = {}
     # Number of pml layers
-    inpa['npml']: (10 or 20) = 20
-    inpa['pmlR']: (1e-5 or 1e-7) = 1e-5
+    inpa['npml'] = 20
+    inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
 
     sdo = 4
