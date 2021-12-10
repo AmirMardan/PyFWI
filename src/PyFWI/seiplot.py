@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib as mlp
+from mpl_toolkits import axes_grid1
 from numpy.core.shape_base import block
 import numpy as np
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 try:
     from PyFWI.model_dataset import ModelGenerator
@@ -26,10 +28,15 @@ def earth_model(model, keys=[]):
         ax.axis([0, offsetx, 0, depth])
         ax.set_aspect(aspect)
 
-        im = ax.imshow(model[param])
+        im = ax.imshow(model[param], cmap='jet')
+        axes_divider = make_axes_locatable(ax)
+        cax = axes_divider.append_axes('right', size='7%', pad='2%')
         i +=1
-        fig.colorbar(im, ax=ax, shrink=aspect+0.1,
+        fig.colorbar(im, cax=cax, shrink=aspect+0.1,
                         pad=0.01, label=param)
+        ax.invert_yaxis()
+        if i>1:
+            ax.set_yticks([])
     
 
 def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False):
