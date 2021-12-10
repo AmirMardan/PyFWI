@@ -80,21 +80,25 @@ class wave_preparation():
         self.dx_pml, self.dz_pml = tools.pml_counstruction(self.tnz, self.tnx, self.dh, self.npml,
                                                      inpa['pmlR'], inpa['pml_dir'])
 
-
+        if 'energy_balancing' in keys:
+            self.energy_balancing = inpa['energy_balancing']
+        else:
+            self.energy_balancing = False
+            
         self.W = {
-            'vx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)), 
-            'vz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'taux': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'tauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'tauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
+            'vx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32), 
+            'vz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'taux': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'tauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'tauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
         
         self.Lam = {
-            'avx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)), 
-            'avz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'ataux': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'atauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
-            'atauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp)),
+            'avx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32), 
+            'avz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'ataux': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'atauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
+            'atauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
 
         self.D = seis_process.derivatives(order=self.sdo)
@@ -146,7 +150,7 @@ class wave_preparation():
                     
         v = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
         
-        # BUffer for forward modelling
+        # Buffer for forward modelling
         self.vx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                               self.mf.COPY_HOST_PTR, hostbuf=v)
         self.vz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
@@ -164,19 +168,6 @@ class wave_preparation():
                               self.mf.COPY_HOST_PTR, hostbuf=v)
         self.grho_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                               self.mf.COPY_HOST_PTR, hostbuf=v)
-    
-        # BUffer for forward modelling
-        self.avx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.avz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.ataux_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.atauz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.atauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                 self.mf.COPY_HOST_PTR, hostbuf=v)
-        
         
         # Buffer for seismograms
         seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
@@ -200,7 +191,90 @@ class wave_preparation():
             'tauz': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
             'tauxz': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
         }
+    
+    def adjoint_buffer_preparing(self):
+        # Buffer for gradient
+        g_mu = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        self.Gmu_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_mu)
+
+        g_lam = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        self.Glam_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_lam)
+
+        g_rho = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        self.Grho_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_rho)
+
+        g_mu_precond = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        self.g_mu_precond_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_mu_precond)
+
+        self.g_lam_precond_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_mu_precond)
+
+        self.g_rho_precond_b = cl.Buffer(self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=g_mu_precond)
+
+        # Buffer for backward modelling
+        v = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        self.avx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.avz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.ataux_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.atauz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.atauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                 self.mf.COPY_HOST_PTR, hostbuf=v)
         
+    def gradient_reading(self):
+        g_mu = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+
+        g_lam = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+
+        g_rho = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        
+        cl.enqueue_copy(self.queue, g_mu, self.Gmu_b)
+        cl.enqueue_copy(self.queue, g_lam, self.Glam_b)
+        cl.enqueue_copy(self.queue, g_rho, self.Grho_b)
+        
+        if self.energy_balancing:
+            g_mu_precond = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+            g_lam_precond = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+            g_rho_precond = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+
+            cl.enqueue_copy(self.queue, g_mu_precond, self.g_mu_precond_b)
+            cl.enqueue_copy(self.queue, g_lam_precond, self.g_lam_precond_b)
+            cl.enqueue_copy(self.queue, g_rho_precond, self.g_rho_precond_b)
+            print("balanced")
+        else:
+            g_mu_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
+            g_lam_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
+            g_rho_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
+            print("Not balanced")
+
+        def denom2factor(precond0):
+            precond = np.copy(precond0)
+
+            factor = np.zeros((self.nz, self.nx), np.float32)
+
+            denom = np.sqrt(precond)
+            denom = denom[self.npml + sdo:self.tnz - self.npml - sdo, self.npml + sdo:self.tnx - self.npml - sdo]
+            factor[sdo:-sdo, sdo:-sdo] = 1 / denom
+            factor = factor / np.abs(factor).max()
+
+            return np.copy(factor)
+
+        sdo = self.sdo
+
+        factor_rho = denom2factor(g_rho_precond)
+        grho = g_rho[self.npml:self.tnz - self.npml, self.npml:self.tnx - self.npml] * factor_rho
+
+        factor_mu = denom2factor(g_mu_precond)
+        gmu = g_mu[self.npml:self.tnz - self.npml, self.npml:self.tnx - self.npml] * factor_mu
+
+        factor_lam = denom2factor(g_lam_precond)
+        glam = g_lam[self.npml:self.tnz - self.npml, self.npml:self.tnx - self.npml] * factor_lam
+
+        return glam, gmu, grho
+        
+
     def make_seismogram(self, s, t):
         """
         This function read the seismogram buffer and put its value in the
@@ -238,6 +312,38 @@ class wave_preparation():
 
         self.seismogram['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
             get_from_opencl(self.seismogramid_tauxz_b)
+
+    def make_residual(self, res, s, t):
+        """
+        This function reads the inject the residual to residual buffer based on source and the
+        time step.
+
+        Parameters
+        ----------
+            res: list
+                list containing the residual of all parameters
+
+            s : int
+                Number of current acive source.
+
+            t : float
+                Current time step.
+        """
+        # Injection data into opencl
+        res_src_vx = (res['vx'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_vx_b, res_src_vx)
+
+        res_src_vz = (res['vz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_vz_b, res_src_vz)
+
+        res_src_taux = (res['taux'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_taux_b, res_src_taux)
+
+        res_src_tauz = (res['tauz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_tauz_b, res_src_tauz)
+
+        res_src_tauxz = (res['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_tauxz_b, res_src_tauxz)
 
 
     def pml_preparation(self, v_max):
@@ -529,6 +635,134 @@ class wave_propagator(wave_preparation):
                 self.plot_propagation(showpurose, t)
         return self.seismogram
     
+    def __kernel_gradient(self, res, s, coeff=-1):
+        chpc = self.nchp - 1
+
+        coeff = np.int32(coeff)
+
+        vx = np.zeros((self.tnz, self.tnx), dtype=np.float32)
+        adj_vx = np.zeros((self.tnz, self.tnx), dtype=np.float32)
+
+        # time loop
+        for t in range(self.nt - 1, 0, -1):  # range(self.nt-1,self.nt-2,-1):#
+            self.make_residual(res, s, t)
+
+            if t == self.chp[chpc]:
+                self.vx = np.copy(self.W['vx'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.vx_b, self.vx)
+
+                self.vz = np.copy(self.W['vz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.vz_b, self.vz)
+
+                self.taux = np.copy(self.W['taux'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.taux_b, self.taux)
+
+                self.tauz = np.copy(self.W['tauz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.tauz_b, self.tauz)
+
+                self.tauxz = np.copy(self.W['tauxz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.tauz_b, self.tauxz)
+
+                chpc -= 1
+ 
+            else:
+                """ Backward propagation  """
+                self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
+                                      coeff,
+                                      self.vx_b, self.vz_b,
+                                      self.tauxz_b,
+                                      self.mu_b,
+                                      self.vdx_pml_b, self.vdz_pml_b
+                                      )
+
+                self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
+                                     coeff,
+                                     self.vx_b, self.vz_b,
+                                     self.taux_b, self.tauz_b,
+                                     self.lam_b, self.mu_b,
+                                     self.vdx_pml_b, self.vdz_pml_b
+                                     )
+
+                self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
+                                     coeff,
+                                     self.vz_b,
+                                     self.tauz_b, self.tauxz_b,
+                                     self.rho_b,
+                                     self.vdx_pml_b, self.vdz_pml_b
+                                     )
+
+                self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
+                                     coeff,
+                                     self.vx_b,
+                                     self.taux_b, self.tauxz_b,
+                                     self.rho_b,
+                                     self.vdx_pml_b, self.vdz_pml_b
+                                     )
+
+            """ Adjoint modeling """
+            self.prg.Adj_injSrc(self.queue, (self.tnz, self.tnx), None,
+                                self.avx_b, self.avz_b,
+                                self.ataux_b, self.atauz_b, self.atauxz_b,
+                                self.res_vx_b, self.res_vz_b,
+                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
+                                self.dxr, self.rec_cts,
+                                self.rec_var, self.rec_var)
+
+            self.prg.Adj_update_tau(self.queue, (self.tnz, self.tnx), None,
+                                    self.avx_b, self.avz_b,
+                                    self.ataux_b, self.atauz_b, self.atauxz_b,
+                                    self.rho_b,
+                                    self.vdx_pml_b, self.vdz_pml_b)
+
+            self.prg.Adj_update_v(self.queue, (self.tnz, self.tnx), None,
+                                  self.avx_b, self.avz_b,
+                                  self.ataux_b, self.atauz_b, self.atauxz_b,
+                                  self.lam_b, self.mu_b,
+                                  self.vdx_pml_b, self.vdz_pml_b
+                                  )
+
+            self.prg.Grad_mu(self.queue, (self.tnz, self.tnx), None,
+                             self.vx_b, self.vz_b,
+                             self.taux_b, self.tauz_b, self.tauxz_b,
+                             self.ataux_b, self.atauz_b, self.atauxz_b,
+                             self.Gmu_b, self.g_mu_precond_b)
+
+            self.prg.Grad_lam(self.queue, (self.tnz, self.tnx), None,
+                              self.vx_b, self.vz_b,
+                              self.taux_b, self.tauz_b,
+                              self.ataux_b, self.atauz_b,
+                              self.Glam_b, self.g_lam_precond_b)
+
+            self.prg.Grad_rho(self.queue, (self.tnz, self.tnx), None,
+                              self.vx_b, self.vz_b,
+                              self.taux_b, self.tauz_b, self.tauxz_b,
+                              self.avx_b, self.avz_b,
+                              self.rho_b, self.Grho_b, self.g_rho_precond_b)
+
+            # Plotting wave propagation
+            if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
+                cl.enqueue_copy(self.queue, vx, self.tauxz_b)
+
+                cl.enqueue_copy(self.queue, adj_vx, self.avx_b)
+
+                self.plot_propagation(vx, t, adj_vx)
+                
+    def __adjoint_modelling_per_source(self, res):
+        self.prg.MakeGradZero(self.queue, (self.tnz, self.tnx), None,
+                              self.Gmu_b, self.Glam_b, self.Grho_b,
+                              self.g_mu_precond_b, self.g_lam_precond_b, self.g_rho_precond_b)
+
+        for s in range(self.ns):
+            self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
+                                 self.vx_b, self.vz_b,
+                                 self.taux_b, self.tauz_b, self.tauxz_b)
+            
+            self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
+                                 self.avx_b, self.avz_b,
+                                 self.ataux_b, self.atauz_b, self.atauxz_b)
+
+            self.__kernel_gradient(res, s)
+            
     def forward_modeling(self, model0, show=False):
         self.forward_show = show
         model = model0.copy()
@@ -541,7 +775,29 @@ class wave_propagator(wave_preparation):
         self.elastic_buffers(model)
         seismo = self.forward_propagator(model)    
         return seismo
-            
+    
+    def gradient(self, res, show):
+        self.backward_show = show
+        self.adjoint_buffer_preparing()
+        
+        if show:
+            self.initial_wavefield_plot({'vp':self.vp}, plot_type="Backward")
+        
+        self.__adjoint_modelling_per_source(res)
+        
+        glam, gmu, grho = self.gradient_reading()
+
+        gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho,
+                                              self.lam[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
+                                              self.mu[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
+                                              self.rho[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml])
+        
+        return {'vp':gvp,
+                'vs': gvs,
+                'rho': grho
+                }
+        
+        
 if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
@@ -555,7 +811,9 @@ if __name__ == "__main__":
     inpa['npml'] = 20
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
-
+    inpa['device'] = 2
+    inpa['energy_balancing'] = False
+    
     sdo = 4
     fdom = 25
     fn = 125
@@ -582,11 +840,25 @@ if __name__ == "__main__":
     src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
     src.Ricker(fdom)
     
-    W = wave_propagator(inpa, src, rec_loc, model_shape, n_surface_rec, n_well_rec)
-    data = W.forward_modeling(model, True)
+    W = wave_propagator(inpa, src, rec_loc, model_shape, n_surface_rec, n_well_rec, chpr=100)
+    d_obs = W.forward_modeling(model, False)
     
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    m0 = model_gen(vintage=1, smoothing=True)
     
-    seiplt.seismic_section(ax, data['taux'])
+    Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_surface_rec, n_well_rec)
+    d_est = Lam.forward_modeling(m0, show=False)
+
+    res = tools.residual(d_est, d_obs)
+  
+    # fig = plt.figure()
+    # ax = fig.add_subplot(1, 1, 1)
+    # seiplt.seismic_section(ax, res['taux'])
+    # plt.show()
+    
+    grad = Lam.gradient(res, show=True)
+    
+    # fig = plt.figure()
+    # ax = fig.add_subplot(1, 1, 1)
+    seiplt.earth_model(grad)
     plt.show()
+    a=1
