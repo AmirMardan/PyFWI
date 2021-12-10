@@ -32,8 +32,8 @@ def AcqParameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
 
         src_loc, rec_loc = crosswell(ns, rec_dis, offsetx, depth,
                          dh, sdo)
-        n_surface_rec = rec_loc.shape[0]
-        n_well_rec = 0
+        n_surface_rec = 0
+        n_well_rec = rec_loc.shape[0]
     elif acq_type == 1:
         src_loc, rec_loc = SurfaceSeismic(ns, rec_dis, offsetx, depth,
                               dh, sdo)
