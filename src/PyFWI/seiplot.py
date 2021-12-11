@@ -13,7 +13,7 @@ except:
 def earth_model(model, keys=[]):
 
     n = len(model)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(4*n, 4))
 
     i = 1
 
@@ -33,8 +33,9 @@ def earth_model(model, keys=[]):
         cax = axes_divider.append_axes('right', size='7%', pad='2%')
         
         fig.colorbar(im, cax=cax, shrink=aspect+0.1,
-                        pad=0.01, label=param)
+                        pad=0.01)
         ax.invert_yaxis()
+        ax.set_title(param, loc='center')
         if i>1:
             ax.set_yticks([])
         i +=1
