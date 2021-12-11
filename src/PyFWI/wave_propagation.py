@@ -842,7 +842,7 @@ if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
 
-    model_gen = md.ModelGenerator('yang') # louboutin') #
+    model_gen = md.ModelGenerator('yang') # louboutin') # 
     
     model = model_gen()
     # model_gen.show(['vs'])
@@ -892,7 +892,6 @@ if __name__ == "__main__":
     d_est = Lam.forward_modeling(m0, show=False)
 
     res = tools.residual(d_est, d_obs)
-    
         
     # fig = plt.figure()
     # ax = fig.add_subplot(1, 3, 1)
@@ -905,8 +904,6 @@ if __name__ == "__main__":
     
     grad = Lam.gradient(res, show=False)
     
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
     seiplt.earth_model(grad)
     plt.show()
     a=1

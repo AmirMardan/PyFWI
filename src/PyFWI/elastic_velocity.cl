@@ -418,7 +418,6 @@ __kernel void Grad_mu(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
   float DzpVx= (c1*(vz[below]-vz[center]) + c2*(vz[below2]-vz[above])+
                c3*(vz[below3]-vz[above2]) + c4*(vz[below4]-vz[above3]))/dz;
@@ -432,11 +431,14 @@ __kernel void Grad_mu(__global float *vx, __global float *vz,
   float DzmVz= (c1*(vz[center]-vz[above]) + c2*(vz[below]-vz[above2])+
                c3*(vz[below2]-vz[above3]) + c4*(vz[below3]-vz[above4]))/dz;    
 
-  Gmu[center]+= 2*dt*(Ataux[center]*DxpVx + Atauz[center]*DzmVz) + dt*Atauxz[center]*(DzpVx+DxmVz);
-    
   Gmu_precond[center]+= 4*dt*dt*(taux[center]*taux[center]*DxpVx*DxpVx + tauz[center]*tauz[center]*DzmVz*DzmVz)
                           +dt*dt*tauxz[center]*tauxz[center]*(DzpVx*DzpVx+DxmVz*DxmVz);
 
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
+
+  Gmu[center]+= 2*dt*(Ataux[center]*DxpVx + Atauz[center]*DzmVz) + dt*Atauxz[center]*(DzpVx+DxmVz);
+    
+  
 }
 
                     ////////////////////////////////////////////////////////////////////////
@@ -456,7 +458,6 @@ __kernel void Grad_lam(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
 
   float DxpVx= (c1*(vx[right]-vx[center]) + c2*(vx[right2]-vx[left])+
@@ -466,9 +467,13 @@ __kernel void Grad_lam(__global float *vx, __global float *vz,
                c3*(vz[below2]-vz[above3]) + c4*(vz[below3]-vz[above4]))/dz;
 
 
+  Glam_precond[center] += dt*dt*(taux[center]*taux[center] + tauz[center]*tauz[center])*(DxpVx*DxpVx+DzmVz*DzmVz);
+
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
+
   Glam[center]+= dt*(Ataux[center] + Atauz[center])*(DxpVx+DzmVz);
 
-  Glam_precond[center] += dt*dt*(taux[center]*taux[center] + tauz[center]*tauz[center])*(DxpVx*DxpVx+DzmVz*DzmVz);
+
   // Hlam[center]+= dt*(taux[center] + tauz[center])*(DxpVx+DzmVz);
   // A=glam/(hlam+...)
 }
@@ -493,7 +498,6 @@ __kernel void Grad_rho(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
   float DzpPz= (c1*(pz[below]-pz[center]) + c2*(pz[below2]-pz[above])+
                c3*(pz[below3]-pz[above2]) + c4*(pz[below4]-pz[above3]))/dz;
@@ -508,10 +512,12 @@ __kernel void Grad_rho(__global float *vx, __global float *vz,
                c3*(pxz[below2]-pxz[above3]) + c4*(pxz[below3]-pxz[above4]))/dz;
 
 
-  Grho[center]+= -(dt*(rho_b[center]*rho_b[center]))*(Avx[center]*(DxmPx + DzmPxz)+
-                                                  Avz[center]*(DzpPz+DxpPxz));
-
   Grho_precond[center] += dt*dt*(vx[center]*vx[center]*(DxmPx*DxmPx + DzmPxz*DzmPxz)+
                                             vz[center]*vz[center]*(DzpPz*DzpPz + DxpPxz*DxpPxz));
+
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
+
+  Grho[center]+= -(dt*(rho_b[center]*rho_b[center]))*(Avx[center]*(DxmPx + DzmPxz)+
+                                                  Avz[center]*(DzpPz+DxpPxz));
 
 }
