@@ -45,7 +45,7 @@ __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *rho_b, 
                      __global float *seismogram_vxi,__global float *seismogram_vzi,
                      __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
-                     int dxr, int recDepth, int first_rec,
+                    //  int dxr, int recDepth, int first_rec,
                      int sourcex, int sourcez,
                      float srcx, float srcz)
 
@@ -63,45 +63,7 @@ __kernel void injSrc(__global float *vx,__global float *vz,
 
     // printf("%f\n",src );
   }
-  
-  // For geophones in the well
-  if (n_extera_rec>0){
-    if(i%dxr==0 && j == recDepth){
-      int ir = i/dxr;
 
-      seismogram_vxi[n_extera_rec -1 - ir]  =  vx[(i+first_rec)*Nx + j];
-      seismogram_vzi[n_extera_rec -1 - ir]  =  vz[(i+first_rec)*Nx + j];
-      seismogram_tauxi[n_extera_rec -1 - ir]  =  taux[(i+first_rec)*Nx + j];
-      seismogram_tauzi[n_extera_rec -1 - ir]  =  tauz[(i+first_rec)*Nx + j];
-      seismogram_tauxzi[n_extera_rec -1 - ir]  =  tauxz[(i+first_rec)*Nx + j];
-    }
-
-    int startOfThirdRec = n_extera_rec + n_main_rec;
-
-    if(i%dxr==0 && j == recDepth){
-      int ir = i/dxr;      
-      seismogram_vxi[startOfThirdRec + ir]  =  vx[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_vzi[startOfThirdRec + ir]  =  vz[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauxi[startOfThirdRec + ir]  =  taux[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauzi[startOfThirdRec + ir]  =  tauz[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauxzi[startOfThirdRec + ir]  =  tauxz[(i+first_rec)*Nx + (Nx-j)];
-    }
-
-  }
-
-  // For surface seismic
-  if(j%dxr==0 && i == recDepth){
-    int ir =  j/dxr;
-    if (ir < n_main_rec){
-        
-        seismogram_vxi[n_extera_rec + ir]  =  vx[i*Nx+ (j + first_rec)];
-        seismogram_vzi[n_extera_rec + ir]  =  vz[i*Nx+ (j + first_rec)];
-        seismogram_tauxi[n_extera_rec + ir]  =  taux[i*Nx+ (j + first_rec)];
-        seismogram_tauzi[n_extera_rec + ir]  =  tauz[i*Nx+ (j + first_rec)];
-        seismogram_tauxzi[n_extera_rec + ir]  =  tauxz[i*Nx+ (j + first_rec)];
-
-    }
-  }
 }
 
 /////////////////////////////// Updating for forward modelling ///////////////////////////////////////
@@ -317,42 +279,16 @@ __kernel void Adj_injSrc(
   int i = get_global_id(0) ;
   int j = get_global_id(1) ;
 
-  if(i%dxr==0 && j == recDepth){
-  int ir = i/dxr;
+  // if(i%dxr==0 && j == recDepth){
+  // int ir = i/dxr;
 
-  Avx[(i+first_rec)*Nx + j] += res_vx[n_extera_rec -1 - ir];
-  Avz[(i+first_rec)*Nx + j] += res_vz[n_extera_rec -1 - ir];
-  Ataux[(i+first_rec)*Nx + j] += res_taux[n_extera_rec -1 - ir];
-  Atauz[(i+first_rec)*Nx + j] += res_tauz[n_extera_rec -1 - ir];
-  Atauxz[(i+first_rec)*Nx + j] += res_tauxz[n_extera_rec -1 - ir];
+  Avx[center] += res_vx[center];
+  Avz[center] += res_vz[center];
+  Ataux[center] += res_taux[center];
+  Atauz[center] += res_tauz[center];
+  Atauxz[center] += res_tauxz[center];
         
-  }
 
-
-
-  if(j%dxr==0 && i == recDepth){
-  int ir =  j/dxr;
-  if (ir < n_main_rec){
-
-    Avx[i*Nx + (j+first_rec)] += res_vx[n_extera_rec + ir];
-    Avz[i*Nx + (j+first_rec)] += res_vz[n_extera_rec + ir];
-    Ataux[i*Nx + (j+first_rec)] += res_taux[n_extera_rec + ir];
-    Atauz[i*Nx + (j+first_rec)] += res_tauz[n_extera_rec + ir];
-    Atauxz[i*Nx + (j+first_rec)] += res_tauxz[n_extera_rec + ir];
-    }
-  }
-
-  int startOfThirdRec = n_extera_rec + n_main_rec;
-
-  if(i%dxr==0 && j == recDepth){
-    int ir = i/dxr;
-
-      Avx[(i+first_rec)*Nx + (Nx-j)] += res_vx[startOfThirdRec + ir];
-      Avz[(i+first_rec)*Nx + (Nx-j)] += res_vz[startOfThirdRec + ir];
-      Ataux[(i+first_rec)*Nx + (Nx-j)] += res_taux[startOfThirdRec + ir];
-      Atauz[(i+first_rec)*Nx + (Nx-j)] += res_tauz[startOfThirdRec + ir];
-      Atauxz[(i+first_rec)*Nx + (Nx-j)] += res_tauxz[startOfThirdRec + ir];
-  }
 }
 
         ////////////////////////////////////////////////////////////////////////
@@ -482,6 +418,7 @@ __kernel void Grad_mu(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
   float DzpVx= (c1*(vz[below]-vz[center]) + c2*(vz[below2]-vz[above])+
                c3*(vz[below3]-vz[above2]) + c4*(vz[below4]-vz[above3]))/dz;
@@ -519,7 +456,7 @@ __kernel void Grad_lam(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
 
   float DxpVx= (c1*(vx[right]-vx[center]) + c2*(vx[right2]-vx[left])+
@@ -556,6 +493,7 @@ __kernel void Grad_rho(__global float *vx, __global float *vz,
   int j = get_global_id(1)+ npml + sdo ;
 
   if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
+  if(j < src_depth + npml + sdo + 2 || i < src_depth + npml + sdo + 2){return;}  // For ignoring the location of sources
 
   float DzpPz= (c1*(pz[below]-pz[center]) + c2*(pz[below2]-pz[above])+
                c3*(pz[below3]-pz[above2]) + c4*(pz[below4]-pz[above3]))/dz;
