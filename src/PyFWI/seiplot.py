@@ -31,15 +31,16 @@ def earth_model(model, keys=[]):
         im = ax.imshow(model[param], cmap='jet')
         axes_divider = make_axes_locatable(ax)
         cax = axes_divider.append_axes('right', size='7%', pad='2%')
-        i +=1
+        
         fig.colorbar(im, cax=cax, shrink=aspect+0.1,
                         pad=0.01, label=param)
         ax.invert_yaxis()
         if i>1:
             ax.set_yticks([])
+        i +=1
     
 
-def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False):
+def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False, **kargs):
     if aspect_preserving:
         aspect = (data.shape[0]/data.shape[1])
         ax.set_aspect(aspect)
@@ -50,7 +51,7 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False)
     if not t_axis:
         t_axis = np.arange(data.shape[0])
 
-    im = ax.pcolor(x_axis, t_axis, data, vmax=data.max(), vmin=data.min(),  cmap='gray', shading='nearest')
+    im = ax.pcolor(x_axis, t_axis, data,  cmap='gray', shading='nearest', **kargs)
 
     ax.invert_yaxis()
     ax.axis([0, x_axis[-1], t_axis[-1], 0])
