@@ -1,4 +1,6 @@
 import numpy as np
+from numpy.core.shape_base import block
+# from PyFWI.optimization import FWI
 import PyFWI.processing as seis_process
 import PyFWI.fwi_tools as tools
 from PyFWI.fwi_tools import recorder, expand_model, CPML
@@ -7,6 +9,7 @@ import os
 from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
 import PyFWI.seiplot as seiplt
+
 
 class wave_preparation():
     def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=0, chpr=10, components=4):
@@ -51,7 +54,7 @@ class wave_preparation():
         self.chpr = chpr
         chp = int(chpr * self.nt / 100)
         self.chp = np.linspace(1, self.nt-1, chp, dtype=np.int32)
-        if (chpr != 0) & (len(self.chp) < 2):
+        if (len(self.chp) < 2): #& (chpr != 0) 
             self.chp = np.array([1, self.nt])
             
         self.nchp = len(self.chp)
@@ -257,12 +260,10 @@ class wave_preparation():
             cl.enqueue_copy(self.queue, g_mu_precond, self.g_mu_precond_b)
             cl.enqueue_copy(self.queue, g_lam_precond, self.g_lam_precond_b)
             cl.enqueue_copy(self.queue, g_rho_precond, self.g_rho_precond_b)
-            print("balanced")
         else:
             g_mu_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
             g_lam_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
             g_rho_precond = np.ones((self.tnz, self.tnx)).astype(np.float32, order='C')
-            print("Not balanced")
 
         def denom2factor(precond0):
             precond = np.copy(precond0)
@@ -816,7 +817,7 @@ class wave_propagator(wave_preparation):
         seismo = self.forward_propagator(model)    
         return seismo
     
-    def gradient(self, res, show):
+    def gradient(self, res, show=False):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
@@ -841,7 +842,10 @@ class wave_propagator(wave_preparation):
 if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
-
+    
+    GRADIENT = False
+    INVERSION = True  # False
+    
     model_gen = md.ModelGenerator('yang') # louboutin') # 
     
     model = model_gen()
@@ -850,12 +854,12 @@ if __name__ == "__main__":
     
     inpa = {}
     # Number of pml layers
-    inpa['npml'] = 20
+    inpa['npml'] = 0
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
     inpa['device'] = 2
     inpa['energy_balancing'] = False
-    chpr = 1
+    chpr = 99
     sdo = 4
     fdom = 25
     fn = 125
@@ -875,7 +879,7 @@ if __name__ == "__main__":
     depth = inpa['dh'] * model_shape[0]
 
     inpa['rec_dis'] = inpa['dh']
-    ns = 5
+    ns = 1
     inpa['acq_type'] = 0
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
@@ -883,27 +887,45 @@ if __name__ == "__main__":
     src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
     src.Ricker(fdom)
     
-    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
+    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0)
     d_obs = W.forward_modeling(model, False)
     
     m0 = model_gen(vintage=1, smoothing=True)
     
-    Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec)
-    d_est = Lam.forward_modeling(m0, show=False)
+    if GRADIENT:
+        Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
+        d_est = Lam.forward_modeling(m0, show=False)
 
-    res = tools.residual(d_est, d_obs)
+        res = tools.residual(d_est, d_obs)
+            
+        # fig = plt.figure()
+        # ax = fig.add_subplot(1, 3, 1)
+        # seiplt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5)
+        # ax = fig.add_subplot(1, 3, 2)
+        # seiplt.seismic_section(ax, d_est['taux'])
+        # ax = fig.add_subplot(1, 3, 3)
+        # seiplt.seismic_section(ax, res['taux'])
+        # plt.show()
         
-    # fig = plt.figure()
-    # ax = fig.add_subplot(1, 3, 1)
-    # seiplt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5)
-    # ax = fig.add_subplot(1, 3, 2)
-    # seiplt.seismic_section(ax, d_est['taux'])
-    # ax = fig.add_subplot(1, 3, 3)
-    # seiplt.seismic_section(ax, res['taux'])
-    # plt.show()
+        grad = Lam.gradient(res, show=False)
+        
+        seiplt.earth_model(grad)
+        plt.show()
+        a=1
     
-    grad = Lam.gradient(res, show=False)
+    elif INVERSION:
+        import PyFWI.optimization as fwi
+        
+        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
+        inverted_model, rms = FWI(m0, method=0, iter=1)
+        
+        
+        seiplt.earth_model(inverted_model)
+        plt.show(block=False)
+        
+        plt.figure()
+        plt.plot(rms/max(rms))
+        plt.show()
+        
+
     
-    seiplt.earth_model(grad)
-    plt.show()
-    a=1

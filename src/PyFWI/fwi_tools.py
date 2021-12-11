@@ -675,6 +675,26 @@ def pml_delta_calculation(dh, n_pml=10, pml_r=1e-5):
         delta = np.array([])
     return delta
 
+
+def vel_dic2vec(m0):
+    nz, nx = m0[[*m0][0]].shape
+    m = np.zeros((3 * nz * nx))
+    
+    m[:nz * nx] = m0['vp'].reshape(-1)
+    m[nz * nx: 2 * nz * nx] = m0['vs'].reshape(-1)
+    m[2 * nz * nx:] = m0['rho'].reshape(-1)
+    return m
+
+
+def vec2vel_dict(m0, nz, nx):        
+    m = {
+        'vp': m0[:nz * nx].reshape(nz, nx),
+        'vs': m0[nz * nx:2*nz * nx].reshape(nz, nx),
+        'rho': m0[2*nz * nx:].reshape(nz, nx)
+    }
+
+    return m
+
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
     print(R.vx)
