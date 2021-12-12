@@ -656,7 +656,7 @@ class wave_propagator(wave_preparation):
                         
                 else:
                     self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
-                                 coeff,
+                                 np.int32(1),
                                  self.w_vx_b,
                                  self.w_taux_b, self.w_tauxz_b,
                                  self.rho_b,
@@ -664,7 +664,7 @@ class wave_propagator(wave_preparation):
                                  )
                     
                     self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
-                                 1,
+                                 np.int32(1),
                                  self.w_vz_b,
                                  self.w_tauz_b, self.w_tauxz_b,
                                  self.rho_b,
@@ -672,7 +672,7 @@ class wave_propagator(wave_preparation):
                                  )
 
                     self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
-                                 1,
+                                 np.int32(1),
                                  self.w_vx_b, self.w_vz_b,
                                  self.w_taux_b, self.w_tauz_b,
                                  self.lam_b, self.mu_b,
@@ -680,7 +680,7 @@ class wave_propagator(wave_preparation):
                                  )
 
                     self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
-                                  1,
+                                  np.int32(1),
                                   self.w_vx_b, self.w_vz_b,
                                   self.w_tauxz_b,
                                   self.mu_b,
@@ -993,7 +993,7 @@ def truncated(FO_waves, W, m0, grad0, m1, iter=5):
 if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
-    import PyFWI.seiplot as seiplt
+    import PyFWI.seiplot as splt
     
     GRADIENT = False
     INVERSION = True  #  False
@@ -1006,7 +1006,7 @@ if __name__ == "__main__":
     
     inpa = {}
     # Number of pml layers
-    inpa['npml'] = 0
+    inpa['npml'] = 5
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
     inpa['device'] = 2
@@ -1014,10 +1014,10 @@ if __name__ == "__main__":
     chpr = 100
     sdo = 4
     fdom = 25
-    fn = 125
+    inpa['fn'] = 125
     vp = model['vp']
     D = seis_process.derivatives(order=sdo)
-    dh = vp.min()/(D.dh_n * fn)
+    dh = vp.min()/(D.dh_n * inpa['fn'])
     dh = 2.
     inpa['dh'] = dh
     
@@ -1031,7 +1031,7 @@ if __name__ == "__main__":
     depth = inpa['dh'] * model_shape[0]
 
     inpa['rec_dis'] = 2.  # inpa['dh']
-    ns = 5
+    ns = 1
     inpa['acq_type'] = 0
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
@@ -1048,9 +1048,9 @@ if __name__ == "__main__":
         Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
         d_est = Lam.forward_modeling(m0, show=False)
 
-        res = tools.residual(d_est, d_obs)
-        
-        rms = tools.cost_function(d_est, d_obs)
+        CF = tools.CostFunction('l2')
+        rms, res = CF(list(d_est.values()), list(d_obs.values()))
+
         print(rms)
     
         # fig = plt.figure()
@@ -1064,7 +1064,7 @@ if __name__ == "__main__":
         
         grad = Lam.gradient(res, show=False)
         
-        seiplt.earth_model(grad)
+        splt.earth_model(grad)
         plt.show()
         a=1
     
@@ -1072,10 +1072,10 @@ if __name__ == "__main__":
         import PyFWI.optimization as fwi
         
         FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4)
-        inverted_model, rms = FWI(m0, method=1, iter=3)
+        inverted_model, rms = FWI(m0, method=1, iter=3, freqs=[25])
         
         
-        seiplt.earth_model(inverted_model)
+        splt.earth_model(inverted_model, cmap='jet')
         plt.show(block=False)
         
         plt.figure()
