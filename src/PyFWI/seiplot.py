@@ -10,13 +10,26 @@ try:
 except:
     from PyFWI.model_dataset import ModelGenerator
 
-def earth_model(model, keys=[]):
+def earth_model(model, keys=[], **kwargs):
+    """
+    earth_model show the earth model.
+
+    This function is provided to show the earth models.
+
+    Args:
+        model (Dictionary): A dictionary containing the earth model.
+        keys (list, optional): List of parameters you want to show. Defaults to [].
+
+    Returns:
+        fig (class): The figure class  to which the images are added for furthur settings like im.set-clim(). 
+    """
 
     n = len(model)
     fig = plt.figure(figsize=(4*n, 4))
 
     i = 1
-
+    ims = []
+    
     if keys == []:
         params= model.keys()
 
@@ -28,7 +41,8 @@ def earth_model(model, keys=[]):
         ax.axis([0, offsetx, 0, depth])
         ax.set_aspect(aspect)
 
-        im = ax.imshow(model[param], cmap='jet')
+        im = ax.imshow(model[param], **kwargs)
+        ims.append(im)
         axes_divider = make_axes_locatable(ax)
         cax = axes_divider.append_axes('right', size='7%', pad='2%')
         
@@ -39,6 +53,9 @@ def earth_model(model, keys=[]):
         if i>1:
             ax.set_yticks([])
         i +=1
+    fig.__dict__['ims'] = ims
+    
+    return fig
     
 
 def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False, **kargs):
