@@ -77,9 +77,30 @@ class Circular():
                
         return model
 
-    def perturbation_pcs(self, vintage, smoothing):
-        # Based on Hu et al., 2020, Direct rock physics inversion
-        # Make another one based on DV
+    def Hu_circles(self, vintage, smoothing):
+        """
+        Hu_circles a model including porosity, clay content, and saturation.
+
+        This method creates a model including porosity, clay content, and saturation.
+        It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues. 
+        If you use non-default values, new model with the same structure and new values will be generated.
+
+        Args:
+            rho (dictionary, optional): A dictionary containing the density of quartz, clay, water, and hydrocarbon. Defaults to None.
+            prop_back (dictionary, optional):  A dictionary containing background properties (porosity, clay content, and saturation). Defaults to None.
+            prop_circle (dictionary, optional): A dictionary containing properties in the circles (porosity, clay content, and saturation). Defaults to None.
+            nz (int, optional): Number of saples in z-direction (rows). Defaults to 100.
+            nx (int, optional): Number of saples in x-direction (column). Defaults to 100.
+            r (int, optional): Radius of the circles. Defaults to 8.
+            monitor (bool, optional): Specify if you are looking for monitor model. Defaults to False.
+
+        Returns:
+            model (dictionary): A dictionary containing the created model.
+        
+        Reference:
+            Hu, Q., S. Keating, K. A. Innanen, and H. Chen, 2021,
+            Direct updating of rock-physics properties using elastic full-waveform inversion: Geophysics, 86, 3, MR117-MR132, doi: 10.1190/GEO2020-0199.1.
+        """
         model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.8})
         if not smoothing:  # Not m0
             model['phi'] = add_circle(model['phi'], 0.3, r=6, cx=25, cz=25)
@@ -427,7 +448,30 @@ def model_smoother(model, smooting_value):
         model[params] = gaussian_filter(model[params], smooting_value)
     return model
 
-def Hu_circle(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, monitor=False):
+def pcs_perturbation(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, monitor=False):
+    """
+    pcs_perturbation a model including porosity, clay content, and saturation.
+
+    This function creates a model including porosity, clay content, and saturation.
+    It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues. 
+    If you use non-default values, new model with the same structure and new values will be generated.
+
+    Args:
+        rho (dictionary, optional): A dictionary containing the density of quartz, clay, water, and hydrocarbon. Defaults to None.
+        prop_back (dictionary, optional):  A dictionary containing background properties (porosity, clay content, and saturation). Defaults to None.
+        prop_circle (dictionary, optional): A dictionary containing properties in the circles (porosity, clay content, and saturation). Defaults to None.
+        nz (int, optional): Number of saples in z-direction (rows). Defaults to 100.
+        nx (int, optional): Number of saples in x-direction (column). Defaults to 100.
+        r (int, optional): Radius of the circles. Defaults to 8.
+        monitor (bool, optional): Specify if you are looking for monitor model. Defaults to False.
+
+    Returns:
+        model (dictionary): A dictionary containing the created model.
+    
+    Reference:
+        Hu, Q., S. Keating, K. A. Innanen, and H. Chen, 2021,
+        Direct updating of rock-physics properties using elastic full-waveform inversion: Geophysics, 86, 3, MR117-MR132, doi: 10.1190/GEO2020-0199.1.
+    """
     # GET the model if we are looking for monitor model 
 
     if not rho:
@@ -495,11 +539,11 @@ def model_resizing(model,  bx, ex, bz, ez, ssr=(1, 1)):
 
 
 if __name__ == "__main__":
-    Model = ModelGenerator()
-    model = Model('Hu_laminar', False)
+    Model = ModelGenerator('yang')
+    model = Model()
     
-    Model = Laminar(vintage=2)
-    model = Model.dupuy(smoothing=False)
+    # Model = Laminar(vintage=2)
+    # model = Model.dupuy(smoothing=False)
     fig = plt.figure()
     # phi = model['phi']
     im = plt.imshow(model['vp'])
