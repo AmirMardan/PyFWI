@@ -232,7 +232,7 @@ class p_velocity:
         return vp
     
 
-def Han(phi=None, cc=None, vp=None, vs=None, a1=5.77, a2=6.94, a3=1.728, b1=3.70, b2=4.94, b3=1.57):
+def Han(phi=None, cc=None, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
     """
     Han estimates velocity based on porosity and clasy content
 
@@ -256,43 +256,47 @@ def Han(phi=None, cc=None, vp=None, vs=None, a1=5.77, a2=6.94, a3=1.728, b1=3.70
         2. Mavko, G., Mukerji, T., & Dvorkin, J., 2020, The rock physics handbook. Cambridge university press.
     """
     if phi is not None: # To calculate p_wave (p1) and s_wave (p2) velocities
-        p1 = a1 - a2 * phi - a3 * np.sqrt(cc) 
-        p2 = b1 - b2 * phi - b3 * np.sqrt(cc)
+        vp = a1 - a2 * phi - a3 * cc  # np.sqrt(cc) 
+        vs = b1 - b2 * phi - b3 * cc  # np.sqrt(cc)
 
-        # p2 = p2.astype(np.float32)
-        # p1 = p1.astype(np.float32)
-        # p1 *= 1000
-        # p2 *= 1000
-    elif vp is not None:
-        original_shape = np.shape(vp)
+        vp = (vp * 1000).astype(np.float32)
+        vs = (vs * 1000).astype(np.float32)
+        
+        return vp, vs
+        
+        
+    #TODO add a function for adjoint Han
+    
+    # elif vp is not None:
+    #     original_shape = np.shape(vp)
 
-        vp = np.copy(vp)#/1000
-        vs = np.copy(vs)#/1000
+    #     vp = np.copy(vp)#/1000
+    #     vs = np.copy(vs)#/1000
 
-        vp = vp.reshape(1, -1)
-        vs = vs.reshape(1, -1)
+    #     vp = vp.reshape(1, -1)
+    #     vs = vs.reshape(1, -1)
 
-        y1 = vp - a1
-        y2 = vs - b1
-        y = np.vstack((y1, y2))
+    #     y1 = vp - a1
+    #     y2 = vs - b1
+    #     y = np.vstack((y1, y2))
 
-        n = vp.shape[0]
-        A1 = np.hstack((-a2*np.ones((n, n)), -a3*np.ones((n, n))))
-        A2 = np.hstack((-b2*np.ones((n, n)), -b3*np.ones((n, n))))
-        A = np.vstack((A1, A2))
+    #     n = vp.shape[0]
+    #     A1 = np.hstack((-a2*np.ones((n, n)), -a3*np.ones((n, n))))
+    #     A2 = np.hstack((-b2*np.ones((n, n)), -b3*np.ones((n, n))))
+    #     A = np.vstack((A1, A2))
 
-        p = np.linalg.solve(A, y)
+    #     p = np.linalg.solve(A, y)
 
-        p1 = p[0, :]
-        p2 = (p[1, :]) ** 1
-        # print(p2) 
+    #     p1 = p[0, :]
+    #     p2 = (p[1, :]) ** 1
+    #     # print(p2) 
 
-        p1 = p1.reshape(original_shape)
-        p2 = p2.reshape(original_shape)
+    #     p1 = p1.reshape(original_shape)
+    #     p2 = p2.reshape(original_shape)
 
-        p1[p1<0] = 0
-        p2[p2<0] = 0
-    return np.round(p1,2) , np.round(p2, 2)
+    #     p1[p1<0] = 0
+    #     p2[p2<0] = 0
+    # return np.round(p1,2) , np.round(p2, 2)
 
 
 def drained_moduli(phi, k_s, g_s, cs):
