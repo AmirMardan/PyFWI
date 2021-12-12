@@ -71,119 +71,129 @@ class FWI(Wave):
     def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components):
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
+        keys = inpa.keys()
+        
         self.d_obs = d_obs
+        self.fn = inpa['fn']
         
         self.GN_wave_propagator = Wave(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
         
-    def __call__(self, m0, method, iter):
+        if 'cost_function_type' in keys:
+            self.CF = tools.CostFunction(inpa["cost_function_type"])
+        else:
+            self.CF = tools.CostFunction('l2')
+        
+    def __call__(self, m0, method, iter, freqs):
         m = tools.vel_dict2vec(m0)
         
         if method in [0, 'sd', 'SD']:
-            m1, rms = self.steepest_descent(m, iter)
+            m1, rms = self.steepest_descent(m, iter, freqs)
         if method in [1, 'gn', 'GN']:
-            m1, rms = self.gauss_newton(m, iter)
+            m1, rms = self.gauss_newton(m, iter, freqs)
 
         return tools.vec2vel_dict(m1, self.nz, self.nx), rms
     
-    def steepest_descent(self, m0, iter):
-        
-        m_opt = m0[:self.nz*self.nx]
-        m1 = m0[self.nz*self.nx:] # np.array([]) #
-        
-        rms_hist  = []
-        
-        fun = MemoizeJac(self.fprime)
-        jac = fun.derivative
-        
-        alpha = None
-        for i in range(iter):
-            rms, grad = self.fprime(m_opt, m1)
-            rms_hist.append(rms)
-            
-            p = -1.0 * grad
-            alpha, _, _ = linesearch(fun, jac, m_opt, p, grad, rms, f_max= 50, alpha0=alpha, args=[m1])
-            
-            m_opt += alpha * p
-        
-        mtotal = np.hstack((m_opt, m1))
-        return mtotal, rms_hist
-    
-    def gauss_newton(self, m0, iter):
-        # GN = GaussNewton(self.GN_wave_propagator)
-        rms_hist  = []
+    def steepest_descent(self, m0, iter, freqs):
         
         m_opt = m0#[:self.nz*self.nx]
-        m1 =  np.array([]) # m0[self.nz*self.nx:] #
+        m1 = np.array([]) # m0[self.nz*self.nx:] #
+        
+        rms_hist = []
         
         fun = MemoizeJac(self.fprime)
         jac = fun.derivative
         
-        alpha = 16.
-        rms, grad = self.fprime(m_opt, m1)
-        # rms_hist.append(rms)
+        alpha = [10., 10., 10.]
+        for freq in freqs:
+            for i in range(iter):
+                print(f"Iteration === {i:1d}")
+                rms, grad = self.fprime(m_opt, m1, freq)
+                rms_hist.append(rms)
+                
+                p = -1.0 * grad
+                
+                mtotal, alpha = self.parameter_optimization(m_opt, m1, p, rms, grad, alpha, freq)
         
+        return mtotal, rms_hist
+    
+    def gauss_newton(self, m0, iter, freqs):
+        # GN = GaussNewton(self.GN_wave_propagator)
+        rms_hist = []
+        
+        m_opt = m0
+        m1 = np.array([])
+        
+        fun = MemoizeJac(self.fprime)
+        jac = fun.derivative
+        
+        rms, grad = self.fprime(m_opt, m1, freqs[0])
+        #TODO loop over freqs
         dp0 = np.array([0])
-        alpha = [.0001, .0001, .0001]
+        alpha = [10., 10., 10.]
         
         i = 0
-        while (i<iter):# and (rms>0.001):
+        while i < iter:
             i += 1
             
             rms_hist.append(rms)
             
-            # p = -1.0 * grad
-            p = truncated(self.GN_wave_propagator, self.W, m_opt, grad, m1)
+            p = truncated(self.GN_wave_propagator, self.W, m_opt, grad, m1, iter=5)
             
-            for j in range(3):
-                fun_single = MemoizeJac(self.fprime_single)
-                jac_single = fun_single.derivative
-
-                n_element = self.nz*self.nx
-                m_opt_1 = m_opt[:(j)*n_element]
-                m_opt1 = m_opt[j*n_element:(j+1)*n_element]
-                m11 =   m_opt[(j+1)*n_element:]  # np.array([]) #  # 
-                p1 = p[j*n_element:(j+1)*n_element]
-                grad1 = grad[j*n_element:(j+1)*n_element]
-                
-                alpha[j], rms, grad = linesearch(fun_single, jac_single, m_opt1, p1, grad1, rms, f_max= 50, alpha0=alpha[j], args=[m_opt_1, m11])
-                
-                m_opt[j*n_element:(j+1)*n_element] += alpha[j] * p[j*n_element:(j+1)*n_element]  # p_switched
-        
-            mtotal = np.hstack((m_opt, m1))
+            mtotal, alpha = self.parameter_optimization(m_opt, m1, p, rms, grad, alpha, freqs[0])
         
         return mtotal, rms_hist
     
-    def fprime(self, m0, m1):
+    def fprime(self, m0, m1, freq):
         mtotal = np.hstack((m0, m1))
         
         m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
         
         d_est = self.forward_modeling(m, show=False)
         
-        res = tools.residual(d_est, self.d_obs)
+        adj_src = tools.residual(d_est, self.d_obs)
         
         rms = tools.cost_function(d_est, self.d_obs)
         
-        g = self.gradient(res)
         
-        grad = tools.vel_dict2vec(g)  #[:self.nz * self.nx]
+        # rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
+        #                                        fn=self.fn, freq=freq, order=3, axis=1
+        #                                        )
+
+        # rms = rms_data
+        
+        g = self.gradient(adj_src)
+        
+        grad = tools.vel_dict2vec(g)  # [:self.nz * self.nx]
         
         return rms, grad
     
     
-    def fprime_single(self, m0, m_1, m1):
+    def fprime_single(self, m0, m_1, m1, freq):
         mtotal = np.hstack((m_1, m0, m1))
         
-        m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
-        
-        d_est = self.forward_modeling(m, show=False)
-        
-        res = tools.residual(d_est, self.d_obs)
-        
-        rms = tools.cost_function(d_est, self.d_obs)
-        
-        g = self.gradient(res)
-        
-        grad = tools.vel_dict2vec(g)#[:self.nz * self.nx]
+        rms, grad = self.fprime(mtotal, np.array([]), freq)
         
         return rms, grad
+
+    def parameter_optimization(self, m_opt, m1, p, rms, grad, alpha, freq):
+        for j in range(3):
+            fun_single = MemoizeJac(self.fprime_single)
+            jac_single = fun_single.derivative
+
+            n_element = self.nz*self.nx
+            
+            m_opt_1 = m_opt[:(j)*n_element]
+            m_opt1 = m_opt[j*n_element:(j+1)*n_element]
+            m11 = m_opt[(j+1)*n_element:] 
+                
+            p1 = p[j*n_element:(j+1)*n_element]
+            grad1 = grad[j*n_element:(j+1)*n_element]
+                
+            alpha[j], rms, grad = linesearch(fun_single, jac_single, m_opt1, p1, grad1, rms, f_max=50,
+                                             alpha0=alpha[j], args=[m_opt_1, m11, freq])
+                
+            m_opt[j*n_element:(j+1)*n_element] += alpha[j] * p[j*n_element:(j+1)*n_element]  # p_switched
+        
+        mtotal = np.hstack((m_opt, m1))
+        
+        return mtotal, alpha
