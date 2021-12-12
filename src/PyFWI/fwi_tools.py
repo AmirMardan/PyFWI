@@ -6,6 +6,7 @@ import pyopencl as cl
 from numpy.core.arrayprint import dtype_is_implied 
 from scipy.signal import butter, hilbert, freqz
 import numpy.fft as fft
+import matplotlib.pyplot as plt
 
 try:
     from PyFWI.seismic_io import load_mat
@@ -339,11 +340,11 @@ class recorder:
         self.rec_loc = np.int32(rec_loc/dh)
         self.nr = rec_loc.shape[0]
             
-        self.vx = np.zeros((nt, ns * self.nr))
-        self.vz = np.zeros((nt, ns * self.nr))
-        self.taux = np.zeros((nt, ns * self.nr))
-        self.tauz = np.zeros((nt, ns * self.nr))
-        self.tauxz = np.zeros((nt, ns * self.nr))
+        self.vx = np.zeros((nt, ns * self.nr), dtype=np.float32)
+        self.vz = np.zeros((nt, ns * self.nr), dtype=np.float32)
+        self.taux = np.zeros((nt, ns * self.nr), dtype=np.float32)
+        self.tauz = np.zeros((nt, ns * self.nr), dtype=np.float32)
+        self.tauxz = np.zeros((nt, ns * self.nr), dtype=np.float32)
             
     def __call__(self, t, s, **kargs):
         for key, value in kargs.items():
@@ -701,8 +702,8 @@ def cost_preparation(dpre, dobs,
                      fn, freq=False, order=None, axis=None,
                      params_oh=None):
 
-    x_pre = np.copy(dpre)
-    x_obs = np.copy(dobs)
+    x_pre = copy.deepcopy(dpre)
+    x_obs = copy.deepcopy(dobs)
 
     if freq:
         # highcut = freq / fn
@@ -715,8 +716,9 @@ def cost_preparation(dpre, dobs,
 
     return x_pre, x_obs
 
+
 def lowpass(x1, highcut, fn, order=1, axis=1, show=False):
-    x = copy.copy(x1)
+    x = copy.deepcopy(x1)
 
     # Zero padding
     padding = 512
@@ -816,10 +818,16 @@ def source_weighting(d_pre, d_obs, ns, nr):
     return alpha_res
 
 
-def cost_seismic(dpre, dobs, fun,
+def cost_seismic(d_pre0, d_obs0, fun,
          fn=None, freq=False, order=None, axis=None,
          sourc_weight=False, ns=None, nr=None,
          params_oh=None):
+
+    d_pre = copy.deepcopy(d_pre0)
+    d_obs = copy.deepcopy(d_obs0)
+
+    dpre = np.array(list(d_pre.values()))
+    dobs = np.array(list(d_obs.values()))
 
     x_pre_cost, x_obs_cost = cost_preparation(dpre, dobs,
                                               fn, freq=freq, order=order, axis=axis,
@@ -829,14 +837,181 @@ def cost_seismic(dpre, dobs, fun,
     if sourc_weight:
         alpha_res = source_weighting(dpre, dobs, ns, nr)
 
+    # for param in x_pre_cost:
     rms, res = fun(alpha_res*x_pre_cost, x_obs_cost)
+    adj_src_ndarray = adj_cost_preparation(res, fn, freq=freq, order=order, axis=axis,
+                                   params_oh=params_oh)
 
-    adj_src = adj_cost_preparation(res,
-                                      fn, freq=freq, order=order, axis=axis,
-                                      params_oh=params_oh)
+    adj_src = {}
+    adj_src['vx'] = adj_src_ndarray[0, :, :]
+    adj_src['vz'] = adj_src_ndarray[1, :, :]
+    adj_src['taux'] = adj_src_ndarray[2, :, :]
+    adj_src['tauz'] = adj_src_ndarray[3, :, :]
+    adj_src['tauxz'] = adj_src_ndarray[4, :, :]
 
     return rms, adj_src
 
+
+class CostFunction:
+    def __init__(self, cost_function_type="l2"):
+        self.cost_function_method = "self." + cost_function_type
+
+    def __call__(self, dest, dobs):
+        err, adj_src = eval(self.cost_function_method)(dest, dobs)
+        return err, adj_src
+
+    @staticmethod
+    def list2dict(x):
+        
+        x_dict = {
+            'vx': x[0, :, :],
+            'vz': x[1, :, :],
+            'taux': x[2, :, :],
+            'tauz': x[3, :, :],
+            'tauxz': x[4, :, :]
+        }
+        return x_dict
+        
+    def l1(self, dest, dobs):
+        res = np.float32(dest - dobs)
+        rms = np.sum(np.abs(res))
+        adj_src = np.ones(res.shape, np.float32)
+
+        return rms, adj_src
+
+    def l2(self, dest0, dobs0):
+        
+        dest = copy.deepcopy(dest0)
+        dobs = copy.deepcopy(dobs0)
+        
+        if type(dest0).__name__ == 'ndarray':
+            dest = self.list2dict(dest)
+            dobs = self.list2dict(dobs)
+        
+        rms = 0
+        res = {}
+        for param in dest:
+            res[param] = np.float32(dest[param] - dobs[param])
+            rms += 0.5 * (res[param].reshape(-1).T @ res[param].reshape(-1))
+
+        # adj_src = res
+        
+        if type(dest0).__name__ == 'ndarray':
+            adj_src = np.array(list(res.values()))
+            
+        return rms, adj_src
+
+    def l2_intensity(self, dest, dobs):
+        # res = [dest[i] - dobs[i] for i in range(len(dest))]
+        res = dest**2 - dobs**2
+        rms = 0.25 * (res.reshape(-1).T @ res.reshape(-1))
+
+        adj_src = dest * res
+        return rms, adj_src
+
+    def exponential_cost(self, dest, dobs):
+        """
+        based on
+        https://stats.stackexchange.com/questions/154879/a-list-of-cost-functions-used-in-neural-networks-alongside-applications
+
+        """
+        res = dest - dobs
+        l2 = (res.reshape(-1).T @ res.reshape(-1))
+
+        tau = 1500  # 6.5  #TODO make it baed on the value of l2
+
+        rms = tau * np.exp(l2/tau)
+        adj_src = 2/tau * res * rms
+
+        return rms, adj_src
+
+    def l2_hilbert(self, dest, dobs):
+        # Cost function based on envelope
+
+        dobs_hilbert = hilbert(dobs, axis=-1)
+        dest_hilbert = hilbert(dest, axis=-1)
+
+        H_obs = np.imag(dobs_hilbert)
+        H_est = np.imag(dest_hilbert)
+
+        rms, adj_src_hilbert = self.l2(H_est, H_obs)
+
+        # adjoint of real part is negative of itself
+        adj_src = -1 * np.imag(hilbert(adj_src_hilbert, axis=-1))
+
+        return rms, adj_src
+
+    def l2_envelope(self, dest, dobs):
+        """
+        based on Wu et al., 2014, Seismic envelope inversion and modulation signal model
+        Geiophysics
+        """
+        # Cost function based on envelope
+        analytical_dobs = hilbert(dobs, axis=-1)
+        analytical_dest = hilbert(dest, axis=-1)
+
+        e_est = np.abs(analytical_dest)
+        e_obs = np.abs(analytical_dobs)
+        E = e_est - e_obs
+
+        yest = np.real(analytical_dest)  # yest = dest
+        yobs = np.real(analytical_dobs)  # yobs = dobs
+
+        yH_est = np.imag(analytical_dest)
+        yH_real = np.imag(analytical_dobs)
+
+        rms = 0.5 * E.reshape(-1).T @  E.reshape(-1)
+        adj_src = E * dest/e_est - np.imag(E*yH_est/e_est)
+        # rms, adj_src_hilbert = self.l2(s_est, s_obs)
+        #
+        # adj_src = np.real(hilbert(adj_src_hilbert, axis=-1))
+
+        """
+        Plot to compare the envelope adjoint source with normal l2
+        """
+        SHOW = False
+        if SHOW:
+            trace_number = 30
+            dt = 0.0006
+
+            _, l2_src = self.l2(dest, dobs)
+            self.plot_trace(l2_src[0, :, trace_number], adj_src[0, :, trace_number], "residual AS", "envelope AS")
+            self.plot_trace(dobs[0, :, trace_number], e_obs[0, :, trace_number], "$d_{obs}$", "envelope")
+            self.plot_amp_spectrum(l2_src[0, :, trace_number], adj_src[0, :, trace_number], dt,
+                                   case_a_label="residual AS", case_b_label="envelope AS")
+
+        return rms, adj_src
+
+    def plot_trace(self, case_a, case_b, case_a_label=None, case_b_label=None):
+        """
+            to compare two trace
+
+        """
+        plt.figure()
+        plt.plot(case_a, np.arange(case_a.size), label=case_a_label)
+        plt.plot(case_b, np.arange(case_b.size), label=case_b_label)
+        plt.legend()
+        plt.gca().invert_yaxis()
+        plt.grid()
+
+    def plot_amp_spectrum(self, case_a, case_b, dt, case_a_label=None, case_b_label=None):
+        """
+            to compare two amplitude spectrum
+
+        """
+        fdomain_a = np.abs(np.fft.fftshift(np.fft.fft(case_a)))
+
+        fdomain_b = np.abs(np.fft.fftshift(np.fft.fft(case_b)))
+
+        f_idx = np.linspace(-1/2/dt, 1/2/dt, fdomain_b.size)
+        fig, ax = plt.subplots()
+        ax.plot(f_idx, (fdomain_a/fdomain_a.max())**2, label=case_a_label)
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Normalized amplitude')
+        plt.plot(f_idx, (fdomain_b/fdomain_b.max())**2, label=case_b_label)
+        ax.legend()
+        ax.set_xlim([0, 125])
+        ax.grid()
 
 
 if __name__ == "__main__":
