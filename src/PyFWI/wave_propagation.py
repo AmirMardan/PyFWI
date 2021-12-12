@@ -8,7 +8,9 @@ import pyopencl as cl
 import os
 from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
-import PyFWI.seiplot as seiplt
+import copy
+from scipy.ndimage import gaussian_filter
+
 
 
 class wave_preparation():
@@ -53,9 +55,9 @@ class wave_preparation():
         
         self.chpr = chpr
         chp = int(chpr * self.nt / 100)
-        self.chp = np.linspace(1, self.nt-1, chp, dtype=np.int32)
+        self.chp = np.linspace(0, self.nt-1, chp, dtype=np.int32)
         if (len(self.chp) < 2): #& (chpr != 0) 
-            self.chp = np.array([1, self.nt])
+            self.chp = np.array([1, self.nt-1])
             
         self.nchp = len(self.chp)
         # Take chpr into account 
@@ -179,12 +181,24 @@ class wave_preparation():
                                 self.mf.COPY_HOST_PTR, hostbuf=v)
         self.tauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                                  self.mf.COPY_HOST_PTR, hostbuf=v)
+        
+        # Buffer for forward modelling of Hessian
+        self.w_vx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.w_vz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                              self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.w_taux_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.w_tauz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                self.mf.COPY_HOST_PTR, hostbuf=v)
+        self.w_tauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+                                 self.mf.COPY_HOST_PTR, hostbuf=v)
                 
-        self.glam_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+        self.w_glam_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                               self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.gmu_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+        self.w_gmu_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                               self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.grho_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
+        self.w_grho_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                               self.mf.COPY_HOST_PTR, hostbuf=v)
         
         # Buffer for seismograms
@@ -348,6 +362,7 @@ class wave_preparation():
             np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
             # get_from_opencl(self.seismogramid_tauxz_b)
 
+
     def make_residual(self, res, s, t):
         """
         This function reads the inject the residual to residual buffer based on source and the
@@ -392,7 +407,6 @@ class wave_preparation():
         res_tauxz = prepare_to_opencl(res['tauxz'])
         res_src_tauxz = (res['tauxz'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
         cl.enqueue_copy(self.queue, self.res_tauxz_b, res_tauxz)
-
 
     def pml_preparation(self, v_max):
         
@@ -572,9 +586,8 @@ class wave_preparation():
 class wave_propagator(wave_preparation):
     def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=None, chpr=10, components=4):
         wave_preparation.__init__(self, inpa, src, rec_loc, model_size, n_well_rec, chpr=chpr, components=components)
-        # CPML.__init__(self, self.dh, self.dt, N=self.npml, nd=2, Rc=1e-5, nu0=1, nnu=2, nalpha=1, alpha0=0)
     
-    def forward_propagator(self, model):
+    def forward_propagator(self, model, W=None, grad=None):
         """ This function is in charge of forward modelling for acoustic case
 
         Parameters
@@ -593,27 +606,94 @@ class wave_propagator(wave_preparation):
                                  self.vx_b, self.vz_b,
                                  self.taux_b, self.tauz_b, self.tauxz_b)
             
-            self.__kernel(s, coeff) 
+            self.__kernel(s, coeff, W, grad) 
             
         return self.seismogram
             
-    def __kernel(self, s, coeff=+1):
+    def __kernel(self, s, coeff=+1, W=None, grad=None):
 
         chpc = 0
+        chp_count_adjoint = 0
+        
+        if grad:
+            glam, gmu, grho = tools.adj_grad_lmd_to_vd(grad['vp'], grad['vs'], grad['rho'],
+                                                       self.lam[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
+                                                       self.mu[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
+                                                       self.rho[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml])
+            
+            cl.enqueue_copy(self.queue, self.w_glam_b, glam)
+            cl.enqueue_copy(self.queue, self.w_gmu_b, gmu)
+            cl.enqueue_copy(self.queue, self.w_grho_b, grho)
+            
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
 
         for t in range(1, self.nt):
-            src_kt_x, src_kt_z = np.float32(self.src(t))
 
-            self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
+            if W is None:
+                src_kt_x, src_kt_z = np.float32(self.src(t))
+                
+                self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
                             self.vx_b, self.vz_b,
                             self.taux_b, self.tauz_b, self.tauxz_b,
                             self.rho_b,
-                            self.seismogramid_vx_b, self.seismogramid_vz_b,
-                            self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
-                            # self.dxr, self.rec_cts, self.rec_var,
                             self.srcx[s], self.srcz[s],
                             src_kt_x, src_kt_z)
+            else:
+                if t in self.chp:
+                        vx = W['vx'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
+                        vz = W['vz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
+                        taux = W['taux'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
+                        tauz = W['tauz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
+                        tauxz = W['tauxz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
+                        
+                        chp_count_adjoint += 1
+                        
+                        cl.enqueue_copy(self.queue, self.w_vx_b, vx)
+                        cl.enqueue_copy(self.queue, self.w_vz_b, vz)
+                        cl.enqueue_copy(self.queue, self.w_taux_b, taux)
+                        cl.enqueue_copy(self.queue, self.w_tauz_b, tauz)
+                        cl.enqueue_copy(self.queue, self.w_tauxz_b, tauxz)
+                        
+                else:
+                    self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
+                                 coeff,
+                                 self.w_vx_b,
+                                 self.w_taux_b, self.w_tauxz_b,
+                                 self.rho_b,
+                                 self.vdx_pml_b, self.vdz_pml_b
+                                 )
+                    
+                    self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
+                                 1,
+                                 self.w_vz_b,
+                                 self.w_tauz_b, self.w_tauxz_b,
+                                 self.rho_b,
+                                 self.vdx_pml_b, self.vdz_pml_b
+                                 )
+
+                    self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
+                                 1,
+                                 self.w_vx_b, self.w_vz_b,
+                                 self.w_taux_b, self.w_tauz_b,
+                                 self.lam_b, self.mu_b,
+                                 self.vdx_pml_b, self.vdz_pml_b
+                                 )
+
+                    self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
+                                  1,
+                                  self.w_vx_b, self.w_vz_b,
+                                  self.w_tauxz_b,
+                                  self.mu_b,
+                                  self.vdx_pml_b, self.vdz_pml_b
+                                  )
+            
+            
+                self.prg.forward_hessian_src_preparing(self.queue, (self.tnz, self.tnx), None,
+                                                       self.w_vx_b, self.w_vz_b, self.w_taux_b, self.w_tauz_b, self.w_tauxz_b,
+                                                       self.vx_b, self.vz_b, self.taux_b, self.tauz_b, self.tauxz_b,
+                                                        self.w_glam_b, self.w_gmu_b, self.w_grho_b, self.rho_b) 
+
+
 
             self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
                                  coeff,
@@ -648,7 +728,7 @@ class wave_propagator(wave_preparation):
                                   )
 
             copy_purpose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
-            if t == self.chp[chpc]:
+            if t in self.chp:
                 cl.enqueue_copy(self.queue, copy_purpose, self.vx_b)
                 self.W['vx'][:, :, s, chpc] = np.copy(copy_purpose)
 
@@ -671,7 +751,7 @@ class wave_propagator(wave_preparation):
             self.make_seismogram(s, t)
 
             if self.forward_show and np.remainder(t, 20) == 0:
-                cl.enqueue_copy(self.queue, showpurose, self.tauz_b)
+                cl.enqueue_copy(self.queue, showpurose, self.taux_b)
                 self.plot_propagation(showpurose, t)
         # return 
     
@@ -696,28 +776,28 @@ class wave_propagator(wave_preparation):
 
         coeff = np.int32(coeff)
 
-        vx = np.zeros((self.tnz, self.tnx), dtype=np.float32)
-        adj_vx = np.zeros((self.tnz, self.tnx), dtype=np.float32)
+        vx_show = np.zeros((self.tnz, self.tnx), dtype=np.float32)
+        adj_vx_show = np.zeros((self.tnz, self.tnx), dtype=np.float32)
 
         # time loop
         for t in range(self.nt - 1, 0, -1):  # range(self.nt-1,self.nt-2,-1):#
             self.make_residual(res, s, t)
 
             if t == self.chp[chpc]:
-                self.vx = np.copy(self.W['vx'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.vx_b, self.vx)
+                vx = np.copy(self.W['vx'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.vx_b, vx)
 
-                self.vz = np.copy(self.W['vz'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.vz_b, self.vz)
+                vz = np.copy(self.W['vz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.vz_b, vz)
 
-                self.taux = np.copy(self.W['taux'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.taux_b, self.taux)
+                taux = np.copy(self.W['taux'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.taux_b, taux)
 
-                self.tauz = np.copy(self.W['tauz'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.tauz_b, self.tauz)
+                tauz = np.copy(self.W['tauz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.tauz_b, tauz)
 
-                self.tauxz = np.copy(self.W['tauxz'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.tauz_b, self.tauxz)
+                tauxz = np.copy(self.W['tauxz'][:, :, s, chpc])
+                cl.enqueue_copy(self.queue, self.tauz_b, tauxz)
 
                 chpc -= 1
  
@@ -797,14 +877,14 @@ class wave_propagator(wave_preparation):
 
             # Plotting wave propagation
             if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
-                cl.enqueue_copy(self.queue, vx, self.tauxz_b)
+                cl.enqueue_copy(self.queue, vx_show, self.vx_b)
 
-                cl.enqueue_copy(self.queue, adj_vx, self.avx_b)
+                cl.enqueue_copy(self.queue, adj_vx_show, self.avx_b)
 
-                self.plot_propagation(vx, t, adj_vx)
+                self.plot_propagation(vx_show, t, adj_vx_show)
                 
             
-    def forward_modeling(self, model0, show=False):
+    def forward_modeling(self, model0, show=False, W=None, grad=None):
         self.forward_show = show
         model = model0.copy()
 
@@ -814,10 +894,10 @@ class wave_propagator(wave_preparation):
         
         self.pml_preparation(model['vp'].max())
         self.elastic_buffers(model)
-        seismo = self.forward_propagator(model)    
+        seismo = self.forward_propagator(model, W, grad)    
         return seismo
     
-    def gradient(self, res, show=False):
+    def gradient(self, res, show=False, Lam=None, grad=None):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
@@ -827,6 +907,12 @@ class wave_propagator(wave_preparation):
         self.__adjoint_modelling_per_source(res)
         
         glam, gmu, grho0 = self.gradient_reading()
+        
+        # TODO Should be removed
+        glam[:14, :] = glam[:, :14] = 0
+        grho0[:14, :] = grho0[:, :14] = 0
+        gmu[:14, :] = gmu[:, :14] = 0
+                
 
         gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho0,
                                               self.lam[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
@@ -839,12 +925,78 @@ class wave_propagator(wave_preparation):
                 }
         
         
+def truncated(FO_waves, W, m0, grad0, m1, iter=5):
+        nz = FO_waves.nz
+        nx = FO_waves.nx
+        
+        x_test = -1 * np.copy(grad0)
+        m = tools.vec2vel_dict(np.hstack((m0, m1)), nz, nx)
+        
+        r = np.copy(grad0)
+        x = -1 * np.copy(r)
+                
+        x_dict = tools.vec2vel_dict(x, nz, nx)
+        
+        dp = 0
+        for i in range(iter):
+            data_section_ajoint = FO_waves.forward_modeling(m, False, W, x_dict)
+            FO_waves.W = copy.deepcopy(W)
+            hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=False)
+            Hx = tools.vel_dict2vec(hess)#[:self.nz * self.nx] 
+            b1 = np.dot(Hx.T, x)
+            print(f'{b1 = }')
+            if b1<0:
+                if np.all(dp == 0):
+                    dp = x
+                break
+            
+            b2 = np.dot(r.T, r)
+            b2b1 = (b2/b1)  # The fraction is reverse in Metivier
+            dp += b2b1 * x  
+            
+            r = r + b2b1 * Hx
+            x = -r + (np.dot(r.T, r)/b2) * x
+            x_dict = tools.vec2vel_dict(x, nz, nx)
+           
+        reconst_img = tools.svd_reconstruction(dp[:10000].reshape(100, 100), 0, 1)
+        # dp[:10000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+        reconst_img = tools.svd_reconstruction(dp[10000:20000].reshape(100, 100), 2, 40)
+        # dp[10000:20000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+        reconst_img = tools.svd_reconstruction(dp[20000:].reshape(100, 100), 6, 90)
+        # dp[20000:] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+            
+        fig = plt.figure()
+        ax = fig.add_subplot(3, 2, 1)
+        ax.imshow(dp[:10000].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 2)
+        ax.imshow(x_test[:10000].reshape(100,100), cmap='jet')
+            
+        ax = fig.add_subplot(3, 2, 3)
+        ax.imshow(dp[10000:20000].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 4)
+        ax.imshow(x_test[10000:20000].reshape(100,100), cmap='jet')
+            
+        ax = fig.add_subplot(3, 2, 5)
+        ax.imshow(dp[20000:].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 6)
+        ax.imshow(x_test[20000:].reshape(100,100), cmap='jet')
+        
+        a=1
+        return dp
+        # return 1    
+        
+        
+        
 if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
+    import PyFWI.seiplot as seiplt
     
     GRADIENT = False
-    INVERSION = True  # False
+    INVERSION = True  #  False
     
     model_gen = md.ModelGenerator('yang') # louboutin') # 
     
@@ -859,7 +1011,7 @@ if __name__ == "__main__":
     inpa['pml_dir'] = 2
     inpa['device'] = 2
     inpa['energy_balancing'] = False
-    chpr = 99
+    chpr = 100
     sdo = 4
     fdom = 25
     fn = 125
@@ -878,8 +1030,8 @@ if __name__ == "__main__":
     offsetx = inpa['dh'] * model_shape[1]
     depth = inpa['dh'] * model_shape[0]
 
-    inpa['rec_dis'] = inpa['dh']
-    ns = 1
+    inpa['rec_dis'] = 2.  # inpa['dh']
+    ns = 5
     inpa['acq_type'] = 0
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
@@ -897,7 +1049,10 @@ if __name__ == "__main__":
         d_est = Lam.forward_modeling(m0, show=False)
 
         res = tools.residual(d_est, d_obs)
-            
+        
+        rms = tools.cost_function(d_est, d_obs)
+        print(rms)
+    
         # fig = plt.figure()
         # ax = fig.add_subplot(1, 3, 1)
         # seiplt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5)
@@ -916,8 +1071,8 @@ if __name__ == "__main__":
     elif INVERSION:
         import PyFWI.optimization as fwi
         
-        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
-        inverted_model, rms = FWI(m0, method=0, iter=1)
+        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4)
+        inverted_model, rms = FWI(m0, method=1, iter=3)
         
         
         seiplt.earth_model(inverted_model)
