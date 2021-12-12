@@ -4,6 +4,9 @@ import copy
 import logging
 import pyopencl as cl
 from numpy.core.arrayprint import dtype_is_implied 
+from scipy.signal import butter, hilbert, freqz
+import numpy.fft as fft
+
 try:
     from PyFWI.seismic_io import load_mat
     from PyFWI import rock_physics as rp 
@@ -191,15 +194,6 @@ def modeling_model(model, med_type):
     return model
 
 
-# def _model_rearanging(model0, med_type):
-#     model = {}
-    
-#     if med_type == 1:
-#         try:
-
-
-
-
 def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     """
     grad_lmr_to_vd [summary]
@@ -281,7 +275,7 @@ def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
     grho_rho = grho
     grho = grho_vp + grho_vs + grho_rho
 
-    return glam, gmu, grho
+    return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32)
 
 
 def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
@@ -676,7 +670,7 @@ def pml_delta_calculation(dh, n_pml=10, pml_r=1e-5):
     return delta
 
 
-def vel_dic2vec(m0):
+def vel_dict2vec(m0):
     nz, nx = m0[[*m0][0]].shape
     m = np.zeros((3 * nz * nx))
     
@@ -694,6 +688,156 @@ def vec2vel_dict(m0, nz, nx):
     }
 
     return m
+
+def svd_reconstruction(m, begining_component, num_components):
+    U, s, V = np.linalg.svd(m) 
+    reconst_img = np.matrix(U[:, begining_component:begining_component +num_components]) *\
+        np.diag(s[begining_component:begining_component +num_components]) * \
+            np.matrix(V[begining_component:begining_component +num_components, :])
+    return reconst_img
+
+
+def cost_preparation(dpre, dobs,
+                     fn, freq=False, order=None, axis=None,
+                     params_oh=None):
+
+    x_pre = np.copy(dpre)
+    x_obs = np.copy(dobs)
+
+    if freq:
+        # highcut = freq / fn
+        x_obs = lowpass(x_obs, freq, fn, order=order, axis=axis)
+        x_pre = lowpass(x_pre, freq, fn, order=order, axis=axis)
+
+    if params_oh is not None:
+        x_obs = params_oh * x_obs
+        x_pre = params_oh * x_pre
+
+    return x_pre, x_obs
+
+def lowpass(x1, highcut, fn, order=1, axis=1, show=False):
+    x = copy.copy(x1)
+
+    # Zero padding
+    padding = 512
+    x = np.hstack((x, np.zeros((x.shape[0], padding, x.shape[2]))))
+
+    nt = x.shape[axis]
+
+    # Bring the data to frequency domain
+    x_fft = fft.fft(x, n=nt, axis=axis)
+
+    # Calculate the highcut btween 0 to 1
+    scaled_highcut = 2*highcut/fn
+
+    # Generate the filter
+    b, a = butter(order, scaled_highcut, btype='lowpass', output="ba")
+
+    # Get the frequency response
+    w, h1 = freqz(b, a, worN=nt, whole=True)
+    h = np.diag(h1)
+
+    # Apply the filter in the frequency domain
+    fd = h @ x_fft
+
+    #Double filtering by the conjugate to make up the shift
+    h = np.diag(np.conjugate(h1))
+    fd = h @ fd
+
+    # Bring back to time domaine
+    f_inv = fft.ifft(fd, n=nt, axis=axis).real
+    f_inv = f_inv[:, :-padding, :]
+
+    return f_inv
+
+
+def adj_lowpass(x, highcut, fn, order, axis=1):
+
+    # Zero padding
+    padding = 512
+    x = np.hstack((x, np.zeros((x.shape[0], padding, x.shape[2]))))
+
+    nt = x.shape[axis]
+
+    # Bring the data to frequency domain
+    x_fft = np.fft.fft(x, n=nt, axis=axis)
+
+    # Calculate the highcut btween 0 to 1
+    scaled_highcut = 2*highcut / fn
+
+    # Generate the filter
+    b, a = butter(order, scaled_highcut, btype='lowpass', output="ba")
+
+    # Get the frequency response
+    w, h = freqz(b, a, worN=nt, whole=True)
+
+    # Get the conjugate of the filter
+    h_c = np.diag(np.conjugate(h))
+
+    # Apply the adjoint filter in the frequency domain
+    fd = h_c @ x_fft
+
+    # Double filtering by the conjugate to make up the shift
+    h_c = np.diag(h)
+    fd = h_c @ fd
+
+    # Bring back to time domaine
+    adj_f_inv = np.fft.ifft(fd, axis=axis).real
+    adj_f_inv = adj_f_inv[:, :-padding, :]
+    return adj_f_inv
+
+
+def adj_cost_preparation(res,
+                         fn, freq=False, order=None, axis=None,
+                         params_oh=None):
+
+    x_res = np.copy(res)
+
+    if params_oh is not None:
+        x_res = params_oh * x_res
+
+    if freq:
+        x_res = adj_lowpass(res, freq, fn, order=order, axis=axis)
+
+    return x_res
+
+
+def source_weighting(d_pre, d_obs, ns, nr):
+    x_pre = np.copy(d_pre)
+
+    alpha_res = np.zeros(x_pre.shape)
+    for k in range(ns):
+        alpha_res[:, k * nr: (k + 1) * nr] = \
+            (x_pre[:, k * nr: (k + 1) * nr].reshape(-1).T @
+             d_obs[:, k * nr: (k + 1) * nr].reshape(-1)) / \
+            (x_pre[:, k * nr: (k + 1) * nr].reshape(-1).T @
+             x_pre[:, k * nr: (k + 1) * nr].reshape(-1))
+
+    return alpha_res
+
+
+def cost_seismic(dpre, dobs, fun,
+         fn=None, freq=False, order=None, axis=None,
+         sourc_weight=False, ns=None, nr=None,
+         params_oh=None):
+
+    x_pre_cost, x_obs_cost = cost_preparation(dpre, dobs,
+                                              fn, freq=freq, order=order, axis=axis,
+                                              params_oh=params_oh)
+
+    alpha_res = 1.0
+    if sourc_weight:
+        alpha_res = source_weighting(dpre, dobs, ns, nr)
+
+    rms, res = fun(alpha_res*x_pre_cost, x_obs_cost)
+
+    adj_src = adj_cost_preparation(res,
+                                      fn, freq=freq, order=order, axis=axis,
+                                      params_oh=params_oh)
+
+    return rms, adj_src
+
+
 
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
