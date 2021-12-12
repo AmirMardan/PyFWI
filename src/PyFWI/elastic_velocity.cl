@@ -42,11 +42,7 @@ __kernel void MakeGradZero(__global float *Gmu,__global float *Glam, __global fl
         ////////////////////////////////////////////////////////////////////////
 __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *taux, __global float *tauz, __global float *tauxz,
-                     __global float *rho_b, 
-                     __global float *seismogram_vxi,__global float *seismogram_vzi,
-                     __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
-                    //  int dxr, int recDepth, int first_rec,
-                     int sourcex, int sourcez,
+                     __global float *rho_b, int sourcex, int sourcez,
                      float srcx, float srcz)
 
 
@@ -66,6 +62,50 @@ __kernel void injSrc(__global float *vx,__global float *vz,
 
 }
 
+__kernel void forward_hessian_src_preparing(__global float *w_vx,__global float *w_vz,
+                     __global float *w_taux, __global float *w_tauz, __global float *w_tauxz,
+                     __global float *vx,__global float *vz,
+                     __global float *taux, __global float *tauz, __global float *tauxz,
+                     __global float *glam, __global float *gmu, __global float *grho,
+                     __global float *rho
+                     )
+
+
+{
+  int i = get_global_id(0) ;
+  int j = get_global_id(1) ;
+
+  float DxmTx = (c1*(w_taux[center]-w_taux[left]) + c2*(w_taux[right]-w_taux[left2])+
+               c3*(w_taux[right2]-w_taux[left3]) + c4*(w_taux[right3]-w_taux[left4]))/dx ;
+
+  float DzmTxz = (c1*(w_tauxz[center]-w_tauxz[above]) + c2*(w_tauxz[below]-w_tauxz[above2])+
+               c3*(w_tauxz[below2]-w_tauxz[above3]) + c4*(w_tauxz[below3]-w_tauxz[above4]))/dz;
+
+  float DzpTz = (c1*(w_tauz[below]-w_tauz[center]) + c2*(w_tauz[below2]-w_tauz[above])+
+               c3*(w_tauz[below3]-w_tauz[above2]) + c4*(w_tauz[below4]-w_tauz[above3]))/dz;
+
+  float DxpTxz = (c1*(w_tauxz[right]-w_tauxz[center]) + c2*(w_tauxz[right2]-w_tauxz[left])+
+               c3*(w_tauxz[right3]-w_tauxz[left2]) + c4*(w_tauxz[right4]-w_tauxz[left3]))/dx;
+
+  float DzmVz= (c1*(w_vz[center]-w_vz[above]) + c2*(w_vz[below]-w_vz[above2])+
+               c3*(w_vz[below2]-w_vz[above3]) + c4*(w_vz[below3]-w_vz[above4]))/dz; 
+
+  float DxpVx= (c1*(w_vx[right]-w_vx[center]) + c2*(w_vx[right2]-w_vx[left])+
+               c3*(w_vx[right3]-w_vx[left2]) + c4*(w_vx[right4]-w_vx[left3]))/dx;
+
+  float DzpVx= (c1*(w_vz[below]-w_vz[center]) + c2*(w_vz[below2]-w_vz[above])+
+               c3*(w_vz[below3]-w_vz[above2]) + c4*(w_vz[below4]-w_vz[above3]))/dz;
+
+  float DxmVz= (c1*(w_vz[center]-w_vz[left]) + c2*(w_vz[right]-w_vz[left2])+
+               c3*(w_vz[right2]-w_vz[left3]) + c4*(w_vz[right3]-w_vz[left4]))/dx;
+
+
+  vx[center] += - dt * (grho[center] * (rho[center] * rho[center] * rho[center])) * (DxmTx + DzmTxz);
+  vz[center] += - dt * (grho[center] * (rho[center] * rho[center] * rho[center])) * (DzpTz + DxpTxz);
+  taux[center] += dt * glam[center] * (DxpVx + DzmVz) + 2 * dt * gmu[center] * DxpVx;
+  tauz[center] += dt * glam[center] * (DxpVx + DzmVz) + 2 * dt * gmu[center] * DzmVz;
+  tauxz[center] += dt * gmu[center] * (DzpVx + DxmVz);
+}
 /////////////////////////////// Updating for forward modelling ///////////////////////////////////////
 
         ////////////////////////////////////////////////////////////////////////
