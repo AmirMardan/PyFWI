@@ -6,7 +6,7 @@ import PyFWI.fwi_tools as tools
 from scipy.optimize.optimize import MemoizeJac
 
 
-def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, args=()):
+def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, args=()):
 
     x0 = copy.deepcopy(xk)
     rho = 0.5
@@ -40,7 +40,6 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
     while (np.isnan(fval_new) or (fval_new > fval_old)):  # & (count < max_call):
         alpha0 *= rho
         fval_new = phi(alpha0)
-        
         print(f"{alpha0 = } .......... {fval_new = :.4f} .......... {fval_old = :.4f}")
         count += 1
 
@@ -62,7 +61,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
         logging.warning("Linesearch didn't converge.")
     else:
         alpha = alpha0 
-    print(f'{initial_alpha = } -------------------------------{alpha = :.4f} with  {count = }')
+    print(f'{initial_alpha = } -------------------------------{alpha = } with  {count = }')
     
     return alpha, phi(alpha), dephi(alpha)
 
@@ -133,6 +132,7 @@ class FWI(Wave):
         
         i = 0
         while i < iter:
+            print(f"Iteration === {i:1d}")
             i += 1
             
             rms_hist.append(rms)
@@ -150,16 +150,10 @@ class FWI(Wave):
         
         d_est = self.forward_modeling(m, show=False)
         
-        adj_src = tools.residual(d_est, self.d_obs)
-        
-        rms = tools.cost_function(d_est, self.d_obs)
-        
-        
-        # rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
-        #                                        fn=self.fn, freq=freq, order=3, axis=1
-        #                                        )
-
-        # rms = rms_data
+        rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
+                                               fn=self.fn, freq=freq, order=3, axis=1
+                                               )
+        rms = rms_data
         
         g = self.gradient(adj_src)
         
