@@ -317,22 +317,22 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
 
     rho_m = rp.Density().matrix(rho_c, cc, rho_q)
 
-    gvp_phi = gvp * (-6.94 * 1000)
-    gvs_phi = gvs * (- 4.94 * 1000)
+    gvp_phi = gvp * (-6.9 * 1000)
+    gvs_phi = gvs * (- 4.7 * 1000)
     grho_phi = grho * (- rho_m + rho_f)
-    gphi = gvp_phi + gvs_phi + grho_phi  # gvp
+    gphi = gvp_phi + gvs_phi + grho_phi  
 
-    gvp_cc = gvp * (-1728/2 /np.sqrt(cc))
-    gvs_cc = gvs * (-1570/2 /np.sqrt(cc))
+    gvp_cc = gvp * (-2.2 * cc * 1000)
+    gvs_cc = gvs * (-1.8 * cc * 1000)
     grho_cc = grho * (1 - phi) * (rho_c - rho_q)
-    gcc = gvp_cc + gvs_cc + grho_cc  # gvs
+    gcc = gvp_cc + gvs_cc + grho_cc  
 
     gvp_s = gvp * 0
     gvs_s = gvs * 0
     grho_s = grho * phi * (rho_w - rho_g)
-    grho = gvp_s + gvs_s + grho_s
+    gs = gvp_s + gvs_s + grho_s
 
-    return gphi, gcc, grho
+    return gphi, gcc, gs
 
 class recorder:
     def __init__(self, nt, rec_loc, ns, dh):
