@@ -690,6 +690,26 @@ def vec2vel_dict(m0, nz, nx):
 
     return m
 
+
+def pcs_dict2vec(m0):
+    nz, nx = m0[[*m0][0]].shape
+    m = np.zeros((3 * nz * nx))
+    
+    m[:nz * nx] = m0['phi'].reshape(-1)
+    m[nz * nx: 2 * nz * nx] = m0['cc'].reshape(-1)
+    m[2 * nz * nx:] = m0['sw'].reshape(-1)
+    return m
+
+
+def vec2pcs_dict(m0, nz, nx):        
+    m = {
+        'phi': m0[:nz * nx].reshape(nz, nx),
+        'cc': m0[nz * nx:2*nz * nx].reshape(nz, nx),
+        'sw': m0[2*nz * nx:].reshape(nz, nx)
+    }
+
+    return m
+
 def svd_reconstruction(m, begining_component, num_components):
     U, s, V = np.linalg.svd(m) 
     reconst_img = np.matrix(U[:, begining_component:begining_component +num_components]) *\
