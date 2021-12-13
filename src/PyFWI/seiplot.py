@@ -23,18 +23,18 @@ def earth_model(model, keys=[], **kwargs):
     Returns:
         fig (class): The figure class  to which the images are added for furthur settings like im.set-clim(). 
     """
-
-    n = len(model)
+    
+    if keys == []:
+        keys = model.keys()
+        
+    n = len(keys)
     fig = plt.figure(figsize=(4*n, 4))
 
     i = 1
     ims = []
-    
-    if keys == []:
-        params= model.keys()
 
-    for param in params:
-        ax = fig.add_subplot(1,n,i)
+    for param in keys:
+        ax = fig.add_subplot(1, n, i)
         aspect = (model[param].shape[0]/model[param].shape[1])  
 
         offsetx =100; depth=100
