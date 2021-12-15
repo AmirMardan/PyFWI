@@ -103,9 +103,9 @@ class Circular():
         """
         model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.4})
         if not smoothing:  # Not m0
-            model['phi'] = add_circle(model['phi'], 0.3, r=7, cx=25, cz=25)
+            model['phi'] = add_circle(model['phi'], 0.3, r=7, cx=75, cz=75)
             model['cc'] = add_circle(model['cc'], 0.4, r=7, cx=50, cz=50)
-            model['sw'] = add_circle(model['sw'], 0.8, r=7, cx=75, cz=75)
+            model['sw'] = add_circle(model['sw'], 0.8, r=7, cx=25, cz=25)
             if vintage == 2:  # Monitor model
                 model['sw'] = add_circle(model['sw'], 0.2, r=7, cx=75, cz=75)
         
