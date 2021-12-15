@@ -7,7 +7,7 @@ from scipy.optimize.optimize import MemoizeJac
 import matplotlib.pyplot as plt
 
 
-def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, min=1e-8, args=()):
+def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, min=1e-8, bond=[-np.inf, np.inf], args=()):
 
     x0 = copy.deepcopy(xk)
     rho = 0.5
@@ -244,25 +244,6 @@ def truncated(FO_waves, W, m0, grad0, m1, iter=5):
         # reconst_img = tools.svd_reconstruction(dp[20000:].reshape(100, 100), 6, 90)
         # dp[20000:] = gaussian_filter(reconst_img, 0).reshape(-1)
             
-            
-        fig = plt.figure()
-        ax = fig.add_subplot(3, 2, 1)
-        ax.imshow(dp[:10000].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 2)
-        ax.imshow(x_test[:10000].reshape(100,100), cmap='jet')
-            
-        ax = fig.add_subplot(3, 2, 3)
-        ax.imshow(dp[10000:20000].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 4)
-        ax.imshow(x_test[10000:20000].reshape(100,100), cmap='jet')
-            
-        ax = fig.add_subplot(3, 2, 5)
-        ax.imshow(dp[20000:].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 6)
-        ax.imshow(x_test[20000:].reshape(100,100), cmap='jet')
-        
-        a=1
         return dp
-        # return 1    
         
         
