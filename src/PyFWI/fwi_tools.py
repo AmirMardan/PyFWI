@@ -329,8 +329,8 @@ def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
     grho_phi = grho * (- rho_m + rho_f)
     gphi = gvp_phi + gvs_phi + grho_phi  
 
-    gvp_cc = gvp * (- a3 * 1000)
-    gvs_cc = gvs * (- b3 * 1000)
+    gvp_cc = gvp * (- a3 * cc * 1000)
+    gvs_cc = gvs * (- b3 * cc * 1000)
     grho_cc = grho * (1 - phi) * (rho_c - rho_q)
     gcc = gvp_cc + gvs_cc + grho_cc  
 
@@ -341,7 +341,7 @@ def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
 
     return gphi, gcc, gs
 
-def grad_pcs2vd(gphi0, gcc0, gs0, cc, phi, sw):    
+def grad_pcs2vd(gphi0, gcc0, gsw0, cc, phi, sw):    
     """
     grad_pcs2vd [summary]
 
@@ -366,8 +366,13 @@ def grad_pcs2vd(gphi0, gcc0, gs0, cc, phi, sw):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
-    #TODO rhis function is not complete!!
-    
+    a1=5.5
+    a2=6.9
+    a3=2.2
+    b1=3.4
+    b2=4.7
+    b3=1.8
+        
     rho_q = 2.65
     rho_c = 2.55
     rho_w = 1.0
@@ -375,28 +380,34 @@ def grad_pcs2vd(gphi0, gcc0, gs0, cc, phi, sw):
 
     rho_f = rp.Density().fluid(rho_g, rho_w, sw)
 
-    gvp = np.copy(gvp0)
-    gvs = np.copy(gvs0)
-    grho = np.copy(grho0)
+    gphi = np.copy(gphi0)
+    gcc = np.copy(gcc0)
+    gsw = np.copy(gsw0)
 
     rho_m = rp.Density().matrix(rho_c, cc, rho_q)
 
-    gvp_phi = gvp * (-6.9 * 1000)
-    gvs_phi = gvs * (- 4.7 * 1000)
-    grho_phi = grho * (- rho_m + rho_f)
-    gphi = gvp_phi + gvs_phi + grho_phi  
+    gphi_vp = gphi * (1 / (- a2 * 1000))
+    gcc_vp = gcc * (1 / (- a2 * 1000))
+    gsw_vp = gsw * 0
+    gvp = gphi_vp + gcc_vp + gsw_vp  
 
-    gvp_cc = gvp * (-2.2 * cc * 1000)
-    gvs_cc = gvs * (-1.8 * cc * 1000)
-    grho_cc = grho * (1 - phi) * (rho_c - rho_q)
-    gcc = gvp_cc + gvs_cc + grho_cc  
+    gphi_vs = gphi * (1 / (- b2 * 1000))
+    gcc_vs = gcc * (1 / (- b3 * 1000))
+    gsw_vs = gsw * 0
+    gvs = gphi_vs + gcc_vs + gsw_vs  
 
-    gvp_s = gvp * 0
-    gvs_s = gvs * 0
-    grho_s = grho * phi * (rho_w - rho_g)
-    gs = gvp_s + gvs_s + grho_s
+    gphi_rho = gphi * 1 / (rho_f - rho_m)
+    gcc_rho = gcc * 1 / (rho_w - rho_q)
+    
+    
+    gsw_rho0 = ((1 / rho_w - rho_g) +
+                ((rho_f - rho_g)/(sw * (rho_w - rho_g) ** 2)) +
+                ((rho_f - rho_w)/((1 - sw) * (rho_w - rho_g) ** 2))) /phi
+    
+    gsw_rho = gsw * gsw_rho0
+    grho = gphi_rho + gcc_rho + gsw_rho
 
-    return gphi, gcc, gs
+    return gvp, gvs, grho
 
 
 class recorder:
