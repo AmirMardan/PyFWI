@@ -1,12 +1,13 @@
 import copy
 import logging
 import numpy as np
-from PyFWI.wave_propagation import wave_propagator as Wave, truncated
+from PyFWI.wave_propagation import wave_propagator as Wave
 import PyFWI.fwi_tools as tools
 from scipy.optimize.optimize import MemoizeJac
+import matplotlib.pyplot as plt
 
 
-def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, args=()):
+def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, min=1e-8, args=()):
 
     x0 = copy.deepcopy(xk)
     rho = 0.5
@@ -18,7 +19,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
 
     initial_alpha = np.copy(alpha0)  # for comparing the alpha as a condition of increasing alpha
     fc = [0]
-    max_call = 15
+    max_call = f_max
     
     def phi(alpha):
         fc[0] += 1
@@ -37,10 +38,14 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
     count = 0
 
     # For decreasing the alpha
-    while (np.isnan(fval_new) or (fval_new > fval_old)):  # & (count < max_call):
+    while (np.isnan(fval_new) or (fval_new >= fval_old)):  # & (count < max_call):
         alpha0 *= rho
+        if alpha0 < min:
+            alpha0 = 0
+            break
+        
         fval_new = phi(alpha0)
-        print(f"{alpha0 = } .......... {fval_new = :.4f} .......... {fval_old = :.4f}")
+        print(f"{alpha0 = } .......... {fval_new = :.6f} .......... {fval_old = :.6f}")
         count += 1
 
     if count == 0: # If we need to increase the alpha
@@ -49,7 +54,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
             fval_new_inc = phi(alpha_inc)
 
             count += 1
-            print(f"{alpha_inc = } .......... {fval_new_inc = :.4f} .......... {fval_old = :.4f}")
+            print(f"{alpha_inc = } .......... {fval_new_inc = :.6f} .......... {fval_old = :.6f}")
             if fval_new_inc < fval_new:
                 alpha0 = np.copy(alpha_inc)
                 fval_new = np.copy(fval_new_inc)
@@ -61,9 +66,13 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
         logging.warning("Linesearch didn't converge.")
     else:
         alpha = alpha0 
-    print(f'{initial_alpha = } -------------------------------{alpha = } with  {count = }')
     
-    return alpha, phi(alpha), dephi(alpha)
+    fval_new = phi(alpha)
+    grad_new = dephi(alpha) 
+    
+    print(f'{fval_new = } -------------------------------{fval_old = } with {alpha = } with  {count = }')
+    
+    return alpha, fval_new, grad_new
 
 
 class FWI(Wave):
@@ -191,3 +200,69 @@ class FWI(Wave):
         mtotal = np.hstack((m_opt, m1))
         
         return mtotal, alpha
+    
+
+def truncated(FO_waves, W, m0, grad0, m1, iter=5):
+        nz = FO_waves.nz
+        nx = FO_waves.nx
+        
+        x_test = -1 * np.copy(grad0)
+        m = tools.vec2vel_dict(np.hstack((m0, m1)), nz, nx)
+        
+        r = np.copy(grad0)
+        x = -1 * np.copy(r)
+                
+        x_dict = tools.vec2vel_dict(x, nz, nx)
+        
+        dp = 0
+        for i in range(iter):
+            data_section_ajoint = FO_waves.forward_modeling(m, False, W, x_dict)
+            FO_waves.W = copy.deepcopy(W)
+            hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=False)
+            Hx = tools.vel_dict2vec(hess)#[:self.nz * self.nx] 
+            b1 = np.dot(Hx.T, x)
+            print(f'{b1 = }')
+            if b1<0:
+                if np.all(dp == 0):
+                    dp = x
+                break
+            
+            b2 = np.dot(r.T, r)
+            b2b1 = (b2/b1)  # The fraction is reverse in Metivier
+            dp += b2b1 * x  
+            
+            r = r + b2b1 * Hx
+            x = -r + (np.dot(r.T, r)/b2) * x
+            x_dict = tools.vec2vel_dict(x, nz, nx)
+           
+        # reconst_img = tools.svd_reconstruction(dp[:10000].reshape(100, 100), 0, 1)
+        # dp[:10000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+        # reconst_img = tools.svd_reconstruction(dp[10000:20000].reshape(100, 100), 2, 40)
+        # dp[10000:20000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+        # reconst_img = tools.svd_reconstruction(dp[20000:].reshape(100, 100), 6, 90)
+        # dp[20000:] = gaussian_filter(reconst_img, 0).reshape(-1)
+            
+            
+        fig = plt.figure()
+        ax = fig.add_subplot(3, 2, 1)
+        ax.imshow(dp[:10000].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 2)
+        ax.imshow(x_test[:10000].reshape(100,100), cmap='jet')
+            
+        ax = fig.add_subplot(3, 2, 3)
+        ax.imshow(dp[10000:20000].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 4)
+        ax.imshow(x_test[10000:20000].reshape(100,100), cmap='jet')
+            
+        ax = fig.add_subplot(3, 2, 5)
+        ax.imshow(dp[20000:].reshape(100,100), cmap='jet')
+        ax = fig.add_subplot(3, 2, 6)
+        ax.imshow(x_test[20000:].reshape(100,100), cmap='jet')
+        
+        a=1
+        return dp
+        # return 1    
+        
+        
