@@ -329,8 +329,8 @@ def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
     grho_phi = grho * (- rho_m + rho_f)
     gphi = gvp_phi + gvs_phi + grho_phi  
 
-    gvp_cc = gvp * (- a3 * cc * 1000)
-    gvs_cc = gvs * (- b3 * cc * 1000)
+    gvp_cc = gvp * (- a3 * 1000)
+    gvs_cc = gvs * (- b3 * 1000)
     grho_cc = grho * (1 - phi) * (rho_c - rho_q)
     gcc = gvp_cc + gvs_cc + grho_cc  
 
