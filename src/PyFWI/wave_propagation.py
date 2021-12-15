@@ -29,6 +29,12 @@ class wave_preparation():
         self.nx = np.int32(model_size[1])
         self.nz = np.int32(model_size[0])
         
+        if 'g_smooth' in keys:
+            self.g_smooth = inpa['g_smooth']
+        else:
+            self.g_smooth = 0
+            
+        
         if 'npml' in keys:
             self.npml = inpa['npml']
         else:
@@ -840,10 +846,8 @@ class wave_propagator(wave_preparation):
                                 self.avx_b, self.avz_b,
                                 self.ataux_b, self.atauz_b, self.atauxz_b,
                                 self.res_vx_b, self.res_vz_b,
-                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
-                                self.dxr, self.rec_cts,
-                                self.rec_var, self.rec_var)
-
+                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b)
+                                
             self.prg.Adj_update_tau(self.queue, (self.tnz, self.tnx), None,
                                     self.avx_b, self.avz_b,
                                     self.ataux_b, self.atauz_b, self.atauxz_b,
@@ -909,85 +913,20 @@ class wave_propagator(wave_preparation):
         glam, gmu, grho0 = self.gradient_reading()
         
         # TODO Should be removed
-        glam[:14, :] = glam[:, :14] = 0
-        grho0[:14, :] = grho0[:, :14] = 0
-        gmu[:14, :] = gmu[:, :14] = 0
-                
-
+        glam[:14, :] = glam[:, :14] = glam[:, -13:] = 0
+        grho0[:14, :] = grho0[:, :14] = grho0[:, -13:] = 0
+        gmu[:14, :] = gmu[:, :14] = gmu[:, -13:] = 0
+        
+        
         gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho0,
                                               self.lam[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.mu[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.rho[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml])
         
-        return {'vp': gvp,
-                'vs': gvs,
-                'rho': grho
+        return {'vp': gaussian_filter(gvp, self.g_smooth),
+                'vs': gaussian_filter(gvs, self.g_smooth),
+                'rho': gaussian_filter(grho, self.g_smooth)
                 }
-        
-        
-def truncated(FO_waves, W, m0, grad0, m1, iter=5):
-        nz = FO_waves.nz
-        nx = FO_waves.nx
-        
-        x_test = -1 * np.copy(grad0)
-        m = tools.vec2vel_dict(np.hstack((m0, m1)), nz, nx)
-        
-        r = np.copy(grad0)
-        x = -1 * np.copy(r)
-                
-        x_dict = tools.vec2vel_dict(x, nz, nx)
-        
-        dp = 0
-        for i in range(iter):
-            data_section_ajoint = FO_waves.forward_modeling(m, False, W, x_dict)
-            FO_waves.W = copy.deepcopy(W)
-            hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=False)
-            Hx = tools.vel_dict2vec(hess)#[:self.nz * self.nx] 
-            b1 = np.dot(Hx.T, x)
-            print(f'{b1 = }')
-            if b1<0:
-                if np.all(dp == 0):
-                    dp = x
-                break
-            
-            b2 = np.dot(r.T, r)
-            b2b1 = (b2/b1)  # The fraction is reverse in Metivier
-            dp += b2b1 * x  
-            
-            r = r + b2b1 * Hx
-            x = -r + (np.dot(r.T, r)/b2) * x
-            x_dict = tools.vec2vel_dict(x, nz, nx)
-           
-        reconst_img = tools.svd_reconstruction(dp[:10000].reshape(100, 100), 0, 1)
-        # dp[:10000] = gaussian_filter(reconst_img, 0).reshape(-1)
-            
-        reconst_img = tools.svd_reconstruction(dp[10000:20000].reshape(100, 100), 2, 40)
-        # dp[10000:20000] = gaussian_filter(reconst_img, 0).reshape(-1)
-            
-        reconst_img = tools.svd_reconstruction(dp[20000:].reshape(100, 100), 6, 90)
-        # dp[20000:] = gaussian_filter(reconst_img, 0).reshape(-1)
-            
-            
-        fig = plt.figure()
-        ax = fig.add_subplot(3, 2, 1)
-        ax.imshow(dp[:10000].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 2)
-        ax.imshow(x_test[:10000].reshape(100,100), cmap='jet')
-            
-        ax = fig.add_subplot(3, 2, 3)
-        ax.imshow(dp[10000:20000].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 4)
-        ax.imshow(x_test[10000:20000].reshape(100,100), cmap='jet')
-            
-        ax = fig.add_subplot(3, 2, 5)
-        ax.imshow(dp[20000:].reshape(100,100), cmap='jet')
-        ax = fig.add_subplot(3, 2, 6)
-        ax.imshow(x_test[20000:].reshape(100,100), cmap='jet')
-        
-        a=1
-        return dp
-        # return 1    
-        
         
         
 if __name__ == "__main__":
@@ -995,8 +934,8 @@ if __name__ == "__main__":
     import PyFWI.acquisition as acq
     import PyFWI.seiplot as splt
     
-    GRADIENT = False
-    INVERSION = True  #  False
+    GRADIENT = True  #  False
+    INVERSION = False
     
     model_gen = md.ModelGenerator('yang') # louboutin') # 
     
@@ -1049,7 +988,7 @@ if __name__ == "__main__":
         d_est = Lam.forward_modeling(m0, show=False)
 
         CF = tools.CostFunction('l2')
-        rms, res = CF(list(d_est.values()), list(d_obs.values()))
+        rms, res = CF(d_est, d_obs)
 
         print(rms)
     
@@ -1064,7 +1003,7 @@ if __name__ == "__main__":
         
         grad = Lam.gradient(res, show=False)
         
-        splt.earth_model(grad)
+        splt.earth_model(grad, cmap='jet')
         plt.show()
         a=1
     

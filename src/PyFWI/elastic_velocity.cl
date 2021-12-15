@@ -310,17 +310,13 @@ __kernel void Adj_injSrc(
                          __global float *Avx, __global float *Avz,
                          __global float *Ataux, __global float *Atauz, __global float *Atauxz,
                          __global float *res_vx, __global float * res_vz,
-                         __global float *res_taux, __global float *res_tauz, __global float *res_tauxz,
-                         int dxr, int recDepth, int first_rec, int last_rec
+                         __global float *res_taux, __global float *res_tauz, __global float *res_tauxz
                          )
 
 
 {
   int i = get_global_id(0) ;
   int j = get_global_id(1) ;
-
-  // if(i%dxr==0 && j == recDepth){
-  // int ir = i/dxr;
 
   Avx[center] += res_vx[center];
   Avz[center] += res_vz[center];
