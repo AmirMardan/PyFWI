@@ -279,9 +279,9 @@ def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
     return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32)
 
 
-def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
+def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
     """
-    grad_vd_to_pcs [summary]
+    grad_vd2pcs [summary]
 
     [extended_summary]
 
@@ -304,6 +304,70 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
+    rho_q = 2.65
+    rho_c = 2.55
+    rho_w = 1.0
+    rho_g = 0.1
+
+    a1=5.5
+    a2=6.9
+    a3=2.2
+    b1=3.4
+    b2=4.7
+    b3=1.8
+     
+    rho_f = rp.Density().fluid(rho_g, rho_w, sw)
+
+    gvp = np.copy(gvp0)
+    gvs = np.copy(gvs0)
+    grho = np.copy(grho0)
+
+    rho_m = rp.Density().matrix(rho_c, cc, rho_q)
+
+    gvp_phi = gvp * (- a2 * 1000)
+    gvs_phi = gvs * (- b2 * 1000)
+    grho_phi = grho * (- rho_m + rho_f)
+    gphi = gvp_phi + gvs_phi + grho_phi  
+
+    gvp_cc = gvp * (- a3 * cc * 1000)
+    gvs_cc = gvs * (- b3 * cc * 1000)
+    grho_cc = grho * (1 - phi) * (rho_c - rho_q)
+    gcc = gvp_cc + gvs_cc + grho_cc  
+
+    gvp_s = gvp * 0
+    gvs_s = gvs * 0
+    grho_s = grho * phi * (rho_w - rho_g)
+    gs = gvp_s + gvs_s + grho_s
+
+    return gphi, gcc, gs
+
+def grad_pcs2vd(gphi0, gcc0, gs0, cc, phi, sw):    
+    """
+    grad_pcs2vd [summary]
+
+    [extended_summary]
+
+    Args:
+        gvp ([type]): [description]
+        gvs ([type]): [description]
+        grho ([type]): [description]
+        cc ([type]): [description]
+        rho_c ([type]): [description]
+        rho_q ([type]): [description]
+        phi ([type]): [description]
+        rho_w ([type]): [description]
+        rho_g ([type]): [description]
+        rho_f ([type]): [description]
+
+    Returns:
+        [type]: [description]
+
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    #TODO rhis function is not complete!!
+    
     rho_q = 2.65
     rho_c = 2.55
     rho_w = 1.0
@@ -333,6 +397,7 @@ def grad_vd_to_pcs(gvp0, gvs0, grho0, cc, phi, sw):
     gs = gvp_s + gvs_s + grho_s
 
     return gphi, gcc, gs
+
 
 class recorder:
     def __init__(self, nt, rec_loc, ns, dh):
@@ -895,7 +960,7 @@ class CostFunction:
     def l1(self, dest, dobs):
         res = np.float32(dest - dobs)
         rms = np.sum(np.abs(res))
-        adj_src = np.ones(res.shape, np.float32)
+        adj_src = res  # np.ones(res.shape, np.float32)
 
         return rms, adj_src
 
@@ -918,6 +983,8 @@ class CostFunction:
         
         if type(dest0).__name__ == 'ndarray':
             adj_src = np.array(list(res.values()))
+        else:
+            adj_src = res
             
         return rms, adj_src
 
@@ -938,7 +1005,7 @@ class CostFunction:
         res = dest - dobs
         l2 = (res.reshape(-1).T @ res.reshape(-1))
 
-        tau = 1500  # 6.5  #TODO make it baed on the value of l2
+        tau = 6.5  # 6.5  #TODO make it baed on the value of l2
 
         rms = tau * np.exp(l2/tau)
         adj_src = 2/tau * res * rms
