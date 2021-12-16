@@ -87,9 +87,10 @@ class wave_preparation():
             data_guide[4, :int(self.n_well_rec)] = np.flip(data_guide[4, :int(self.n_well_rec)])
         data_guide[5, :] = np.abs(data_guide[1, :] - data_guide[3, :])
         
-        self.data_guide_sampling = np.copy(data_guide).astype(np.int32)
+        self.data_guide_sampling = np.copy(data_guide)
         self.data_guide_sampling[1:, :] = np.int32(self.data_guide_sampling[1:, :] / self.dh)
-        self.data_guide_sampling[1:5, :] += inpa['npml'] 
+        self.data_guide_sampling[1:5, :] += inpa['npml']
+        self.data_guide_sampling = self.data_guide_sampling.astype(np.int32)
         
         if inpa["acq_type"] == 0:
             self.rec_cts = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
