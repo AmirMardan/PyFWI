@@ -10,7 +10,7 @@ try:
 except:
     from PyFWI.model_dataset import ModelGenerator
 
-def earth_model(model, keys=[], **kwargs):
+def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     """
     earth_model show the earth model.
 
@@ -24,6 +24,12 @@ def earth_model(model, keys=[], **kwargs):
         fig (class): The figure class  to which the images are added for furthur settings like im.set-clim(). 
     """
     
+    if offset is None:
+        offset = model[[*model][0]].shape[1]
+        
+    if depth is None:
+        depth = model[[*model][0]].shape[0]
+        
     if keys == []:
         keys = model.keys()
         
@@ -37,8 +43,7 @@ def earth_model(model, keys=[], **kwargs):
         ax = fig.add_subplot(1, n, i)
         aspect = (model[param].shape[0]/model[param].shape[1])  
 
-        offsetx =100; depth=100
-        ax.axis([0, offsetx, 0, depth])
+        ax.axis([0, offset, 0, depth])
         ax.set_aspect(aspect)
 
         im = ax.imshow(model[param], **kwargs)
