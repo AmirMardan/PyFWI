@@ -259,8 +259,8 @@ def Han(phi=None, cc=None, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
         vp = a1 - a2 * phi - a3 * cc  # np.sqrt(cc) 
         vs = b1 - b2 * phi - b3 * cc  # np.sqrt(cc)
 
-        vp = (vp * 1000).astype(np.float32)
-        vs = (vs * 1000).astype(np.float32)
+        vp = vp.astype(np.float32)
+        vs = vs.astype(np.float32)
         
         return vp, vs
         
