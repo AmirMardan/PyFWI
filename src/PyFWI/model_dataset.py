@@ -151,15 +151,15 @@ class Laminar():
     def Hu_laminar(self, vintage, smoothing):
         # Based on Hu et al., 2020, Direct rock physics inversion 
         
-        model = background((50, 50), {'phi':0.3, 'cc':0.1, 'sw':0.8})
-        model = add_layer(model, {'phi':0.1, 'cc':0.5, 'sw':0.8}, [0, 35], [0, 50])
-        model = add_layer(model, {'phi':0.2, 'cc':0.3, 'sw':0.8}, [0, 17], [0, 35])
+        model = background((100, 100), {'phi':0.3, 'cc':0.1, 'sw':0.2})
+        model = add_layer(model, {'phi':0.2, 'cc':0.3, 'sw':0.5}, [0, 37], [0, 65])
+        model = add_layer(model, {'phi':0.1, 'cc':0.5, 'sw':0.8}, [0, 65], [0, 100])
             
         if vintage == 2:
             model = add_layer(model, {'sw':0.2}, [22, 17], [22, 25], rt=[28, 17])
         
         if smoothing:
-            model = model_smoother(model, self.smoothing)
+            model = model_smoother(model, smoothing)
         return model
 
 
@@ -179,7 +179,7 @@ class Laminar():
         model['k_d'], model['g_d'] = rp.drained_moduli(model['phi'], model['k_s'], model['g_s'], model['cs'])
         model['k_f'], model['rho_f'] = rp.voigt_berie(model['k_l'], model['rho_l'], model['k_gas'], model['rho_gas'], model['s_gas'])
         
-        model['rho'] = rp.effective_density(model['phi'], model['rho_f'], model['rho_s'])
+        model['rho'] = rp.Density.effective_density(model['phi'], model['rho_f'], model['rho_s'])
         model['k_u'], model['C'], model['M'] = rp.biot_gassmann(model['phi'], model['k_f'], model['k_s'], model['k_d'])
 
         model['vp'] = np.sqrt((model['k_u'] + 4 / 3 * model['g_d']) / model['rho'])
@@ -194,7 +194,7 @@ class Laminar():
             model[param] = model[param].astype(np.float32)
 
         if smoothing:
-            model = model_smoother(model, self.smoothing)
+            model = model_smoother(model, smoothing)
         return model
 
 
