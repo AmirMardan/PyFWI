@@ -202,47 +202,64 @@ class FWI(Wave):
         return mtotal, alpha
     
 
-def truncated(FO_waves, W, m0, grad0, m1, iter=5):
+def truncated(FO_waves, W, m0, grad0, m1, iter):
         nz = FO_waves.nz
         nx = FO_waves.nx
+        n_params = np.int32(grad0.shape[0]/(nz * nx))
         
-        x_test = -1 * np.copy(grad0)
+        a1 = 0.5
+        a2 = 1.5 
+        
+        etta = 0.9
+        Q = np.eye(n_params *nz * nx, n_params * nz * nx)
+        
         m = tools.vec2vel_dict(np.hstack((m0, m1)), nz, nx)
         
         r = np.copy(grad0)
+        y = np.dot(Q, grad0)
         x = -1 * np.copy(r)
                 
         x_dict = tools.vec2vel_dict(x, nz, nx)
         
+        Hx = 0
+        
         dp = 0
-        for i in range(iter):
+        
+        i = 0
+        
+        df_k_1 = np.linalg.norm(r, 2)
+        
+        while np.linalg.norm(Hx + r, 2) > etta * np.linalg.norm(r, 2) and (i <iter):
             data_section_ajoint = FO_waves.forward_modeling(m, False, W, x_dict)
             FO_waves.W = copy.deepcopy(W)
             hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=False)
-            Hx = tools.vel_dict2vec(hess)#[:self.nz * self.nx] 
+            Hx = tools.vel_dict2vec(hess)
+            
             b1 = np.dot(Hx.T, x)
             print(f'{b1 = }')
             if b1<0:
                 if np.all(dp == 0):
                     dp = x
                 break
+            b2 = np.dot(r, y)
             
-            b2 = np.dot(r.T, r)
-            b2b1 = (b2/b1)  # The fraction is reverse in Metivier
+            b2b1 = (b1/b2)  # The fraction is reverse in Metivier
+            
             dp += b2b1 * x  
             
             r = r + b2b1 * Hx
-            x = -r + (np.dot(r.T, r)/b2) * x
+            y = np.dot(Q, r)
+            
+            x = -r + (np.dot(r, y)/b2) * x
             x_dict = tools.vec2vel_dict(x, nz, nx)
            
-        # reconst_img = tools.svd_reconstruction(dp[:10000].reshape(100, 100), 0, 1)
-        # dp[:10000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            i += 1
             
-        # reconst_img = tools.svd_reconstruction(dp[10000:20000].reshape(100, 100), 2, 40)
-        # dp[10000:20000] = gaussian_filter(reconst_img, 0).reshape(-1)
+            df_k = np.linalg.norm(r, 2)
             
-        # reconst_img = tools.svd_reconstruction(dp[20000:].reshape(100, 100), 6, 90)
-        # dp[20000:] = gaussian_filter(reconst_img, 0).reshape(-1)
+            etta = a1 * (df_k / df_k_1) ** a2
+            
+            df_k_1 = np.copy(df_k)
             
         return dp
         
