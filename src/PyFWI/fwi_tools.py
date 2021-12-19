@@ -170,7 +170,7 @@ def _elastic_model_preparation(model0, med_type):
 
     if 'vp' not in keys:
         try:
-            model['vp'] = 1000 * rp.p_velocity().Han(model['phi'], model['cc'])
+            model['vp'] = 1 * rp.p_velocity().Han(model['phi'], model['cc'])
             logging.info("P-wave velocity is estimated based on Han method")
 
         except:
@@ -324,13 +324,13 @@ def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
 
     rho_m = rp.Density().matrix(rho_c, cc, rho_q)
 
-    gvp_phi = gvp * (- a2 * 1000)
-    gvs_phi = gvs * (- b2 * 1000)
+    gvp_phi = gvp * (- a2 * 1)
+    gvs_phi = gvs * (- b2 * 1)
     grho_phi = grho * (- rho_m + rho_f)
     gphi = gvp_phi + gvs_phi + grho_phi  
 
-    gvp_cc = gvp * (- a3 * cc * 1000)
-    gvs_cc = gvs * (- b3 * cc * 1000)
+    gvp_cc = gvp * (- a3 * 1)
+    gvs_cc = gvs * (- b3 * 1)
     grho_cc = grho * (1 - phi) * (rho_c - rho_q)
     gcc = gvp_cc + gvs_cc + grho_cc  
 
@@ -386,13 +386,13 @@ def grad_pcs2vd(gphi0, gcc0, gsw0, cc, phi, sw):
 
     rho_m = rp.Density().matrix(rho_c, cc, rho_q)
 
-    gphi_vp = gphi * (1 / (- a2 * 1000))
-    gcc_vp = gcc * (1 / (- a2 * 1000))
+    gphi_vp = gphi * (1 / (- a2 * 1))
+    gcc_vp = gcc * (1 / (- a2 * 1))
     gsw_vp = gsw * 0
     gvp = gphi_vp + gcc_vp + gsw_vp  
 
-    gphi_vs = gphi * (1 / (- b2 * 1000))
-    gcc_vs = gcc * (1 / (- b3 * 1000))
+    gphi_vs = gphi * (1 / (- b2 * 1))
+    gcc_vs = gcc * (1 / (- b3 * 1))
     gsw_vs = gsw * 0
     gvs = gphi_vs + gcc_vs + gsw_vs  
 
