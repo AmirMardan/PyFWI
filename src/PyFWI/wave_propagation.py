@@ -902,7 +902,7 @@ class wave_propagator(wave_preparation):
         seismo = self.forward_propagator(model, W, grad)    
         return seismo
     
-    def gradient(self, res, show=False, Lam=None, grad=None):
+    def gradient(self, res, show=False, Lam=None, grad=None, parameterization='dv'):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
@@ -913,21 +913,22 @@ class wave_propagator(wave_preparation):
         
         glam, gmu, grho0 = self.gradient_reading()
         
-        # TODO Should be removed
-        glam[:14, :] = glam[:, :14] = glam[:, -13:] = 0
-        grho0[:14, :] = grho0[:, :14] = grho0[:, -13:] = 0
-        gmu[:14, :] = gmu[:, :14] = gmu[:, -13:] = 0
-        
-        
-        gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho0,
+        if parameterization == 'dv':
+            gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho0,
                                               self.lam[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.mu[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.rho[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml])
+            final_grad = {'vp': gaussian_filter(gvp, self.g_smooth),
+                          'vs': gaussian_filter(gvs, self.g_smooth),
+                          'rho': gaussian_filter(grho, self.g_smooth)
+                          }
+        else:
+            final_grad = {'lam': gaussian_filter(glam, self.g_smooth),
+                          'mu': gaussian_filter(gmu, self.g_smooth),
+                          'rho': gaussian_filter(grho0, self.g_smooth)
+                          }
         
-        return {'vp': gaussian_filter(gvp, self.g_smooth),
-                'vs': gaussian_filter(gvs, self.g_smooth),
-                'rho': gaussian_filter(grho, self.g_smooth)
-                }
+        return final_grad
         
         
 if __name__ == "__main__":
@@ -971,7 +972,7 @@ if __name__ == "__main__":
     depth = inpa['dh'] * model_shape[0]
 
     inpa['rec_dis'] = 2.  # inpa['dh']
-    ns = 1
+    ns = 2
     inpa['acq_type'] = 0
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
