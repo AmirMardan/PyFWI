@@ -292,8 +292,8 @@ class wave_preparation():
             factor = np.zeros((self.nz, self.nx), np.float32)
 
             denom = np.sqrt(precond)
-            denom = denom[self.npml + sdo:self.tnz - self.npml - sdo, self.npml + sdo:self.tnx - self.npml - sdo]
-            factor[sdo:-sdo, sdo:-sdo] = 1 / denom
+            denom = denom[self.npml + sdo + self.src_cts + 2:self.tnz - self.npml - sdo- self.src_cts - 2, self.npml + sdo + self.src_cts + 2:self.tnx - self.npml - sdo - self.src_cts - 2]
+            factor[sdo + self.src_cts + 2:-sdo- self.src_cts - 2, sdo + self.src_cts + 2:-sdo- self.src_cts - 2] = 1 / denom
             factor = factor / np.abs(factor).max()
 
             return np.copy(factor)
