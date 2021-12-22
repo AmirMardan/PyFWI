@@ -450,10 +450,10 @@ __kernel void Grad_mu(__global float *vx, __global float *vz,
 
 
 {
-  int i = get_global_id(0)+ npml + sdo + src_depth + 1 ;
-  int j = get_global_id(1)+ npml + sdo + src_depth + 1 ;
+  int i = get_global_id(0)+ npml + sdo + src_depth + 2 ;
+  int j = get_global_id(1)+ npml + sdo + src_depth + 2 ;
 
-  if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
+  if(i>Nz-sdo - npml - src_depth - 2|| j>Nx-sdo - npml- src_depth - 2){return;}
 
   float DzpVx= (c1*(vz[below]-vz[center]) + c2*(vz[below2]-vz[above])+
                c3*(vz[below3]-vz[above2]) + c4*(vz[below4]-vz[above3]))/dz;
@@ -490,10 +490,10 @@ __kernel void Grad_lam(__global float *vx, __global float *vz,
 
 
 {
-  int i = get_global_id(0)+ npml + sdo + src_depth + 1;
-  int j = get_global_id(1)+ npml + sdo + src_depth + 1;
+  int i = get_global_id(0)+ npml + sdo + src_depth + 2;
+  int j = get_global_id(1)+ npml + sdo + src_depth + 2;
 
-  if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
+  if(i>Nz-sdo - npml - src_depth - 2|| j>Nx-sdo - npml- src_depth - 2){return;}
 
 
   float DxpVx= (c1*(vx[right]-vx[center]) + c2*(vx[right2]-vx[left])+
@@ -530,10 +530,10 @@ __kernel void Grad_rho(__global float *vx, __global float *vz,
 
 
 {
-  int i = get_global_id(0)+ npml + sdo + src_depth + 1;
-  int j = get_global_id(1)+ npml + sdo + src_depth + 1;
+  int i = get_global_id(0)+ npml + sdo + src_depth + 2;
+  int j = get_global_id(1)+ npml + sdo + src_depth + 2;
 
-  if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
+  if(i>Nz-sdo - npml - src_depth - 2 || j>Nx-sdo - npml - src_depth - 2){return;}
 
   float DzpPz= (c1*(pz[below]-pz[center]) + c2*(pz[below2]-pz[above])+
                c3*(pz[below3]-pz[above2]) + c4*(pz[below4]-pz[above3]))/dz;
