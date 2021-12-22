@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.core.shape_base import block
-
+from scipy.sparse import coo_matrix,linalg
 
 class Density:
     def __init__(self):
@@ -31,7 +31,6 @@ class Density:
         """
         coeff = (0.31, 0.23)[units in ['imperial', 'Imperial', 'ft', 'ft/s']]
         rho = coeff * vp ** 0.25
-    
         return rho
 
     @staticmethod
@@ -232,7 +231,7 @@ class p_velocity:
         return vp
     
 
-def Han(phi=None, cc=None, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
+def Han(phi, cc, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
     """
     Han estimates velocity based on porosity and clasy content
 
@@ -255,48 +254,49 @@ def Han(phi=None, cc=None, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
         2. Mavko, G., Mukerji, T., & Dvorkin, J., 2020, The rock physics handbook. Cambridge university press.
     """
-    if phi is not None: # To calculate p_wave (p1) and s_wave (p2) velocities
-        vp = a1 - a2 * phi - a3 * cc  # np.sqrt(cc) 
-        vs = b1 - b2 * phi - b3 * cc  # np.sqrt(cc)
+    vp = a1 - a2 * phi - a3 * cc  # np.sqrt(cc) 
+    vs = b1 - b2 * phi - b3 * cc  # np.sqrt(cc)
 
-        vp = vp.astype(np.float32)
-        vs = vs.astype(np.float32)
+    vp = vp.astype(np.float32)
+    vs = vs.astype(np.float32)
         
-        return vp, vs
-        
-        
-    #TODO add a function for adjoint Han
+    return vp, vs
+
+
+def reverse_Han(vp, vs, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
+    nz, nx = vp.shape
+    n_elements = nz * nx
     
-    # elif vp is not None:
-    #     original_shape = np.shape(vp)
+    
+    vp0 = np.copy(vp)#/1000
+    vs0 = np.copy(vs)#/1000
+    
+    a2 = a2 * np.ones((n_elements)) 
+    a3 = a3 * np.ones((n_elements)) 
+    b2 = b2 * np.ones((n_elements)) 
+    b3 = b3 * np.ones((n_elements)) 
+    
+    y1 = a1 - vp0
+    y2 = b1 - vs0
+    
+    b = np.hstack((y1.reshape(-1), y2.reshape(-1))) 
+    
+    a_diag = np.arange(2*n_elements)
+    a_first = np.arange(n_elements)
+    a_second = np.arange(n_elements, 2*n_elements)    
+    
+    row = np.hstack((a_diag, a_first, a_second))
+    col = np.hstack((a_diag, a_second, a_first))
+    data = np.hstack((a2, b3, a3, b2))
+    
+    a = coo_matrix((data, (row, col)), dtype=np.float32)
 
-    #     vp = np.copy(vp)#/1000
-    #     vs = np.copy(vs)#/1000
-
-    #     vp = vp.reshape(1, -1)
-    #     vs = vs.reshape(1, -1)
-
-    #     y1 = vp - a1
-    #     y2 = vs - b1
-    #     y = np.vstack((y1, y2))
-
-    #     n = vp.shape[0]
-    #     A1 = np.hstack((-a2*np.ones((n, n)), -a3*np.ones((n, n))))
-    #     A2 = np.hstack((-b2*np.ones((n, n)), -b3*np.ones((n, n))))
-    #     A = np.vstack((A1, A2))
-
-    #     p = np.linalg.solve(A, y)
-
-    #     p1 = p[0, :]
-    #     p2 = (p[1, :]) ** 1
-    #     # print(p2) 
-
-    #     p1 = p1.reshape(original_shape)
-    #     p2 = p2.reshape(original_shape)
-
-    #     p1[p1<0] = 0
-    #     p2[p2<0] = 0
-    # return np.round(p1,2) , np.round(p2, 2)
+    # x = np.linalg.solve(a, b)
+    x = linalg.spsolve(a, b)
+    phi = x[:n_elements].reshape(nz, nx)
+    cc = x[n_elements:].reshape(nz, nx)
+    
+    return phi , cc
 
 
 def drained_moduli(phi, k_s, g_s, cs):
