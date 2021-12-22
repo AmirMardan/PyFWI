@@ -342,7 +342,7 @@ class ModelGenerator(Circular, Laminar):
                              
         
         if smoothing:
-            model = model_smoother(model, self.smoothing)
+            model = model_smoother(model, smoothing)
         return model
 
 
@@ -523,7 +523,8 @@ def pcs_perturbation(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100,
     return model
 
 
-def model_resizing(model,  bx, ex, bz, ez, ssr=(1, 1)):
+def model_resizing(model0,  bx=None, ex=None, bz=None, ez=None, ssr=(1, 1)):
+    model = copy.deepcopy(model0)
     for param in model:
         gz, gx = np.mgrid[:model[param].shape[0], :model[param].shape[1]]
         x = np.arange(0, model[param].shape[1], 1)
@@ -534,18 +535,24 @@ def model_resizing(model,  bx, ex, bz, ez, ssr=(1, 1)):
         model[param] = interpolator(xi, zi)
         model[param] = model[param].astype(np.float32, order='C')
 
-        model[param] = model[param][bz:ez, bx:ex]
+        if bx:
+            model[param] = model[param][bz:ez, bx:ex]
     return model
 
 
 if __name__ == "__main__":
-    Model = ModelGenerator('yang')
+    import PyFWI.seiplot as splt
+    Model = ModelGenerator('Hu_circles')
     model = Model()
-    
-    # Model = Laminar(vintage=2)
-    # model = Model.dupuy(smoothing=False)
+    splt.earth_model(model, cmap='coolwarm')
+
+    vp, vs = rp.Han(model['phi'], model['cc'])
     fig = plt.figure()
-    # phi = model['phi']
-    im = plt.imshow(model['vp'])
-    fig.colorbar(im)
+
+    splt.earth_model({'vp': vp, 'vs':vs}, cmap='coolwarm')
+
+    phi, cc = rp.reverse_Han(vp, vs)
+    
+    model_pc = {'phi': phi, 'cc':cc}
+    splt.earth_model(model_pc, cmap='coolwarm')
     plt.show()
