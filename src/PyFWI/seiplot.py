@@ -82,6 +82,44 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False,
 
     return ax
 
+def gn_plot(p, grad, nz, nx):
+    n_elemetns = nz * nx
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(3, 2, 1)
+    im = ax.imshow(p[:n_elemetns].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+    ax = fig.add_subplot(3, 2, 2)
+    im = ax.imshow(-grad[:n_elemetns].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+                
+    ax = fig.add_subplot(3, 2, 3)
+    im = ax.imshow(p[n_elemetns:2*n_elemetns].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+    ax = fig.add_subplot(3, 2, 4)
+    im = ax.imshow(-grad[n_elemetns:2*n_elemetns].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+                
+    ax = fig.add_subplot(3, 2, 5)
+    im = ax.imshow(p[2*n_elemetns:].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+    ax = fig.add_subplot(3, 2, 6)
+    im = ax.imshow(-grad[2*n_elemetns:].reshape(nz,nx), cmap='jet')
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cb = fig.colorbar(im, cax=cax)
+
+
 if __name__ == "__main__":
     # import PyFWI.model_dataset as md
     import PyFWI.rock_physics as rp
@@ -96,3 +134,4 @@ if __name__ == "__main__":
     earth_model(model)
     plt.show()
     print(4)
+
