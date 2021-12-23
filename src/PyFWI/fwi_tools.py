@@ -1120,6 +1120,14 @@ def dict_diff(dict1, dict2, positivity=None):
             diff_vel[params][diff_vel[params] < 0] = 0
     return diff_vel
 
+
+def dict_summation(dict1, dict2, division=1.0):
+    sum_val = {}
+    for params in dict1:
+        sum_val[params] = (dict1[params] + dict2[params])/division
+
+    return sum_val
+
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
     print(R.vx)
