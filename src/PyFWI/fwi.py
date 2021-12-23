@@ -33,7 +33,7 @@ class FWI(Wave):
         m = tools.vel_dict2vec(m0)
 
         if method in [2, 'lbfgs']:
-            m1, rms = self.lbfgs(m, iter, freqs)
+            m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
 
         return tools.vec2vel_dict(m1, self.nz, self.nx), rms 
 
@@ -84,8 +84,6 @@ class FWI(Wave):
         rms = rms_data
 
         grad = self.gradient(adj_src, parameterization='dv')
-
-        # grad = op.border_igoring(grad)
     
         grad = tools.vel_dict2vec(grad)
  
