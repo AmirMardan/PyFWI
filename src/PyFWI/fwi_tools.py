@@ -1112,6 +1112,14 @@ class CostFunction:
         ax.grid()
 
 
+def dict_diff(dict1, dict2, positivity=None):
+    diff_vel = {}
+    for params in dict1:
+        diff_vel[params] = (dict1[params] - dict2[params])
+        if positivity:
+            diff_vel[params][diff_vel[params] < 0] = 0
+    return diff_vel
+
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
     print(R.vx)
