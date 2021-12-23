@@ -228,7 +228,7 @@ class Source:
 
     def delta(self):
         """
-        Amethod to generate Ricker wavelet.
+        A method to generate spike.
 
         Parameters
         ----------
@@ -238,3 +238,58 @@ class Source:
         """
         
         self.w = np.float32(np.array([1]))
+    
+    
+def acquisition_plan(ns, nr, src_loc, rec_loc, acq_type, n_well_rec, dh):
+    """
+    acquisition_plan generates the matrix of acquisition plan
+
+    [extended_summary]
+
+    Args:
+        ns ([type]): [description]
+        nr ([type]): [description]
+        src_loc ([type]): [description]
+        rec_loc ([type]): [description]
+        acq_type ([type]): [description]
+        n_well_rec ([type]): [description]
+        dh ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    data_guide = np.zeros((6, nr * ns))
+    data_guide[0, :] = np.kron(np.arange(ns), np.ones(nr))
+    data_guide[1, :] = np.kron(src_loc[:, 0] * dh, np.ones(nr))
+    data_guide[2, :] = np.kron(src_loc[:, 1] * dh, np.ones(nr))
+    data_guide[3, :] = np.kron(np.ones(ns), rec_loc[:, 0])
+    data_guide[4, :] = np.kron(np.ones(ns), rec_loc[:, 1])
+    
+    if acq_type == 2:
+        data_guide[4, :int(n_well_rec)] = np.flip(data_guide[4, :int(n_well_rec)])
+    data_guide[5, :] = np.abs(data_guide[1, :] - data_guide[3, :])
+        
+    return data_guide
+
+
+def discretized_acquisition_plan(data_guide, dh, npml=0):
+    """
+    discretized_acquisition_plan discretizes the matrix of acquisition plan
+
+    [extended_summary]
+
+    Args:
+        data_guide ([type]): [description]
+        dh ([type]): [description]
+        npml (int, optional): [description]. Defaults to 0.
+
+    Returns:
+        [type]: [description]
+    """
+    data_guide_sampling = np.copy(data_guide)
+    data_guide_sampling[1:, :] = np.int32(data_guide_sampling[1:, :] / dh)
+    data_guide_sampling[1:5, :] += npml
+    data_guide_sampling = data_guide_sampling.astype(np.int32)
+    
+    return data_guide_sampling
+        

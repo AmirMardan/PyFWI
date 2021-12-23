@@ -10,6 +10,7 @@ from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
+import PyFWI.acquisition as acq
 
 
 
@@ -53,6 +54,7 @@ class wave_preparation():
             
         self.srcx = np.int32(src.i + inpa['npml'])
         self.srcz = np.int32(src.j + inpa['npml'])
+        src_loc = np.vstack((self.srcx, self.srcz)).T
         
         self.src = src
         self.ns = np.int32(src.i.size)
@@ -77,21 +79,10 @@ class wave_preparation():
             raise Exception(" Number of geophons in the wells is not defined")
         
         # The matrix containg the geometry of acquisittion (Never used really)
-        data_guide = np.zeros((6, self.nr * self.ns))
-        data_guide[0, :] = np.kron(np.arange(self.ns), np.ones(self.nr))
-        data_guide[1, :] = np.kron(self.srcx * self.dh, np.ones(self.nr))
-        data_guide[2, :] = np.kron(self.srcz * self.dh, np.ones(self.nr))
-        data_guide[3, :] = np.kron(np.ones(self.ns), rec_loc[:, 0])
-        data_guide[4, :] = np.kron(np.ones(self.ns), rec_loc[:, 1])
-        if inpa["acq_type"] == 2:
-            data_guide[4, :int(self.n_well_rec)] = np.flip(data_guide[4, :int(self.n_well_rec)])
-        data_guide[5, :] = np.abs(data_guide[1, :] - data_guide[3, :])
+        data_guide = acq.acquisition_plan(self.ns, self.nr, src_loc, self.rec_loc, self.acq_type, n_well_rec, self.dh)
         
-        self.data_guide_sampling = np.copy(data_guide)
-        self.data_guide_sampling[1:, :] = np.int32(self.data_guide_sampling[1:, :] / self.dh)
-        self.data_guide_sampling[1:5, :] += inpa['npml']
-        self.data_guide_sampling = self.data_guide_sampling.astype(np.int32)
-        
+        self.data_guide_sampling = acq.discretized_acquisition_plan(data_guide, self.dh, inpa['npml'])
+
         if inpa["acq_type"] == 0:
             self.rec_cts = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
             self.rec_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])
