@@ -23,8 +23,8 @@ def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     Returns:
         fig (class): The figure class  to which the images are added for furthur settings like im.set-clim(). 
     """
-    nx = max(model[[*model][0]].shape[1], model[[*model][1]].shape[1])
-    nz = max(model[[*model][0]].shape[0], model[[*model][1]].shape[0])
+    nx = max(model[[*model][0]].shape[1], model[[*model][0]].shape[1])
+    nz = max(model[[*model][0]].shape[0], model[[*model][0]].shape[0])
     if offset is None:
         offset = nx
         
