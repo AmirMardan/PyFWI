@@ -1,2 +1,5 @@
-# seismic
-This repository is for small tools that could be helpful in seismic 
+# PyFWI
+This repository is for PyFWI package which provides seismic full-waveform inversion (FWI)
+
+## Install
+To install this package
