@@ -1112,13 +1112,50 @@ class CostFunction:
         ax.grid()
 
 
-def dict_diff(dict1, dict2, positivity=None):
+def dict_diff(dict1, dict2, positivity=False):
+    """
+    dict_diff subtracts the contents of two dictionaries
+
+    This function is used to subtract the parameters of a 
+    dictionary with the same parameter in another dictionary.
+
+    Args:
+        dict1 (dict): The first dictionary
+        dict2 (dict): The second dictionary
+        positivity (boolean, optional): A boolean variable to specify if the used wants
+        to filter out the negative differences. Defaults to False.
+
+    Returns:
+        dic: A dictionary containing the common parameters of ```dict1``` and ```dict2```, but their difference.
+    """
     diff_vel = {}
     for params in dict1:
         diff_vel[params] = (dict1[params] - dict2[params])
         if positivity:
             diff_vel[params][diff_vel[params] < 0] = 0
     return diff_vel
+
+
+def dict_summation(dict1, dict2, division=1.0):
+    """
+    dict_summation add the contents of two dictionaries
+
+    This function is used to add the parameters of a 
+    dictionary with the same parameter in another dictionary.
+
+    Args:
+        dict1 (dict): The first dictionary
+        dict2 (dict): The second dictionary
+        division (float, optional): In cas if user wants to devide the summation to a number (e.g. averaging) 
+        of amplifying the result. Defaults to 1.0.
+    Returns:
+        dic: A dictionary containing the common parameters of ```dict1``` and ```dict2```, but their summation.
+    """
+    sum_val = {}
+    for params in dict1:
+        sum_val[params] = (dict1[params] + dict2[params])/division
+
+    return sum_val
 
 if __name__ == "__main__":
     R = recorder(['vx', 'vz'], 10, 10, 1)
