@@ -1,5 +1,8 @@
 # PyFWI
-This repository is for PyFWI package which provides seismic full-waveform inversion (FWI)
+This repository contains Python package for elastic seismic full-waveform inversion (FWI).
 
 ## Installation
-To install this package
+To install this package, run 
+```
+python3 -m pip install PyFWI
+```
