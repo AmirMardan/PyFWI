@@ -11,3 +11,8 @@ To install this package, run
 ```
 python3 -m pip install PyFWI
 ```
+on OS or 
+```
+py -m pip install PyFWI
+```
+on Windows.
