@@ -197,9 +197,10 @@ def modeling_model(model, med_type):
 
 def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     """
-    grad_lmr_to_vd [summary]
+    grad_lmr_to_vd switch the gradient.
 
-    [extended_summary]
+    This function witch the gradient from (lambda, mu, rho)
+    to (vp, vs, rho).
 
     Args:
         glam ([type]): [description]
@@ -225,10 +226,12 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     gmu_vs = gmu * 2 * vs * rho
     
     # To not get ZeroDivisionError in acoustic case
-    if np.all(vs==0):
+    vs_temp = np.copy(vs)
+    vs_temp [vs_temp == 0] = 1e12
+    if np.all(vs_temp==0):
         grho_vs  = 0
     else:
-        grho_vs = grho * (-2*mu/(vs ** 3))
+        grho_vs = grho * (-2*mu/(vs_temp ** 3))
 
     gvs = glam_vs + gmu_vs + grho_vs  # gvs
 
@@ -970,6 +973,7 @@ class CostFunction:
         
     def l1(self, dest, dobs):
         res = np.float32(dest - dobs)
+        #TODO: adj_src is not right
         rms = np.sum(np.abs(res))
         adj_src = res  # np.ones(res.shape, np.float32)
 
@@ -989,8 +993,6 @@ class CostFunction:
         for param in dest:
             res[param] = np.float32(dest[param] - dobs[param])
             rms += 0.5 * (res[param].reshape(-1).T @ res[param].reshape(-1))
-
-        # adj_src = res
         
         if type(dest0).__name__ == 'ndarray':
             adj_src = np.array(list(res.values()))
@@ -1000,7 +1002,7 @@ class CostFunction:
         return rms, adj_src
 
     def l2_intensity(self, dest, dobs):
-        # res = [dest[i] - dobs[i] for i in range(len(dest))]
+
         res = dest**2 - dobs**2
         rms = 0.25 * (res.reshape(-1).T @ res.reshape(-1))
 

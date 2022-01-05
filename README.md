@@ -16,3 +16,18 @@ on OS or
 py -m pip install PyFWI
 ```
 on Windows.
+
+## Citing PyFWI
+```
+@software{PyFWI,
+  author       = {Mardan Amir and
+                  Bernard Giroux and
+                  Gabriel Fabien-Ouellet},
+  title        = {{PyFWI}: {Python} Python package for Full-Waveform Inversion (FWI)},
+  month        = Jan,
+  year         = 2022,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.5813637},
+  url          = {https://doi.org/10.5281/zenodo.5813637}
+}
+```

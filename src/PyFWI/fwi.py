@@ -32,6 +32,10 @@ class FWI(Wave):
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
         m = tools.vel_dict2vec(m0)
 
+        if method in [0, 'SD', 'sd']:
+            raise ("Steepest descent is not provided yet.")
+        elif method in [1, 'GD', 'gd']:
+            raise ("Gradient descent is not provided yet.")
         if method in [2, 'lbfgs']:
             m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
 
