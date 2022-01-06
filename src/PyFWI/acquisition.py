@@ -199,17 +199,33 @@ class Source:
         dt: float
             Temporal sampling rate
     """
-    def __init__(self, src_loc, dh, dt):
+    def __init__(self, src_loc, dh, dt, component):
         self.dh = dh
         self.i = np.int32(src_loc[:, 0]/self.dh)
         self.j = np.int32(src_loc[:, 1]/self.dh)
         self.dt = dt
+        # comp = {'vp':}
+        seis_plan = {
+        '1': ['taxz'],
+        '2': ['vx, vz'],
+        '3': ['taux', 'tauz', 'tauxz'],
+        '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
+    }   
+        self.component = np.zeros(5, dtype=np.float32)
         
+        if component in [0, 1, 3]:
+            self.component[2:4] = 1
+        elif component in [2]:
+            self.component[:2] = 1
+        elif component == 4:
+            self.component += 1
+                       
     def __call__(self, ind=None):
+        
         if ind < self.w.size:
-            return self.w[ind], self.w[ind]
+            return self.w[ind] * self.component
         else:
-            return np.float32(0.0), np.float32(0.0)
+            return np.float32(0.0) * self.component
 
     def Ricker(self, fdom):
         """
@@ -292,4 +308,33 @@ def discretized_acquisition_plan(data_guide, dh, npml=0):
     data_guide_sampling = data_guide_sampling.astype(np.int32)
     
     return data_guide_sampling
-        
+
+def seismic_section(seismo, components=0):
+    seis_plan = {
+        '1': ['tax'],
+        '2': ['vx', 'vz'],
+        '3': ['taux', 'tauz', 'tauxz'],
+        '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
+    }
+    data = {}
+    
+    if components != 0:
+        for param in seis_plan[str(components)]:
+            data[param] = seismo[param]
+    else:
+        data['taux'] = (seismo['taux'] + seismo['tauz']) / 2
+        data['tauz'] = (seismo['taux'] + seismo['tauz']) / 2
+    return data
+
+def prepare_residual(res):
+    
+    data = {}
+    shape = res[[*res][0]].shape
+    all_comps = ['vx', 'vz', 'taux', 'tauz', 'tauxz']
+    
+    for param in all_comps:
+        if param in res:
+            data[param] = res[param]
+        else:
+            data[param] = np.zeros(shape, np.float32)
+    return data

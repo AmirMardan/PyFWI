@@ -43,7 +43,7 @@ __kernel void MakeGradZero(__global float *Gmu,__global float *Glam, __global fl
 __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *taux, __global float *tauz, __global float *tauxz,
                      __global float *rho_b, int sourcex, int sourcez,
-                     float srcx, float srcz)
+                     float src_vx, float src_vz, float src_tx, float src_tz, float src_txz)
 
 
 {
@@ -51,11 +51,11 @@ __kernel void injSrc(__global float *vx,__global float *vz,
   int j = get_global_id(1) ;
 
   if (i==sourcez && j==sourcex){
-    vx[center] += rho_b[center] * dt * srcx;
-    vz[center] += rho_b[center] * dt * srcz;
-    taux[center] += dt * srcx;
-    tauz[center] += dt * srcz;
-    tauxz[center] += dt * srcx;
+    vx[center] += rho_b[center] * dt * src_vx;
+    vz[center] += rho_b[center] * dt * src_vz;
+    taux[center] += dt * src_tx;
+    tauz[center] += dt * src_tz;
+    tauxz[center] += dt * src_txz;
 
     // printf("%f\n",src );
   }

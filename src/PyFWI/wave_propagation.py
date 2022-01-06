@@ -15,7 +15,7 @@ import PyFWI.acquisition as acq
 
 
 class wave_preparation():
-    def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=0, chpr=10, components=4):
+    def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=0, chpr=10, components=0):
         '''
         A class to prepare the variable and basic functions for wave propagation.
         
@@ -628,14 +628,14 @@ class wave_propagator(wave_preparation):
         for t in range(1, self.nt):
 
             if W is None:
-                src_kt_x, src_kt_z = np.float32(self.src(t))
+                src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
                 
                 self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
                             self.vx_b, self.vz_b,
                             self.taux_b, self.tauz_b, self.tauxz_b,
                             self.rho_b,
                             self.srcx[s], self.srcz[s],
-                            src_kt_x, src_kt_z)
+                            src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz)
             else:
                 if t in self.chp:
                         vx = W['vx'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
@@ -890,13 +890,15 @@ class wave_propagator(wave_preparation):
         
         self.pml_preparation(model['vp'].max())
         self.elastic_buffers(model)
-        seismo = self.forward_propagator(model, W, grad)    
-        return seismo
+        seismo = self.forward_propagator(model, W, grad) 
+        data = acq.seismic_section(seismo, self.components)
+        return data
     
     def gradient(self, res, show=False, Lam=None, grad=None, parameterization='dv'):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
+        res = acq.prepare_residual(res)
         if show:
             self.initial_wavefield_plot({'vp':self.vp}, plot_type="Backward")
         
@@ -927,22 +929,25 @@ if __name__ == "__main__":
     import PyFWI.acquisition as acq
     import PyFWI.seiplot as splt
     
-    GRADIENT = True  #  False
+    GRADIENT = True  #  False  #
     INVERSION = False
     
     model_gen = md.ModelGenerator('yang') # louboutin') # 
     
     model = model_gen()
+    model['vs'] *=0
     # model_gen.show(['vs'])
     model_shape = model[[*model][0]].shape
     
     inpa = {}
     # Number of pml layers
-    inpa['npml'] = 5
+    inpa['npml'] = 20
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
-    inpa['device'] = 2
-    inpa['energy_balancing'] = False
+    inpa['device'] = 1
+    inpa['energy_balancing'] = True
+    inpa['seisout'] = 4
+    
     chpr = 100
     sdo = 4
     fdom = 25
@@ -963,21 +968,25 @@ if __name__ == "__main__":
     depth = inpa['dh'] * model_shape[0]
 
     inpa['rec_dis'] = 2.  # inpa['dh']
-    ns = 2
+    ns = 1
     inpa['acq_type'] = 0
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
     
-    src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
+    src = acq.Source(src_loc, inpa['dh'], inpa['dt'], inpa['seisout'])
     src.Ricker(fdom)
     
-    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0)
+    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
     d_obs = W.forward_modeling(model, False)
     
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    splt.seismic_section(ax, d_obs['vx'], vmin=d_obs['vx'].min() / 5, vmax=d_obs['vx'].max() / 5) 
+        
     m0 = model_gen(vintage=1, smoothing=True)
     
     if GRADIENT:
-        Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr)
+        Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=inpa['seisout'])
         d_est = Lam.forward_modeling(m0, show=False)
 
         CF = tools.CostFunction('l2')
