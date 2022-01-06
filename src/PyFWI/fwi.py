@@ -2,6 +2,7 @@ from PyFWI.wave_propagation import wave_propagator as Wave
 from scipy.optimize.optimize import MemoizeJac
 import PyFWI.optimization as opt
 import PyFWI.fwi_tools as tools
+import PyFWI.acquisition as acq
 import numpy as np
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
@@ -80,7 +81,8 @@ class FWI(Wave):
         m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
         
         d_est = self.forward_modeling(m, show=False)
-
+        d_est = acq.prepare_residual(d_est)
+        
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1
                                                )

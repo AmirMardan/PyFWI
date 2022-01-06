@@ -51,11 +51,11 @@ __kernel void injSrc(__global float *vx,__global float *vz,
   int j = get_global_id(1) ;
 
   if (i==sourcez && j==sourcex){
-    vx[center] += rho_b[center] * dt * src_vx;
-    vz[center] += rho_b[center] * dt * src_vz;
-    taux[center] += dt * src_tx;
-    tauz[center] += dt * src_tz;
-    tauxz[center] += dt * src_txz;
+    vx[center] += src_vx;
+    vz[center] += src_vz;
+    taux[center] += src_tx;
+    tauz[center] += src_tz;
+    tauxz[center] += src_txz;
 
     // printf("%f\n",src );
   }

@@ -927,7 +927,7 @@ def cost_seismic(d_pre0, d_obs0, fun,
 
     dpre = np.array(list(d_pre.values()))
     dobs = np.array(list(d_obs.values()))
-
+    # TODO: Treat as dict
     x_pre_cost, x_obs_cost = cost_preparation(dpre, dobs,
                                               fn, freq=freq, order=order, axis=axis,
                                               params_oh=params_oh)

@@ -213,10 +213,8 @@ class Source:
     }   
         self.component = np.zeros(5, dtype=np.float32)
         
-        if component in [0, 1, 3]:
+        if component in [0, 1, 2, 3]:
             self.component[2:4] = 1
-        elif component in [2]:
-            self.component[:2] = 1
         elif component == 4:
             self.component += 1
                        
