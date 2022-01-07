@@ -57,7 +57,7 @@ class FWI(Wave):
         for freq in freqs:
             print(f"{freq = }")
             for k in np.arange(k0, k_end):
-                print(f'Parameter number {k + 1: }')
+                print(f'Parameter number {k + 1: } to {k + n_params + 1: }')
                 
                 m_1 = mtotal[:n_params * k * n_element]
                 m_opt = mtotal[n_params * k * n_element:n_params * (k + 1) * n_element]

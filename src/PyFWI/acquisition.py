@@ -206,11 +206,11 @@ class Source:
         self.dt = dt
         # comp = {'vp':}
         seis_plan = {
-        '1': ['taxz'],
-        '2': ['vx, vz'],
-        '3': ['taux', 'tauz', 'tauxz'],
-        '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
-    }   
+            '1': ['taxz'],
+            '2': ['vx, vz'],
+            '3': ['taux', 'tauz', 'tauxz'],
+            '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
+        }   
         self.component = np.zeros(5, dtype=np.float32)
         
         if component in [0, 1, 2, 3]:
