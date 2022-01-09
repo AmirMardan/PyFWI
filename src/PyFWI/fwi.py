@@ -56,12 +56,12 @@ class FWI(Wave):
         c = 0
         for freq in freqs:
             print(f"{freq = }")
-            for k in np.arange(k0, k_end):
-                print(f'Parameter number {k + 1: } to {k + n_params + 1: }')
+            for k in np.arange(k0-1, k_end-1, n_params):
+                print(f'Parameter number {k + 1: } to {k + n_params: }')
                 
-                m_1 = mtotal[:n_params * k * n_element]
-                m_opt = mtotal[n_params * k * n_element:n_params * (k + 1) * n_element]
-                m1 = mtotal[n_params * (k + 1) * n_element:]  # np.array([])  #
+                m_1 = mtotal[:k * n_element]
+                m_opt = mtotal[k * n_element: (k + n_params) * n_element]
+                m1 = mtotal[(k + n_params) * n_element:]  
 
                 m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq], m=30,
                                                factr=1e-10, pgtol=1e-12, iprint=99, bounds=None,
