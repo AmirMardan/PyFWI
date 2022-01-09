@@ -216,27 +216,23 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     """
     vp = np.sqrt((lam + 2 * mu) / rho)
     vs = np.sqrt(mu / rho)
+    vs2 = vs ** 2
+    vpvs = vp ** 2 - 2 * vs ** 2
     
     glam_vp = glam * 2 * vp * rho
-    gmu_vp = gmu * rho * vp
-    grho_vp = grho * (- 2 * (lam + 2*mu)/vp**3)
+    gmu_vp = gmu * 0
+    grho_vp = grho * 0
     gvp = glam_vp + gmu_vp + grho_vp  
 
-    glam_vs = glam * 0
+    glam_vs = glam * (-4 * rho * vs)
     gmu_vs = gmu * 2 * vs * rho
     
-    # To not get ZeroDivisionError in acoustic case
-    vs_temp = np.copy(vs)
-    vs_temp [vs_temp == 0] = 1e12
-    if np.all(vs_temp==0):
-        grho_vs  = 0
-    else:
-        grho_vs = grho * (-2*mu/(vs_temp ** 3))
+    grho_vs = grho * 0
 
     gvs = glam_vs + gmu_vs + grho_vs  # gvs
 
-    glam_rho = glam * vp ** 2
-    gmu_rho = gmu * 0.5 * vp ** 2
+    glam_rho = glam * vpvs
+    gmu_rho = gmu * vs2
     grho_rho = grho
     grho = glam_rho + gmu_rho + grho_rho
 
