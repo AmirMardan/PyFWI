@@ -129,7 +129,7 @@ class Circular():
         
         
         vp_circle = 3000.0
-        vs_circle = rp.ShearVelocity().poisson_ratio_vs(vp_circle)
+        vs_circle = rp.ShearVelocity().poisson_ratio_vs(vp_circle) + 200
         rho_circle = rp.Density().gardner(vp_circle)
         
         model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})

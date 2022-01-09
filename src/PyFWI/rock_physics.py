@@ -332,6 +332,46 @@ def delta_biot_gassmann(phi, k_f, k_s, k_d):
     return ((1 - phi) / phi) * (k_f / k_s) * (1 - (k_d / (k_s - k_s * phi)))
 
 
+def lmd2vd(lam, mu, rho):
+    """
+    lmd2vd switches Lama modulus and density to vp, vs, density
+
+    [extended_summary]
+
+    Args:
+        lam ([type]): [description]
+        mu ([type]): [description]
+        rho ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    vp = np.sqrt((lam + 2 * mu)/ rho)
+    vs = np.sqrt((lam + 2 * mu)/ rho)
+    rho = rho
+    return vp, vs, rho
+
+
+def vd2lmd(vp, vs, rho):
+    """
+    vd2lmd switches vp, vs, density to Lame modulus and density to 
+
+    [extended_summary]
+
+    Args:
+        vp ([type]): [description]
+        vs ([type]): [description]
+        rho ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    lam = rho * (vp ** 2 - 2 * vs ** 2)
+    mu = rho * vs ** 2
+    rho = rho
+    return lam, mu, rho
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from  PyFWI import model_dataset as em

@@ -17,7 +17,7 @@ class FWI(Wave):
 
         keys = inpa.keys()
         
-        self.d_obs = d_obs
+        self.d_obs = acq.prepare_residual(d_obs)
         
         self.fn = inpa['fn']
 

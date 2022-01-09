@@ -946,7 +946,7 @@ if __name__ == "__main__":
     inpa['pml_dir'] = 2
     inpa['device'] = 1
     inpa['energy_balancing'] = True
-    inpa['seisout'] = 4
+    inpa['seisout'] = 0
     
     chpr = 100
     sdo = 4
@@ -973,7 +973,7 @@ if __name__ == "__main__":
 
     src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
     
-    src = acq.Source(src_loc, inpa['dh'], inpa['dt'], inpa['seisout'])
+    src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
     src.Ricker(fdom)
     
     W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
@@ -981,7 +981,7 @@ if __name__ == "__main__":
     
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    splt.seismic_section(ax, d_obs['vx'], vmin=d_obs['vx'].min() / 5, vmax=d_obs['vx'].max() / 5) 
+    splt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5) 
         
     m0 = model_gen(vintage=1, smoothing=True)
     

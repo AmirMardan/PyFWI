@@ -199,24 +199,15 @@ class Source:
         dt: float
             Temporal sampling rate
     """
-    def __init__(self, src_loc, dh, dt, component):
+    def __init__(self, src_loc, dh, dt):
         self.dh = dh
         self.i = np.int32(src_loc[:, 0]/self.dh)
         self.j = np.int32(src_loc[:, 1]/self.dh)
         self.dt = dt
-        # comp = {'vp':}
-        seis_plan = {
-            '1': ['taxz'],
-            '2': ['vx, vz'],
-            '3': ['taux', 'tauz', 'tauxz'],
-            '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
-        }   
+ 
         self.component = np.zeros(5, dtype=np.float32)
         
-        if component in [0, 1, 2, 3]:
-            self.component[2:4] = 1
-        elif component == 4:
-            self.component += 1
+        self.component[2:4] = 1
                        
     def __call__(self, ind=None):
         
