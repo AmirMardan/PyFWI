@@ -389,26 +389,9 @@ if __name__ == "__main__":
     
     vp1 = np.array([vp1])
     vs1 = np.array([vs1])
-
-    # vp1= np.array([model['vp'][50,50]])/1000
-    # vs1= np.array([model['vs'][50,50]])/1000
     
     print("VP: {}, VS: {}".format(vp1, vs1))
     phi1, cc1 = Han(vp=vp1, vs=vs1)
 
     print("phi: {}, cc: {}".format(phi1, cc1))
-    
-    a=1
-    # print("=================")
-    # evp, evs = Han(phi=phi, cc=cc)
-
-    # print(evp*1000)
-    # print(vp)
-    # print(" ------- ")
-    # print(evs*1000)
-    # print(vs)
-
-    # im = plt.imshow(cc)
-    # plt.colorbar()
-    # plt.show()
     

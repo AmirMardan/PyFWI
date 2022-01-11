@@ -12,9 +12,20 @@ import copy
 import PyFWI.seiplot as splt
 
 class FWI(Wave):
-    def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components):
+    def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
+        if param_functions is None:
+            self.dict2vec = tools.vel_dict2vec
+            self.vec2dict = tools.vec2vel_dict
+            self.to_dv = lambda a: a
+            self.grad_from_dv = lambda a, b: a
+        else:
+            self.dict2vec = param_functions['dict2vec']
+            self.vec2dict = param_functions['vec2dict']
+            self.to_dv = param_functions['to_dv']
+            self.grad_from_dv = param_functions['grad_from_dv']
+            
         keys = inpa.keys()
         try:
             self.sd = inpa['sd']  # Virieux et al, 2009
@@ -34,16 +45,16 @@ class FWI(Wave):
         self.n_elements = self.nz * self.nx
         
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
-        m = tools.vel_dict2vec(m0)
+        m = self.dict2vec(m0)
 
         if method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
         elif method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
-        if method in [2, 'lbfgs']:
+        elif method in [2, 'lbfgs']:
             m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
 
-        return tools.vec2vel_dict(m1, self.nz, self.nx), rms 
+        return self.vec2dict(m1, self.nz, self.nx), rms 
 
     def lbfgs(self, m0, ITER, freqs, n_params=1, k0=0, k_end=1):
         # n_params: number of parameters to seek for in one iteration
@@ -81,9 +92,10 @@ class FWI(Wave):
     def fprime(self, m0, freq):
         
         mtotal = np.copy(m0)
-        m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
+        m_old = self.vec2dict(mtotal, self.nz, self.nx)
+        m_new = self.to_dv(m_old)
         
-        d_est = self.forward_modeling(m, show=False)
+        d_est = self.forward_modeling(m_new, show=False)
         d_est = acq.prepare_residual(d_est, self.sd)
         
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
@@ -92,9 +104,10 @@ class FWI(Wave):
 
         rms = rms_data
 
-        grad = self.gradient(adj_src, parameterization='dv')
-    
-        grad = tools.vel_dict2vec(grad)
+        grad_dv = self.gradient(adj_src, parameterization='dv')
+        grad = self.grad_from_dv(grad_dv, m_old)
+        
+        grad = self.dict2vec(grad)
  
         return rms, grad
     

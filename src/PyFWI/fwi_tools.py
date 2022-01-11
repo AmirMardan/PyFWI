@@ -203,12 +203,12 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     to (vp, vs, rho).
 
     Args:
-        glam ([type]): [description]
-        gmu ([type]): [description]
-        grho ([type]): [description]
-        lam ([type]): [description]
-        mu ([type]): [description]
-        rho ([type]): [description]
+        glam (ndarray): Gradient w.r.t. lambda
+        gmu (ndarray): Gradient w.r.t. mu
+        grho (ndarray): Gradient w.r.t. density
+        lam (ndarray): Gradient w.r.t. lambda
+        mu (ndarray): Gradient w.r.t. mu
+        rho (ndarray): Gradient w.r.t. density
     
     Refrences:
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
@@ -257,6 +257,7 @@ def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
+    print(" This function is not stable.")
     vp = np.sqrt((lam + 2 * mu) / rho)
     vs = np.sqrt(mu / rho)
     
@@ -275,138 +276,7 @@ def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
     grho_rho = grho
     grho = grho_vp + grho_vs + grho_rho
 
-    return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32)
-
-
-def grad_vd2pcs(gvp0, gvs0, grho0, cc, phi, sw):
-    """
-    grad_vd2pcs [summary]
-
-    [extended_summary]
-
-    Args:
-        gvp ([type]): [description]
-        gvs ([type]): [description]
-        grho ([type]): [description]
-        cc ([type]): [description]
-        rho_c ([type]): [description]
-        rho_q ([type]): [description]
-        phi ([type]): [description]
-        rho_w ([type]): [description]
-        rho_g ([type]): [description]
-        rho_f ([type]): [description]
-
-    Returns:
-        [type]: [description]
-
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
-    """
-    rho_q = 2.65
-    rho_c = 2.55
-    rho_w = 1.0
-    rho_g = 0.1
-
-    a1=5.5
-    a2=6.9
-    a3=2.2
-    b1=3.4
-    b2=4.7
-    b3=1.8
-     
-    rho_f = rp.Density().fluid(rho_g, rho_w, sw)
-
-    gvp = np.copy(gvp0)
-    gvs = np.copy(gvs0)
-    grho = np.copy(grho0)
-
-    rho_m = rp.Density().matrix(rho_c, cc, rho_q)
-
-    gvp_phi = gvp * (- a2 * 1)
-    gvs_phi = gvs * (- b2 * 1)
-    grho_phi = grho * (- rho_m + rho_f)
-    gphi = gvp_phi + gvs_phi + grho_phi  
-
-    gvp_cc = gvp * (- a3 * 1)
-    gvs_cc = gvs * (- b3 * 1)
-    grho_cc = grho * (1 - phi) * (rho_c - rho_q)
-    gcc = gvp_cc + gvs_cc + grho_cc  
-
-    gvp_s = gvp * 0
-    gvs_s = gvs * 0
-    grho_s = grho * phi * (rho_w - rho_g)
-    gs = gvp_s + gvs_s + grho_s
-
-    return gphi, gcc, gs
-
-def grad_pcs2vd(gphi0, gcc0, gsw0, cc, phi, sw):    
-    """
-    grad_pcs2vd [summary]
-
-    [extended_summary]
-
-    Args:
-        gvp ([type]): [description]
-        gvs ([type]): [description]
-        grho ([type]): [description]
-        cc ([type]): [description]
-        rho_c ([type]): [description]
-        rho_q ([type]): [description]
-        phi ([type]): [description]
-        rho_w ([type]): [description]
-        rho_g ([type]): [description]
-        rho_f ([type]): [description]
-
-    Returns:
-        [type]: [description]
-
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
-    """
-    a1=5.5
-    a2=6.9
-    a3=2.2
-    b1=3.4
-    b2=4.7
-    b3=1.8
-        
-    rho_q = 2.65
-    rho_c = 2.55
-    rho_w = 1.0
-    rho_g = 0.1
-
-    rho_f = rp.Density().fluid(rho_g, rho_w, sw)
-
-    gphi = np.copy(gphi0)
-    gcc = np.copy(gcc0)
-    gsw = np.copy(gsw0)
-
-    rho_m = rp.Density().matrix(rho_c, cc, rho_q)
-
-    gphi_vp = gphi * (1 / (- a2 * 1))
-    gcc_vp = gcc * (1 / (- a2 * 1))
-    gsw_vp = gsw * 0
-    gvp = gphi_vp + gcc_vp + gsw_vp  
-
-    gphi_vs = gphi * (1 / (- b2 * 1))
-    gcc_vs = gcc * (1 / (- b3 * 1))
-    gsw_vs = gsw * 0
-    gvs = gphi_vs + gcc_vs + gsw_vs  
-
-    gphi_rho = gphi * 1 / (rho_f - rho_m)
-    gcc_rho = gcc * 1 / (rho_w - rho_q)
-    
-    
-    gsw_rho0 = ((1 / rho_w - rho_g) +
-                ((rho_f - rho_g)/(sw * (rho_w - rho_g) ** 2)) +
-                ((rho_f - rho_w)/((1 - sw) * (rho_w - rho_g) ** 2))) /phi
-    
-    gsw_rho = gsw * gsw_rho0
-    grho = gphi_rho + gcc_rho + gsw_rho
-
-    return gvp, gvs, grho
+    return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32) 
 
 
 class recorder:
