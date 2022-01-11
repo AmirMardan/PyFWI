@@ -39,9 +39,6 @@ def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
 
     i = 1
     ims = []
-    
-    x_axis = np.linspace(0, offset, nx)
-    y_axis = np.linspace(0, depth, nz)
 
     for param in keys:
         ax = fig.add_subplot(1, n, i)
@@ -50,7 +47,7 @@ def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
         ax.axis([0, offset, 0, depth])
         ax.set_aspect(aspect)
 
-        im = ax.pcolor(x_axis, y_axis, model[param], **kwargs)
+        im = ax.imshow(model[param], **kwargs)
         ims.append(im)
         axes_divider = make_axes_locatable(ax)
         cax = axes_divider.append_axes('right', size='7%', pad='2%')
@@ -61,10 +58,7 @@ def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
         ax.set_title(param, loc='center')
         if i>1:
             ax.set_yticks([])
-        else:
-            ax.set_ylabel('Z (km)')
         i +=1
-        ax.set_xlabel('X (km)')
     fig.__dict__['ims'] = ims
     
     return fig
