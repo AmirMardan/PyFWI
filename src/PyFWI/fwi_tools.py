@@ -626,7 +626,21 @@ def vel_dict2vec(m0):
     return m
 
 
-def vec2vel_dict(m0, nz, nx):        
+def vec2vel_dict(m0, nz, nx):  
+    """
+    vec2vel_dict converts a vector of DV to dictionary
+
+    This function converts a vector of DV to dictionary which is 
+    used during the inversion.
+
+    Args:
+        m0 (1-d ndarray): a vector containg the whole parameters of the model
+        nz ([type]): Number of samples of the model in z-direction
+        nx ([type]): Number of samples of the model in x-direction
+
+    Returns:
+        m (dictionary): A dictionary ccontaining 'vp', 'vs', 'rho'.
+    """
     m = {
         'vp': m0[:nz * nx].reshape(nz, nx),
         'vs': m0[nz * nx:2*nz * nx].reshape(nz, nx),
@@ -637,6 +651,18 @@ def vec2vel_dict(m0, nz, nx):
 
 
 def pcs_dict2vec(m0):
+    """
+    pcs_dict2vec converts a dictionary of PCS to a vector
+
+    This function converts a dictionary of PCS to vector which is 
+    used during the inversion.
+
+    Args:
+        m0 (dictionary): A dictionary ccontaining 'phi', 'cc', 'sw'.
+
+    Returns:
+        m (dictionary): A vector containg the whole parameters of the model.
+    """
     nz, nx = m0[[*m0][0]].shape
     m = np.zeros((3 * nz * nx))
     
@@ -646,7 +672,21 @@ def pcs_dict2vec(m0):
     return m
 
 
-def vec2pcs_dict(m0, nz, nx):        
+def vec2pcs_dict(m0, nz, nx):  
+    """
+    vec2pcs_dict converts a vector of PCS to dictionary
+
+    This function converts a vector of PCS to dictionary which is 
+    used during the inversion.
+
+    Args:
+        m0 (1-d ndarray): a vector containg the whole parameters of the model
+        nz ([type]): Number of samples of the model in z-direction
+        nx ([type]): Number of samples of the model in x-direction
+
+    Returns:
+        m (dictionary): A dictionary ccontaining 'phi', 'cc', 'sw'.
+    """      
     m = {
         'phi': m0[:nz * nx].reshape(nz, nx),
         'cc': m0[nz * nx:2*nz * nx].reshape(nz, nx),
@@ -664,14 +704,31 @@ def svd_reconstruction(m, begining_component, num_components):
 
 
 def cost_preparation(dpre, dobs,
-                     fn, freq=False, order=None, axis=None,
+                     fn, freq=None, order=None, axis=None,
                      params_oh=None):
+    """
+    cost_preparation prepare the data for calculating the cost function
+
+    This function prepare the data for calculating the cost function.
+    This preparation is based on multi-scale inversion strategy (Bunks et al., 1995).
+
+    Args:
+        dpre ([type]): Predicted data
+        dobs ([type]): Observed data
+        fn (float): Nyquist frequency
+        freq (float, optional): Desire frequency for filtering. Defaults to None.
+        order (int, optional): Order of the filter. Defaults to None.
+        axis (int, optional): Axis of the filter. Defaults to None.
+        params_oh ([type], optional): Parameter to prepare the data for different offsets. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
 
     x_pre = copy.deepcopy(dpre)
     x_obs = copy.deepcopy(dobs)
 
     if freq:
-        # highcut = freq / fn
         x_obs = lowpass(x_obs, freq, fn, order=order, axis=axis)
         x_pre = lowpass(x_pre, freq, fn, order=order, axis=axis)
 
@@ -784,9 +841,33 @@ def source_weighting(d_pre, d_obs, ns, nr):
 
 
 def cost_seismic(d_pre0, d_obs0, fun,
-         fn=None, freq=False, order=None, axis=None,
+         fn=None, freq=None, order=None, axis=None,
          sourc_weight=False, ns=None, nr=None,
          params_oh=None):
+    """
+    cost_seismic calculates the cost between estimated and observed data.
+
+    This function calculates the cost between estimated and observed data by applying desired filters 
+    and returns the cost and the adjoint of the residual.
+
+    Args:
+        d_pre0 (dict): Estimated data
+        d_obs0 (dict): Observed data
+        fun (function): The function to calculate the cost. This could be "CF = tools.CostFunction('l2')"
+        fn (float, optional): Nyquist frequency. Defaults to None.
+        freq (float, optional): Desired frequency to implement the lowpass filter. Defaults to None.
+        order ([type], optional): [description]. Defaults to None.
+        axis ([type], optional): [description]. Defaults to None.
+        sourc_weight (bool, optional): [description]. Defaults to False.
+        ns (int, optional): Number of the sources. Defaults to None.
+        nr (int, optional): Number of the receivers. Defaults to None.
+        params_oh ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        rms (float): The cost
+        adj_src: Adjoint source to propagate through the model in adjoint wave equation
+    """
+
 
     d_pre = copy.deepcopy(d_pre0)
     d_obs = copy.deepcopy(d_obs0)
@@ -818,6 +899,10 @@ def cost_seismic(d_pre0, d_obs0, fun,
 
 
 class CostFunction:
+    """
+     This class provide different cost functions. 
+
+    """
     def __init__(self, cost_function_type="l2"):
         self.cost_function_method = "self." + cost_function_type
 
