@@ -90,17 +90,16 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">PyFWI package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.acquisition">PyFWI.acquisition module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.fwi">PyFWI.fwi module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.fwi_tools">PyFWI.fwi_tools module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.model_dataset">PyFWI.model_dataset module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.optimization">PyFWI.optimization module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.processing">PyFWI.processing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.rock_physics">PyFWI.rock_physics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.seiplot">PyFWI.seiplot module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.seismic_io">PyFWI.seismic_io module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.wave_propagation">PyFWI.wave_propagation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.acquisition">acquisition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.fwi">fwi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.fwi_tools">fwi_tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.model_dataset">model_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.optimization">optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.processing">processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.rock_physics">rock_physics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.seiplot">seiplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.seismic_io">seismic_io</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-PyFWI.wave_propagation">wave_propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-PyFWI">Module contents</a></li>
 </ul>
 </li>
@@ -173,11 +172,8 @@
             
   <div class="section" id="pyfwi-package">
 <h1>PyFWI package<a class="headerlink" href="#pyfwi-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-PyFWI.acquisition">
-<span id="pyfwi-acquisition-module"></span><h2>PyFWI.acquisition module<a class="headerlink" href="#module-PyFWI.acquisition" title="Permalink to this headline">¶</a></h2>
+<span id="acquisition"></span><h2>acquisition<a class="headerlink" href="#module-PyFWI.acquisition" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.AcqParameters">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">AcqParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.AcqParameters" title="Permalink to this definition">¶</a></dt>
@@ -356,12 +352,28 @@
 
 </div>
 <div class="section" id="module-PyFWI.fwi">
-<span id="pyfwi-fwi-module"></span><h2>PyFWI.fwi module<a class="headerlink" href="#module-PyFWI.fwi" title="Permalink to this headline">¶</a></h2>
+<span id="fwi"></span><h2>fwi<a class="headerlink" href="#module-PyFWI.fwi" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_functions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#PyFWI.wave_propagation.wave_propagator" title="PyFWI.wave_propagation.wave_propagator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.wave_propagation.wave_propagator</span></code></a></p>
-<p>FWI implement full-waveform inversion (FWI)</p>
+<p>FWI implement full-waveform inversion (FWI)
+This class implement the FWI using the class ‘wave_propagator’ in ‘PyFWI.wave_propagation’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_obs</strong> (<em>dict</em>) – Observed data</p></li>
+<li><p><strong>inpa</strong> (<em>dict</em>) – Dictionary containg required parameters</p></li>
+<li><p><strong>src</strong> (<em>class</em>) – Source</p></li>
+<li><p><strong>rec_loc</strong> (<em>ndarray</em>) – Location of the receivers</p></li>
+<li><p><strong>model_size</strong> (<em>ndarray</em>) – Size of the model</p></li>
+<li><p><strong>n_well_rec</strong> (<em>[</em><em>type</em><em>]</em>) – Number of receivers in the well in INPA[‘acq_type’] !=1</p></li>
+<li><p><strong>chpr</strong> (<em>int</em>) – Percentage of specify how much wavefield should be saved.</p></li>
+<li><p><strong>components</strong> (<em>[</em><em>type</em><em>]</em>) – Components of the operation</p></li>
+<li><p><strong>param_functions</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – A list containg four function in case if the inversion is not happenning in DV parameterization. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI.fprime">
 <span class="sig-name descname"><span class="pre">fprime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.fprime" title="Permalink to this definition">¶</a></dt>
@@ -377,11 +389,37 @@
 <span class="sig-name descname"><span class="pre">lbfgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ITER</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.lbfgs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="PyFWI.fwi.FWI.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>run implement the FWI</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m0</strong> (<em>dict</em>) – The initial model</p></li>
+<li><p><strong>method</strong> (<em>int</em><em>, </em><em>str</em>) – The optimization method</p></li>
+<li><p><strong>iter</strong> (<em>ndarray</em>) – An array of iteration for each frequency</p></li>
+<li><p><strong>freqs</strong> (<em>float</em>) – Frequencies for multi-scale inversion.</p></li>
+<li><p><strong>n_params</strong> (<em>int</em>) – Number of parameter to invert for in each time</p></li>
+<li><p><strong>k_0</strong> (<em>int</em>) – The first parameter of interest</p></li>
+<li><p><strong>k_end</strong> (<em>int</em>) – The last parameter of interest</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>m_est</strong> (<em>dict</em>) – The estimated model</p></li>
+<li><p><strong>rms</strong> (<em>ndarray</em>) – The rms error</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-PyFWI.fwi_tools">
-<span id="pyfwi-fwi-tools-module"></span><h2>PyFWI.fwi_tools module<a class="headerlink" href="#module-PyFWI.fwi_tools" title="Permalink to this headline">¶</a></h2>
+<span id="fwi-tools"></span><h2>fwi_tools<a class="headerlink" href="#module-PyFWI.fwi_tools" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.CPML">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">CPML</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nnu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">62.83185307179586</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nalpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.CPML" title="Permalink to this definition">¶</a></dt>
@@ -856,7 +894,7 @@ used during the inversion.</p>
 
 </div>
 <div class="section" id="module-PyFWI.model_dataset">
-<span id="pyfwi-model-dataset-module"></span><h2>PyFWI.model_dataset module<a class="headerlink" href="#module-PyFWI.model_dataset" title="Permalink to this headline">¶</a></h2>
+<span id="model-dataset"></span><h2>model_dataset<a class="headerlink" href="#module-PyFWI.model_dataset" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">Circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular" title="Permalink to this definition">¶</a></dt>
@@ -1107,7 +1145,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 </div>
 <div class="section" id="module-PyFWI.optimization">
-<span id="pyfwi-optimization-module"></span><h2>PyFWI.optimization module<a class="headerlink" href="#module-PyFWI.optimization" title="Permalink to this headline">¶</a></h2>
+<span id="optimization"></span><h2>optimization<a class="headerlink" href="#module-PyFWI.optimization" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.optimization.FWI">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.optimization.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.optimization.FWI" title="Permalink to this definition">¶</a></dt>
@@ -1151,7 +1189,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 </div>
 <div class="section" id="module-PyFWI.processing">
-<span id="pyfwi-processing-module"></span><h2>PyFWI.processing module<a class="headerlink" href="#module-PyFWI.processing" title="Permalink to this headline">¶</a></h2>
+<span id="processing"></span><h2>processing<a class="headerlink" href="#module-PyFWI.processing" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.processing.Gain">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.processing.</span></span><span class="sig-name descname"><span class="pre">Gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.processing.Gain" title="Permalink to this definition">¶</a></dt>
@@ -1272,7 +1310,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 </div>
 <div class="section" id="module-PyFWI.rock_physics">
-<span id="pyfwi-rock-physics-module"></span><h2>PyFWI.rock_physics module<a class="headerlink" href="#module-PyFWI.rock_physics" title="Permalink to this headline">¶</a></h2>
+<span id="rock-physics"></span><h2>rock_physics<a class="headerlink" href="#module-PyFWI.rock_physics" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.rock_physics.Density">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">Density</span></span><a class="headerlink" href="#PyFWI.rock_physics.Density" title="Permalink to this definition">¶</a></dt>
@@ -1340,10 +1378,10 @@ uses the Gardner’s eqution.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
+<dd class="field-even"><p><strong>rho_m</strong> – Density of matrix</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
+<dd class="field-odd"><p>ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1352,26 +1390,23 @@ uses the Gardner’s eqution.</p>
 <dt class="sig sig-object py" id="PyFWI.rock_physics.Density.rho_from_pcs">
 <span class="sig-name descname"><span class="pre">rho_from_pcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho_c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.Density.rho_from_pcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calculate density from Porosity, clay content, and water Saturation</p>
-<blockquote>
-<div><dl class="simple">
-<dt>rho_c:</dt><dd><p>Density of clay</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho_c</strong> – Density of clay</p></li>
+<li><p><strong>rho_q</strong> – Density of quartz</p></li>
+<li><p><strong>rho_w</strong> – Density of water</p></li>
+<li><p><strong>rho_g</strong> – Density of gas</p></li>
+<li><p><strong>cc</strong> – clay content</p></li>
+<li><p><strong>sw</strong> – water saturation</p></li>
+<li><p><strong>phi</strong> – Porosity</p></li>
+</ul>
 </dd>
-<dt>rho_q:</dt><dd><p>Density of quartz</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rho</strong> – Effective density</p>
 </dd>
-<dt>rho_w:</dt><dd><p>Density of water</p>
-</dd>
-<dt>rho_g:</dt><dd><p>Density of gas</p>
-</dd>
-<dt>cc:</dt><dd><p>clay content</p>
-</dd>
-<dt>sw:</dt><dd><p>water saturation</p>
-</dd>
-<dt>phi:</dt><dd><p>Porosity</p>
-</dd>
-</dl>
-</div></blockquote>
-<dl class="simple">
-<dt>rho: float</dt><dd><p>Effective density</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1610,7 +1645,7 @@ vs = S-wave velocity (km/s)</p>
 
 </div>
 <div class="section" id="module-PyFWI.seiplot">
-<span id="pyfwi-seiplot-module"></span><h2>PyFWI.seiplot module<a class="headerlink" href="#module-PyFWI.seiplot" title="Permalink to this headline">¶</a></h2>
+<span id="seiplot"></span><h2>seiplot<a class="headerlink" href="#module-PyFWI.seiplot" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.seiplot.earth_model">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.seiplot.</span></span><span class="sig-name descname"><span class="pre">earth_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.seiplot.earth_model" title="Permalink to this definition">¶</a></dt>
@@ -1644,7 +1679,7 @@ vs = S-wave velocity (km/s)</p>
 
 </div>
 <div class="section" id="module-PyFWI.seismic_io">
-<span id="pyfwi-seismic-io-module"></span><h2>PyFWI.seismic_io module<a class="headerlink" href="#module-PyFWI.seismic_io" title="Permalink to this headline">¶</a></h2>
+<span id="seismic-io"></span><h2>seismic_io<a class="headerlink" href="#module-PyFWI.seismic_io" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.seismic_io.load_mat">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.seismic_io.</span></span><span class="sig-name descname"><span class="pre">load_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.seismic_io.load_mat" title="Permalink to this definition">¶</a></dt>
@@ -1726,7 +1761,7 @@ for preserving the structure of dictionaries.</p>
 
 </div>
 <div class="section" id="module-PyFWI.wave_propagation">
-<span id="pyfwi-wave-propagation-module"></span><h2>PyFWI.wave_propagation module<a class="headerlink" href="#module-PyFWI.wave_propagation" title="Permalink to this headline">¶</a></h2>
+<span id="wave-propagation"></span><h2>wave_propagation<a class="headerlink" href="#module-PyFWI.wave_propagation" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_preparation">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.wave_propagation.</span></span><span class="sig-name descname"><span class="pre">wave_preparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_preparation" title="Permalink to this definition">¶</a></dt>

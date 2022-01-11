@@ -497,8 +497,6 @@ def pml_counstruction(TNz, TNx, dh,
     PML construction generate two matrices for x- and z-directions with the
     size of velocity model plus number of pml samples in each direction.
 
-    Extended Summary
-    ----------------
     dx_pml and dz_pml are obtained based on Gao et al., 2017, Comparison of
     artiﬁcial absorbing boundaries for acoustic wave equation modelling.
 
@@ -571,8 +569,6 @@ def pml_delta_calculation(dh, n_pml=10, pml_r=1e-5):
         This function generates delta vector for PML construction function which put this vector
         around the model matrices.
 
-        Extended Summary
-        ----------------
         dx_pml and dz_pml are obtained based on Gao et al., 2017, Comparison of
         artiﬁcial absorbing boundaries for acoustic wave equation modelling.
 

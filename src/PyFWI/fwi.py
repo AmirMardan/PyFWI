@@ -61,7 +61,7 @@ class FWI(Wave):
         
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
-        FWI implement the FWI
+        FWI implements the full-waveform inversion
 
         Args:
             m0 (dict): The initial model
@@ -89,7 +89,7 @@ class FWI(Wave):
     
     def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
-        run implement the FWI
+        run implements the FWI
 
         Args:
             m0 (dict): The initial model

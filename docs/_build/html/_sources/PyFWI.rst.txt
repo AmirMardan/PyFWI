@@ -1,10 +1,7 @@
 PyFWI package
 =============
 
-Submodules
-----------
-
-PyFWI.acquisition module
+acquisition
 ------------------------
 
 .. automodule:: PyFWI.acquisition
@@ -12,7 +9,7 @@ PyFWI.acquisition module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.fwi module
+fwi
 ----------------
 
 .. automodule:: PyFWI.fwi
@@ -20,7 +17,7 @@ PyFWI.fwi module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.fwi\_tools module
+fwi\_tools
 -----------------------
 
 .. automodule:: PyFWI.fwi_tools
@@ -28,7 +25,7 @@ PyFWI.fwi\_tools module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.model\_dataset module
+model\_dataset
 ---------------------------
 
 .. automodule:: PyFWI.model_dataset
@@ -36,7 +33,7 @@ PyFWI.model\_dataset module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.optimization module
+optimization
 -------------------------
 
 .. automodule:: PyFWI.optimization
@@ -44,7 +41,7 @@ PyFWI.optimization module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.processing module
+processing
 -----------------------
 
 .. automodule:: PyFWI.processing
@@ -52,7 +49,7 @@ PyFWI.processing module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.rock\_physics module
+rock\_physics
 --------------------------
 
 .. automodule:: PyFWI.rock_physics
@@ -60,7 +57,7 @@ PyFWI.rock\_physics module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.seiplot module
+seiplot
 --------------------
 
 .. automodule:: PyFWI.seiplot
@@ -68,7 +65,7 @@ PyFWI.seiplot module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.seismic\_io module
+seismic\_io
 ------------------------
 
 .. automodule:: PyFWI.seismic_io
@@ -76,7 +73,7 @@ PyFWI.seismic\_io module
    :undoc-members:
    :show-inheritance:
 
-PyFWI.wave\_propagation module
+wave\_propagation 
 ------------------------------
 
 .. automodule:: PyFWI.wave_propagation

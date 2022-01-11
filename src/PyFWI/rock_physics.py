@@ -69,8 +69,10 @@ class Density:
             cc ([type]): [description]
             rho_q ([type]): [description]
 
-        Returns:
-            [type]: [description]
+        Returns
+        --------
+            rho_m: ndarray
+                Density of matrix
         """
         q = 1 - cc 
         rho_m = rho_clay * cc + rho_q * q
@@ -82,8 +84,7 @@ class Density:
         """
         This function calculate density from Porosity, clay content, and water Saturation
 
-        Parameters:
-        -----------
+        Args:
             rho_c:
                 Density of clay
             rho_q:
@@ -99,7 +100,7 @@ class Density:
             phi:
                 Porosity
 
-        Returns:
+        Returns
         --------
         rho: float
             Effective density
