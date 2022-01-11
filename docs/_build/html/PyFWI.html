@@ -344,13 +344,24 @@
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="PyFWI.acquisition.prepare_residual">
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">prepare_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.prepare_residual" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyFWI.acquisition.seismic_section">
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">seismic_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seismo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.seismic_section" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-PyFWI.fwi">
 <span id="pyfwi-fwi-module"></span><h2>PyFWI.fwi module<a class="headerlink" href="#module-PyFWI.fwi" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_functions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#PyFWI.wave_propagation.wave_propagator" title="PyFWI.wave_propagation.wave_propagator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.wave_propagation.wave_propagator</span></code></a></p>
+<p>FWI implement full-waveform inversion (FWI)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI.fprime">
 <span class="sig-name descname"><span class="pre">fprime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.fprime" title="Permalink to this definition">¶</a></dt>
@@ -391,6 +402,7 @@
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.CostFunction">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">CostFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_function_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'l2'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.CostFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class provide different cost functions.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.CostFunction.exponential_cost">
 <span class="sig-name descname"><span class="pre">exponential_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dobs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.CostFunction.exponential_cost" title="Permalink to this definition">¶</a></dt>
@@ -487,13 +499,62 @@ Geiophysics</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.cost_preparation">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">cost_preparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_oh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.cost_preparation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">cost_preparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_oh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.cost_preparation" title="Permalink to this definition">¶</a></dt>
+<dd><p>cost_preparation prepare the data for calculating the cost function</p>
+<p>This function prepare the data for calculating the cost function.
+This preparation is based on multi-scale inversion strategy (Bunks et al., 1995).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dpre</strong> (<em>[</em><em>type</em><em>]</em>) – Predicted data</p></li>
+<li><p><strong>dobs</strong> (<em>[</em><em>type</em><em>]</em>) – Observed data</p></li>
+<li><p><strong>fn</strong> (<em>float</em>) – Nyquist frequency</p></li>
+<li><p><strong>freq</strong> (<em>float</em><em>, </em><em>optional</em>) – Desire frequency for filtering. Defaults to None.</p></li>
+<li><p><strong>order</strong> (<em>int</em><em>, </em><em>optional</em>) – Order of the filter. Defaults to None.</p></li>
+<li><p><strong>axis</strong> (<em>int</em><em>, </em><em>optional</em>) – Axis of the filter. Defaults to None.</p></li>
+<li><p><strong>params_oh</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – Parameter to prepare the data for different offsets. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.cost_seismic">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">cost_seismic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_pre0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_obs0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sourc_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_oh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.cost_seismic" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">cost_seismic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_pre0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_obs0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sourc_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_oh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.cost_seismic" title="Permalink to this definition">¶</a></dt>
+<dd><p>cost_seismic calculates the cost between estimated and observed data.</p>
+<p>This function calculates the cost between estimated and observed data by applying desired filters
+and returns the cost and the adjoint of the residual.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_pre0</strong> (<em>dict</em>) – Estimated data</p></li>
+<li><p><strong>d_obs0</strong> (<em>dict</em>) – Observed data</p></li>
+<li><p><strong>fun</strong> (<em>function</em>) – The function to calculate the cost. This could be “CF = tools.CostFunction(‘l2’)”</p></li>
+<li><p><strong>fn</strong> (<em>float</em><em>, </em><em>optional</em>) – Nyquist frequency. Defaults to None.</p></li>
+<li><p><strong>freq</strong> (<em>float</em><em>, </em><em>optional</em>) – Desired frequency to implement the lowpass filter. Defaults to None.</p></li>
+<li><p><strong>order</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+<li><p><strong>axis</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+<li><p><strong>sourc_weight</strong> (<em>bool</em><em>, </em><em>optional</em>) – [description]. Defaults to False.</p></li>
+<li><p><strong>ns</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of the sources. Defaults to None.</p></li>
+<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of the receivers. Defaults to None.</p></li>
+<li><p><strong>params_oh</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The cost
+adj_src: Adjoint source to propagate through the model in adjoint wave equation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>rms (float)</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.dict_diff">
@@ -569,90 +630,19 @@ everywhere excpet in center which consisting the model.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.grad_lmd_to_vd">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">grad_lmd_to_vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">glam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.grad_lmd_to_vd" title="Permalink to this definition">¶</a></dt>
-<dd><p>grad_lmr_to_vd [summary]</p>
-<p>[extended_summary]</p>
+<dd><p>grad_lmr_to_vd switch the gradient.</p>
+<p>This function witch the gradient from (lambda, mu, rho)
+to (vp, vs, rho).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>glam</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>gmu</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>grho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>lam</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>mu</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>glam</strong> (<em>ndarray</em>) – Gradient w.r.t. lambda</p></li>
+<li><p><strong>gmu</strong> (<em>ndarray</em>) – Gradient w.r.t. mu</p></li>
+<li><p><strong>grho</strong> (<em>ndarray</em>) – Gradient w.r.t. density</p></li>
+<li><p><strong>lam</strong> (<em>ndarray</em>) – Gradient w.r.t. lambda</p></li>
+<li><p><strong>mu</strong> (<em>ndarray</em>) – Gradient w.r.t. mu</p></li>
+<li><p><strong>rho</strong> (<em>ndarray</em>) – Gradient w.r.t. density</p></li>
 </ul>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Refrences:</dt><dd><ol class="arabic simple">
-<li><p>Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion</p></li>
-<li><p>Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion</p></li>
-</ol>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.grad_pcs2vd">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">grad_pcs2vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gphi0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gcc0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gsw0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sw</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.grad_pcs2vd" title="Permalink to this definition">¶</a></dt>
-<dd><p>grad_pcs2vd [summary]</p>
-<p>[extended_summary]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>gvp</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>gvs</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>grho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>cc</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_c</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_q</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>phi</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_w</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_g</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_f</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Refrences:</dt><dd><ol class="arabic simple">
-<li><p>Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion</p></li>
-<li><p>Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion</p></li>
-</ol>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.grad_vd2pcs">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">grad_vd2pcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gvp0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gvs0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sw</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.grad_vd2pcs" title="Permalink to this definition">¶</a></dt>
-<dd><p>grad_vd2pcs [summary]</p>
-<p>[extended_summary]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>gvp</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>gvs</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>grho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>cc</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_c</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_q</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>phi</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_w</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_g</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>rho_f</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
 </dd>
 </dl>
 <dl class="simple">
@@ -700,7 +690,21 @@ everywhere excpet in center which consisting the model.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.pcs_dict2vec">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">pcs_dict2vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.pcs_dict2vec" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>pcs_dict2vec converts a dictionary of PCS to a vector</p>
+<p>This function converts a dictionary of PCS to vector which is
+used during the inversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>m0</strong> (<em>dictionary</em>) – A dictionary ccontaining ‘phi’, ‘cc’, ‘sw’.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A vector containg the whole parameters of the model.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>m (dictionary)</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.pml_counstruction">
@@ -802,12 +806,48 @@ expansion method, Geophysical Prospecting, 2020, 68, 572–590.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.vec2pcs_dict">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">vec2pcs_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.vec2pcs_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>vec2pcs_dict converts a vector of PCS to dictionary</p>
+<p>This function converts a vector of PCS to dictionary which is
+used during the inversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m0</strong> (<em>1-d ndarray</em>) – a vector containg the whole parameters of the model</p></li>
+<li><p><strong>nz</strong> (<em>[</em><em>type</em><em>]</em>) – Number of samples of the model in z-direction</p></li>
+<li><p><strong>nx</strong> (<em>[</em><em>type</em><em>]</em>) – Number of samples of the model in x-direction</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary ccontaining ‘phi’, ‘cc’, ‘sw’.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>m (dictionary)</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.vec2vel_dict">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">vec2vel_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.vec2vel_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>vec2vel_dict converts a vector of DV to dictionary</p>
+<p>This function converts a vector of DV to dictionary which is
+used during the inversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m0</strong> (<em>1-d ndarray</em>) – a vector containg the whole parameters of the model</p></li>
+<li><p><strong>nz</strong> (<em>[</em><em>type</em><em>]</em>) – Number of samples of the model in z-direction</p></li>
+<li><p><strong>nx</strong> (<em>[</em><em>type</em><em>]</em>) – Number of samples of the model in x-direction</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary ccontaining ‘vp’, ‘vs’, ‘rho’.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>m (dictionary)</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.fwi_tools.vel_dict2vec">
@@ -1477,6 +1517,28 @@ vs = S-wave velocity (km/s)</p>
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">error_lack_of_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.error_lack_of_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="PyFWI.rock_physics.lmd2vd">
+<span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">lmd2vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.lmd2vd" title="Permalink to this definition">¶</a></dt>
+<dd><p>lmd2vd switches Lama modulus and density to vp, vs, density</p>
+<p>[extended_summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lam</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>mu</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>rho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.rock_physics.p_velocity">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">p_velocity</span></span><a class="headerlink" href="#PyFWI.rock_physics.p_velocity" title="Permalink to this definition">¶</a></dt>
@@ -1518,6 +1580,28 @@ vs = S-wave velocity (km/s)</p>
 <dt class="sig sig-object py" id="PyFWI.rock_physics.reverse_Han">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">reverse_Han</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.reverse_Han" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyFWI.rock_physics.vd2lmd">
+<span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">vd2lmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.vd2lmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>vd2lmd switches vp, vs, density to Lame modulus and density to</p>
+<p>[extended_summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vp</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>vs</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>rho</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.rock_physics.voigt_berie">
@@ -1645,7 +1729,7 @@ for preserving the structure of dictionaries.</p>
 <span id="pyfwi-wave-propagation-module"></span><h2>PyFWI.wave_propagation module<a class="headerlink" href="#module-PyFWI.wave_propagation" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_preparation">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.wave_propagation.</span></span><span class="sig-name descname"><span class="pre">wave_preparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_preparation" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.wave_propagation.</span></span><span class="sig-name descname"><span class="pre">wave_preparation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_preparation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_preparation.adjoint_buffer_preparing">
