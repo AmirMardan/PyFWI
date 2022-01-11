@@ -14,23 +14,20 @@ import PyFWI.seiplot as splt
 class FWI(Wave):
     """
     FWI implement full-waveform inversion (FWI)
+    This class implement the FWI using the class 'wave_propagator' in 'PyFWI.wave_propagation'.
+    
+    Args:
+        d_obs (dict): Observed data 
+        inpa (dict): Dictionary containg required parameters 
+        src (class): Source 
+        rec_loc (ndarray): Location of the receivers
+        model_size (ndarray): Size of the model
+        n_well_rec ([type]): Number of receivers in the well in INPA['acq_type'] !=1
+        chpr (int): Percentage of specify how much wavefield should be saved.
+        components ([type]): Components of the operation
+        param_functions ([type], optional): A list containg four function in case if the inversion is not happenning in DV parameterization. Defaults to None.
     """
     def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
-        """
-        This class implement the FWI using the class 'wave_propagator'
-        in 'PyFWI.wave_propagation'.
-
-        Args:
-            d_obs (dict): Observed data
-            inpa (dict): Dictionary containg required parameters
-            src (class): Source 
-            rec_loc (ndarray): Location of the receivers
-            model_size (ndarray): Size of the model
-            n_well_rec ([type]): Number of receivers in the well in INPA['acq_type'] !=1
-            chpr (int): Percentage of specify how much wavefield should be saved.
-            components ([type]): Components of the operation
-            param_functions ([type], optional): A list containg four function in case if the inversion is not happenning in DV parameterization. Defaults to None.
-        """
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
         if param_functions is None:
@@ -89,7 +86,31 @@ class FWI(Wave):
             m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
 
         return self.vec2dict(m1, self.nz, self.nx), rms 
+    
+    def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
+        """
+        run implement the FWI
 
+        Args:
+            m0 (dict): The initial model
+            method (int, str): The optimization method
+            iter (ndarray): An array of iteration for each frequency
+            freqs (float): Frequencies for multi-scale inversion.
+            n_params (int): Number of parameter to invert for in each time
+            k_0 (int): The first parameter of interest
+            k_end (int): The last parameter of interest
+
+        Returns
+        --------
+            m_est :dict
+                The estimated model
+            
+            rms: ndarray
+                The rms error
+        """
+        m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
+        return m, rms
+    
     def lbfgs(self, m0, ITER, freqs, n_params=1, k0=0, k_end=1):
         # n_params: number of parameters to seek for in one iteration
                 
