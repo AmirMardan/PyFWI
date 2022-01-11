@@ -207,7 +207,7 @@ class Source:
  
         self.component = np.zeros(5, dtype=np.float32)
         
-        self.component[2:4] = 1
+        self.component[2:4] = np.float32(dt)
                        
     def __call__(self, ind=None):
         
@@ -315,7 +315,7 @@ def seismic_section(seismo, components=0):
         data['tauz'] = (seismo['taux'] + seismo['tauz']) / 2
     return data
 
-def prepare_residual(res):
+def prepare_residual(res, s):
     
     data = {}
     shape = res[[*res][0]].shape
@@ -323,7 +323,7 @@ def prepare_residual(res):
     
     for param in all_comps:
         if param in res:
-            data[param] = res[param]
+            data[param] = s * res[param]
         else:
             data[param] = np.zeros(shape, np.float32)
     return data

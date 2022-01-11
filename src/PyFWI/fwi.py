@@ -16,8 +16,11 @@ class FWI(Wave):
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
         keys = inpa.keys()
-        
-        self.d_obs = acq.prepare_residual(d_obs)
+        try:
+            self.sd = inpa['sd']  # Virieux et al, 2009
+        except:
+            self.sd = 1.0
+        self.d_obs = acq.prepare_residual(d_obs, 1)
         
         self.fn = inpa['fn']
 
@@ -81,7 +84,7 @@ class FWI(Wave):
         m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
         
         d_est = self.forward_modeling(m, show=False)
-        d_est = acq.prepare_residual(d_est)
+        d_est = acq.prepare_residual(d_est, self.sd)
         
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1

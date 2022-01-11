@@ -898,7 +898,7 @@ class wave_propagator(wave_preparation):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
-        res = acq.prepare_residual(res)
+        res = acq.prepare_residual(res, 1)
         if show:
             self.initial_wavefield_plot({'vp':self.vp}, plot_type="Backward")
         
