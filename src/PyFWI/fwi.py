@@ -14,20 +14,24 @@ import PyFWI.seiplot as splt
 class FWI(Wave):
     """
     FWI implement full-waveform inversion (FWI)
-    This class implement the FWI using the class 'wave_propagator' in 'PyFWI.wave_propagation'.
-
-    Args:
-        d_obs (dict): Observed data
-        inpa (dict): Dictionary containg required parameters
-        src (class): Source
-        rec_loc (ndarray): Location of the receivers
-        model_size (ndarray): Size of the model
-        n_well_rec ([type]): Number of receivers in the well in INPA['acq_type'] !=1
-        chpr (int): Percentage of specify how much wavefield should be saved.
-        components ([type]): Components of the operation
-        param_functions ([type], optional): A list containg four function in case if the inversion is not happenning in DV parameterization. Defaults to None.
     """
     def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
+        """
+        This class implement the FWI using the class 'wave_propagator'
+        in 'PyFWI.wave_propagation'.
+
+        Args:
+            d_obs (dict): Observed data
+            inpa (dict): Dictionary containg required parameters
+            src (class): Source
+            rec_loc (ndarray): Location of the receivers
+            model_size (ndarray): Size of the model
+            n_well_rec ([type]): Number of receivers in the well in INPA['acq_type'] !=1
+            chpr (int): Percentage of specify how much wavefield should be saved.
+            components ([type]): Components of the operation
+            param_functions ([type], optional): A list containg four function in case if the inversion is not happenning in DV parameterization. Defaults to None.
+        """
+    
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
         if param_functions is None:
@@ -40,14 +44,14 @@ class FWI(Wave):
             self.vec2dict = param_functions['vec2dict']
             self.to_dv = param_functions['to_dv']
             self.grad_from_dv = param_functions['grad_from_dv']
-
+            
         keys = inpa.keys()
         try:
             self.sd = inpa['sd']  # Virieux et al, 2009
         except:
             self.sd = 1.0
         self.d_obs = acq.prepare_residual(d_obs, 1)
-
+        
         self.fn = inpa['fn']
 
         self.GN_wave_propagator = Wave(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
@@ -56,9 +60,9 @@ class FWI(Wave):
             self.CF = tools.CostFunction(inpa["cost_function_type"])
         else:
             self.CF = tools.CostFunction('l2')
-
+        
         self.n_elements = self.nz * self.nx
-
+        
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end, video=False):
         """
         FWI implements the full-waveform inversion
@@ -103,10 +107,10 @@ class FWI(Wave):
             raise ("Steepest descent is not provided yet.")
         elif user_method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
-        elif method in [2, 'lbfgs']:
-            m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
+        elif user_method in [2, 'lbfgs']:
+            method += 'lbfgs'
 
-        return self.vec2dict(m1, self.nz, self.nx), rms
+        return method
 
     def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
@@ -132,7 +136,7 @@ class FWI(Wave):
         m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
         return m, rms
 
-    def lbfgs(self, m0, ITER, freqs, n_params=1, k0=0, k_end=1):
+    def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
         # n_params: number of parameters to seek for in one iteration
 
         n_element = self.nz * self.nx
@@ -178,11 +182,11 @@ class FWI(Wave):
 
         grad_dv = self.gradient(adj_src, parameterization='dv')
         grad = self.grad_from_dv(grad_dv, m_old)
-
+        
         grad = self.dict2vec(grad)
-
+ 
         return rms, grad
-
+    
     def fprime_single(self, m0, m_1, m1, freq):
         mtotal = np.hstack((m_1, m0, m1))
         shape_1 = np.shape(m_1)[0]
@@ -193,3 +197,4 @@ class FWI(Wave):
         print(" for f= {}: rms is: {}".format(freq, rms))
 
         return rms, grad[shape_1: shape_1 + shape0]
+    
