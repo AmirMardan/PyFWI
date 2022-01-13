@@ -120,7 +120,19 @@ def gn_plot(p, grad, nz, nx):
     cax = axes_divider.append_axes('right', size='7%', pad='2%')
     cb = fig.colorbar(im, cax=cax)
 
-
+def inversion_video(m_video, **kwargs):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    
+    axes_divider = make_axes_locatable(ax)
+    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+        
+    for i in range(m_video.shape[2]):
+        im = ax.imshow(m_video[:, :, i], **kwargs)
+        cb = fig.colorbar(im, cax=cax)
+        plt.pause(0.2)
+        
+        
 if __name__ == "__main__":
     # import PyFWI.model_dataset as md
     import PyFWI.rock_physics as rp
