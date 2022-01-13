@@ -443,10 +443,13 @@ def add_circle (model, circle_prop, r, cx, cz):
     return model
 
 
-def model_smoother(model, smooting_value):
+def model_smoother(model, smooting_value, constant_surface=0, constant_left=0):
+    model0 = {}
     for params in model:
-        model[params] = gaussian_filter(model[params], smooting_value)
-    return model
+        model0[params] = gaussian_filter(model[params], smooting_value)
+        model0[params][:constant_surface, :] = model[params][:constant_surface, :]
+        model0[params][:, :constant_left] = model[params][:, :constant_left]
+    return model0
 
 def pcs_perturbation(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, monitor=False):
     """
@@ -535,7 +538,7 @@ def model_resizing(model0,  bx=None, ex=None, bz=None, ez=None, ssr=(1, 1)):
         model[param] = interpolator(xi, zi)
         model[param] = model[param].astype(np.float32, order='C')
 
-        if bx:
+        if bx is not None:
             model[param] = model[param][bz:ez, bx:ex]
     return model
 

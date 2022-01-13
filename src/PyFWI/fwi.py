@@ -15,11 +15,11 @@ class FWI(Wave):
     """
     FWI implement full-waveform inversion (FWI)
     This class implement the FWI using the class 'wave_propagator' in 'PyFWI.wave_propagation'.
-    
+
     Args:
-        d_obs (dict): Observed data 
-        inpa (dict): Dictionary containg required parameters 
-        src (class): Source 
+        d_obs (dict): Observed data
+        inpa (dict): Dictionary containg required parameters
+        src (class): Source
         rec_loc (ndarray): Location of the receivers
         model_size (ndarray): Size of the model
         n_well_rec ([type]): Number of receivers in the well in INPA['acq_type'] !=1
@@ -40,14 +40,14 @@ class FWI(Wave):
             self.vec2dict = param_functions['vec2dict']
             self.to_dv = param_functions['to_dv']
             self.grad_from_dv = param_functions['grad_from_dv']
-            
+
         keys = inpa.keys()
         try:
             self.sd = inpa['sd']  # Virieux et al, 2009
         except:
             self.sd = 1.0
         self.d_obs = acq.prepare_residual(d_obs, 1)
-        
+
         self.fn = inpa['fn']
 
         self.GN_wave_propagator = Wave(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
@@ -56,10 +56,10 @@ class FWI(Wave):
             self.CF = tools.CostFunction(inpa["cost_function_type"])
         else:
             self.CF = tools.CostFunction('l2')
-        
+
         self.n_elements = self.nz * self.nx
-        
-    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
+
+    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end, video=False):
         """
         FWI implements the full-waveform inversion
 
@@ -78,15 +78,36 @@ class FWI(Wave):
         """
         m = self.dict2vec(m0)
 
-        if method in [0, 'SD', 'sd']:
+        method = self.__fwi_method(method)
+        m_video = np.empty(((k_end - k_0) * self.n_elements, len(freqs) + 1))
+
+        m_video[:, 0] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
+
+        c = 0
+        for freq in freqs:
+            print(f"{freq = }")
+            m, rms = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
+
+            c += 1
+            m_video[:, c] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
+
+        if video:
+            return self.vec2dict(m, self.nz, self.nx), rms, m_video.reshape(self.nz, self.nx, len(freqs)+1)
+        else:
+            return self.vec2dict(m, self.nz, self.nx), rms
+
+    def __fwi_method(self, user_method):
+
+        method = 'self.'
+        if user_method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
-        elif method in [1, 'GD', 'gd']:
+        elif user_method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
         elif method in [2, 'lbfgs']:
             m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
 
-        return self.vec2dict(m1, self.nz, self.nx), rms 
-    
+        return self.vec2dict(m1, self.nz, self.nx), rms
+
     def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
         run implements the FWI
@@ -104,16 +125,16 @@ class FWI(Wave):
         --------
             m_est :dict
                 The estimated model
-            
+
             rms: ndarray
                 The rms error
         """
         m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
         return m, rms
-    
+
     def lbfgs(self, m0, ITER, freqs, n_params=1, k0=0, k_end=1):
         # n_params: number of parameters to seek for in one iteration
-                
+
         n_element = self.nz * self.nx
         mtotal = np.copy(m0)
 
@@ -121,38 +142,34 @@ class FWI(Wave):
 
         fun = MemoizeJac(self.fprime_single)
         jac = fun.derivative
-        
-        c = 0
-        for freq in freqs:
-            print(f"{freq = }")
-            for k in np.arange(k0-1, k_end-1, n_params):
-                print(f'Parameter number {k + 1: } to {k + n_params: }')
-                
-                m_1 = mtotal[:k * n_element]
-                m_opt = mtotal[k * n_element: (k + n_params) * n_element]
-                m1 = mtotal[(k + n_params) * n_element:]  
 
-                m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq], m=30,
-                                               factr=1e-10, pgtol=1e-12, iprint=99, bounds=None,
-                                               maxfun=15000, maxiter=ITER[c], disp=None,
-                                               callback=None, maxls=20)
+        for k in np.arange(k0-1, k_end-1, n_params):
+            print(f'Parameter number {k + 1: } to {k + n_params: }')
 
-                print(m_opt.max(), m_opt.min())
-                rms_hist.append(hist)
+            m_1 = mtotal[:k * n_element]
+            m_opt = mtotal[k * n_element: (k + n_params) * n_element]
+            m1 = mtotal[(k + n_params) * n_element:]
 
-                mtotal = np.hstack((m_1, m_opt, m1))
-            c += 1
+            m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq],
+                                           m=10, factr=1e7, pgtol=1e-8, iprint=99,
+                                           bounds=None, maxfun=15000, maxiter=ITER,
+                                           disp=None, callback=None, maxls=20)
+
+            # print(m_opt.max(), m_opt.min())
+            rms_hist.append(hist)
+
+            mtotal = np.hstack((m_1, m_opt, m1))
         return mtotal, rms_hist
-    
+
     def fprime(self, m0, freq):
-        
+
         mtotal = np.copy(m0)
         m_old = self.vec2dict(mtotal, self.nz, self.nx)
         m_new = self.to_dv(m_old)
-        
+
         d_est = self.forward_modeling(m_new, show=False)
         d_est = acq.prepare_residual(d_est, self.sd)
-        
+
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1
                                                )
@@ -161,11 +178,11 @@ class FWI(Wave):
 
         grad_dv = self.gradient(adj_src, parameterization='dv')
         grad = self.grad_from_dv(grad_dv, m_old)
-        
+
         grad = self.dict2vec(grad)
- 
+
         return rms, grad
-    
+
     def fprime_single(self, m0, m_1, m1, freq):
         mtotal = np.hstack((m_1, m0, m1))
         shape_1 = np.shape(m_1)[0]
@@ -176,6 +193,3 @@ class FWI(Wave):
         print(" for f= {}: rms is: {}".format(freq, rms))
 
         return rms, grad[shape_1: shape_1 + shape0]
-    
-
-    

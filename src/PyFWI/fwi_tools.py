@@ -896,7 +896,7 @@ def cost_seismic(d_pre0, d_obs0, fun,
 
 class CostFunction:
     """
-     This class provide different cost functions. 
+     This class provides different cost functions. 
 
     """
     def __init__(self, cost_function_type="l2"):
