@@ -62,7 +62,7 @@ class FWI(Wave):
         
         self.n_elements = self.nz * self.nx
         
-    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
+    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end, video=False):
         """
         FWI implement the FWI
 
@@ -81,16 +81,37 @@ class FWI(Wave):
         """
         m = self.dict2vec(m0)
 
-        if method in [0, 'SD', 'sd']:
+        method = self.__fwi_method(method)
+        m_video = np.empty(((k_end - k_0) * self.n_elements, len(freqs) + 1))
+        
+        m_video[:, 0] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
+        
+        c = 0
+        for freq in freqs:
+            print(f"{freq = }")
+            m, rms = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
+            
+            c += 1
+            m_video[:, c] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
+        
+        if video:  
+            return self.vec2dict(m, self.nz, self.nx), rms, m_video.reshape(self.nz, self.nx, len(freqs)+1)
+        else:
+            return self.vec2dict(m, self.nz, self.nx), rms
+
+    def __fwi_method(self, user_method):
+        
+        method = 'self.'
+        if user_method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
-        elif method in [1, 'GD', 'gd']:
+        elif user_method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
-        elif method in [2, 'lbfgs']:
-            m1, rms = self.lbfgs(m, iter, freqs, n_params, k_0, k_end)
-
-        return self.vec2dict(m1, self.nz, self.nx), rms 
-
-    def lbfgs(self, m0, ITER, freqs, n_params=1, k0=0, k_end=1):
+        elif user_method in [2, 'lbfgs']:
+            method += 'lbfgs'
+            
+        return method
+        
+    def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
         # n_params: number of parameters to seek for in one iteration
                 
         n_element = self.nz * self.nx
@@ -100,27 +121,23 @@ class FWI(Wave):
 
         fun = MemoizeJac(self.fprime_single)
         jac = fun.derivative
-        
-        c = 0
-        for freq in freqs:
-            print(f"{freq = }")
-            for k in np.arange(k0-1, k_end-1, n_params):
-                print(f'Parameter number {k + 1: } to {k + n_params: }')
                 
-                m_1 = mtotal[:k * n_element]
-                m_opt = mtotal[k * n_element: (k + n_params) * n_element]
-                m1 = mtotal[(k + n_params) * n_element:]  
+        for k in np.arange(k0-1, k_end-1, n_params):
+            print(f'Parameter number {k + 1: } to {k + n_params: }')
+                
+            m_1 = mtotal[:k * n_element]
+            m_opt = mtotal[k * n_element: (k + n_params) * n_element]
+            m1 = mtotal[(k + n_params) * n_element:]  
 
-                m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq], m=30,
-                                               factr=1e-10, pgtol=1e-12, iprint=99, bounds=None,
-                                               maxfun=15000, maxiter=ITER[c], disp=None,
-                                               callback=None, maxls=20)
+            m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq],
+                                           m=10, factr=1e7, pgtol=1e-8, iprint=99,
+                                           bounds=None, maxfun=15000, maxiter=ITER,
+                                           disp=None, callback=None, maxls=20)
 
-                print(m_opt.max(), m_opt.min())
-                rms_hist.append(hist)
+            # print(m_opt.max(), m_opt.min())
+            rms_hist.append(hist)
 
-                mtotal = np.hstack((m_1, m_opt, m1))
-            c += 1
+            mtotal = np.hstack((m_1, m_opt, m1))
         return mtotal, rms_hist
     
     def fprime(self, m0, freq):
