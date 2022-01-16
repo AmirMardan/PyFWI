@@ -63,7 +63,7 @@ class FWI(Wave):
         
         self.n_elements = self.nz * self.nx
         
-    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end, video=False):
+    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
         FWI implements the full-waveform inversion
 
@@ -83,22 +83,14 @@ class FWI(Wave):
         m = self.dict2vec(m0)
 
         method = self.__fwi_method(method)
-        m_video = np.empty(((k_end - k_0) * self.n_elements, len(freqs) + 1))
-
-        m_video[:, 0] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
 
         c = 0
         for freq in freqs:
-            print(f"{freq = }")
             m, rms = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
 
             c += 1
-            m_video[:, c] = m[(k_0 - 1) * self.n_elements: (k_end - 1) * self.n_elements]
 
-        if video:
-            return self.vec2dict(m, self.nz, self.nx), rms, m_video.reshape(self.nz, self.nx, len(freqs)+1)
-        else:
-            return self.vec2dict(m, self.nz, self.nx), rms
+        return self.vec2dict(m, self.nz, self.nx), rms
 
     def __fwi_method(self, user_method):
 
