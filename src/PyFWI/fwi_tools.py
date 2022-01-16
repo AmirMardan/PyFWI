@@ -226,9 +226,7 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
 
     glam_vs = glam * (-4 * rho * vs)
     gmu_vs = gmu * 2 * vs * rho
-    
     grho_vs = grho * 0
-
     gvs = glam_vs + gmu_vs + grho_vs  # gvs
 
     glam_rho = glam * vpvs
@@ -239,7 +237,7 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     return gvp, gvs, grho
 
 
-def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
+def grad_vd_to_vd(gvp, gvs, grho, lam, mu, rho):
     """
     grad_lmr_to_vd [summary]
 
@@ -257,24 +255,24 @@ def adj_grad_lmd_to_vd(gvp, gvs, grho, lam, mu, rho):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
-    print(" This function is not stable.")
     vp = np.sqrt((lam + 2 * mu) / rho)
     vs = np.sqrt(mu / rho)
     
-    gvp_lam = gvp / (2 * np.sqrt(rho * ( lam + 2 * mu)))
+    gvp_lam = gvp / (2 * rho * vp)
     gvs_lam = gvs * 0
-    grho_lam = grho / (vp * vp)
+    grho_lam = grho * 0 
     glam = gvp_lam + gvs_lam + grho_lam  # glam
 
-    gvp_mu = gvp * (1/np.sqrt(rho * (lam + 2 * mu)))
-    gvs_mu = gvs / (2 * np.sqrt(mu * rho))
-    grho_mu = grho * 2 / (vp * vp)
+    gvp_mu = gvp / (rho * vp)
+    gvs_mu = gvs / (2 * rho * vs)
+    grho_mu = grho * 0
     gmu = gvp_mu + gvs_mu + grho_mu  # gmu
 
-    grho_vp = gvp * (- ((lam + 2 * mu) ** .5)/ (2 * rho ** 1.5))
-    grho_vs = gvs * (- mu**0.5 / rho**1.5)
+    grho_vp = gvp * (- vp / 2 / rho)
+    grho_vs = gvs * (- vs / 2 / rho)
     grho_rho = grho
     grho = grho_vp + grho_vs + grho_rho
+
 
     return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32) 
 
