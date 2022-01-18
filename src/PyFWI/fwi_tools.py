@@ -234,10 +234,10 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     grho_rho = grho
     grho = glam_rho + gmu_rho + grho_rho
 
-    return gvp, gvs, grho
+    return gvp.astype(np.float32), gvs.astype(np.float32), grho.astype(np.float32)
 
 
-def grad_vd_to_vd(gvp, gvs, grho, lam, mu, rho):
+def grad_vd_to_lmd(gvp, gvs, grho, lam, mu, rho):
     """
     grad_lmr_to_vd [summary]
 
