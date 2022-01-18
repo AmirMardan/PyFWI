@@ -85,12 +85,14 @@ class FWI(Wave):
         method = self.__fwi_method(method)
 
         c = 0
+        rms = []
         for freq in freqs:
-            m, rms = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
-
+            m, rms0 = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
+            
+            rms.append(rms0)
             c += 1
-
-        return self.vec2dict(m, self.nz, self.nx), rms
+        
+        return self.vec2dict(m, self.nz, self.nx), np.array(rms)
 
     def __fwi_method(self, user_method):
 

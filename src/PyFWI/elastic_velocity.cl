@@ -633,10 +633,14 @@ float DxmAtaux =  (c1*((lam[center]+2*mu[center])*Ataux[center] - (lam[left]+2*m
 //   backward_energy[center]+= Avx[center]*Avx[center] + Avz[center]*Avz[center]+ Ataux[center]*Ataux[center] + Atauz[center]*Atauz[center]+Atauxz[center]*Atauxz[center];
 // }
 
-__kernel void Grad_mu(__global float *vx, __global float *vz,
+__kernel void Grad(__global float *vx, __global float *vz,
             __global float *taux, __global float *tauz, __global float *tauxz,
+            __global float *Avx, __global float *Avz,
             __global float *Ataux, __global float *Atauz,  __global float *Atauxz,
-            __global float *Gmu, __global float *Gmu_precond
+            __global float *lambda, __global float *mu, __global float *rho_b,
+            __global float *Gmu, __global float *Gmu_precond,
+            __global float *Glam, __global float *Glam_precond,
+            __global float *Grho, __global float *Grho_precond
             )
 
 
@@ -658,82 +662,28 @@ __kernel void Grad_mu(__global float *vx, __global float *vz,
   float DzmVz= (c1*(vz[center]-vz[above]) + c2*(vz[below]-vz[above2])+
                c3*(vz[below2]-vz[above3]) + c4*(vz[below3]-vz[above4]))/dz;    
 
+  float DzpPz= (c1*(tauz[below]-tauz[center]) + c2*(tauz[below2]-tauz[above])+
+               c3*(tauz[below3]-tauz[above2]) + c4*(tauz[below4]-tauz[above3]))/dz;
+
+  float DxmPx= (c1*(taux[center]-taux[left]) + c2*(taux[right]-taux[left2])+
+               c3*(taux[right2]-taux[left3]) + c4*(taux[right3]-taux[left4]))/dx;
+
+  float DxpPxz= (c1*(tauxz[right]-tauxz[center]) + c2*(tauxz[right2]-tauxz[left])+
+               c3*(tauxz[right3]-tauxz[left2]) + c4*(tauxz[right4]-tauxz[left3]))/dx;
+
+  float DzmPxz= (c1*(tauxz[center]-tauxz[above]) + c2*(tauxz[below]-tauxz[above2])+
+               c3*(tauxz[below2]-tauxz[above3]) + c4*(tauxz[below3]-tauxz[above4]))/dz;
+
+
   Gmu[center]+= 2*dt*(Ataux[center]*DxpVx + Atauz[center]*DzmVz) + dt*Atauxz[center]*(DzpVx+DxmVz);
     
+  
   Gmu_precond[center]+= 4*dt*dt*(taux[center]*taux[center]*DxpVx*DxpVx + tauz[center]*tauz[center]*DzmVz*DzmVz)
                           +dt*dt*tauxz[center]*tauxz[center]*(DzpVx*DzpVx+DxmVz*DxmVz);
-
-}
-
-                    ////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////
-                    /////////                          G mu                        //////////
-                    ////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////
-__kernel void Grad_lam(__global float *vx, __global float *vz,
-            __global float *taux, __global float *tauz,
-            __global float *Ataux, __global float *Atauz, 
-            __global float *Glam, __global float *Glam_precond
-            )
-
-
-{
-  int i = get_global_id(0)+ npml + sdo ;
-  int j = get_global_id(1)+ npml + sdo ;
-
-  if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-
-
-
-  float DxpVx= (c1*(vx[right]-vx[center]) + c2*(vx[right2]-vx[left])+
-               c3*(vx[right3]-vx[left2]) + c4*(vx[right4]-vx[left3]))/dx;
-
-  float DzmVz= (c1*(vz[center]-vz[above]) + c2*(vz[below]-vz[above2])+
-               c3*(vz[below2]-vz[above3]) + c4*(vz[below3]-vz[above4]))/dz;
-
 
   Glam[center]+= dt*(Ataux[center] + Atauz[center])*(DxpVx+DzmVz);
 
   Glam_precond[center] += dt*dt*(taux[center]*taux[center] + tauz[center]*tauz[center])*(DxpVx*DxpVx+DzmVz*DzmVz);
-  // Hlam[center]+= dt*(taux[center] + tauz[center])*(DxpVx+DzmVz);
-  // A=glam/(hlam+...)
-      
-
-}
-
-                    ////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////
-                    /////////                          G rho                        //////////
-                    ////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////
-
-
-__kernel void Grad_rho(__global float *vx, __global float *vz,
-            __global float *px, __global float *pz, __global float *pxz,
-            __global float *Avx, __global float *Avz,
-            __global float *rho_b ,
-            __global float *Grho, __global float *Grho_precond
-            )
-
-
-{
-  int i = get_global_id(0)+ npml + sdo ;
-  int j = get_global_id(1)+ npml + sdo ;
-
-  if(i>Nz-sdo - npml || j>Nx-sdo - npml){return;}
-
-  float DzpPz= (c1*(pz[below]-pz[center]) + c2*(pz[below2]-pz[above])+
-               c3*(pz[below3]-pz[above2]) + c4*(pz[below4]-pz[above3]))/dz;
-
-  float DxmPx= (c1*(px[center]-px[left]) + c2*(px[right]-px[left2])+
-               c3*(px[right2]-px[left3]) + c4*(px[right3]-px[left4]))/dx;
-
-  float DxpPxz= (c1*(pxz[right]-pxz[center]) + c2*(pxz[right2]-pxz[left])+
-               c3*(pxz[right3]-pxz[left2]) + c4*(pxz[right4]-pxz[left3]))/dx;
-
-  float DzmPxz= (c1*(pxz[center]-pxz[above]) + c2*(pxz[below]-pxz[above2])+
-               c3*(pxz[below2]-pxz[above3]) + c4*(pxz[below3]-pxz[above4]))/dz;
-
 
   Grho[center]+= -(dt*(rho_b[center]*rho_b[center]))*(Avx[center]*(DxmPx + DzmPxz)+
                                                   Avz[center]*(DzpPz+DxpPxz));

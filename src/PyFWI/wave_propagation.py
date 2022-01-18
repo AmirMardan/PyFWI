@@ -733,7 +733,7 @@ class wave_propagator(wave_preparation):
             self.make_seismogram(s, t)
 
             if self.forward_show and np.remainder(t, 20) == 0:
-                cl.enqueue_copy(self.queue, showpurose, self.w_vx_b)
+                cl.enqueue_copy(self.queue, showpurose, self.vx_b)
                 self.plot_propagation(showpurose, t)
     
     def __adjoint_modelling_per_source(self, res):
@@ -838,23 +838,16 @@ class wave_propagator(wave_preparation):
                                   self.vdx_pml_b, self.vdz_pml_b
                                   )
 
-            self.prg.Grad_mu(self.queue, (self.tnz, self.tnx), None,
+            self.prg.Grad(self.queue, (self.tnz, self.tnx), None,
                              self.vx_b, self.vz_b,
                              self.taux_b, self.tauz_b, self.tauxz_b,
+                             self.avx_b, self.avz_b,
                              self.ataux_b, self.atauz_b, self.atauxz_b,
-                             self.Gmu_b, self.g_mu_precond_b)
-
-            self.prg.Grad_lam(self.queue, (self.tnz, self.tnx), None,
-                              self.vx_b, self.vz_b,
-                              self.taux_b, self.tauz_b,
-                              self.ataux_b, self.atauz_b,
-                              self.Glam_b, self.g_lam_precond_b)
-
-            self.prg.Grad_rho(self.queue, (self.tnz, self.tnx), None,
-                              self.vx_b, self.vz_b,
-                              self.taux_b, self.tauz_b, self.tauxz_b,
-                              self.avx_b, self.avz_b,
-                              self.rho_b, self.Grho_b, self.g_rho_precond_b)
+                             self.lam_b, self.mu_b, self.rho_b,
+                             self.Gmu_b, self.g_mu_precond_b,
+                             self.Glam_b, self.g_lam_precond_b,
+                             self.Grho_b, self.g_rho_precond_b
+                             )
 
             # Plotting wave propagation
             if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
