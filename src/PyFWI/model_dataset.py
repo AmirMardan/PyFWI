@@ -69,9 +69,9 @@ class Circular():
         
         model = background((100, 100), {'vp':vp_back, 'vs':vs_back, 'rho':rho_back})        
         if not smoothing:  # Not m0
-            model['vp'] = add_circle(model['vp'], vp_circle, r=4, cx=35, cz=40)
-            model['vs'] = add_circle(model['vs'], vs_circle, r=4, cx=50, cz=50)
-            model['rho'] = add_circle(model['rho'], rho_circle, r=4, cx=65, cz=65)
+            model['vp'] = add_circle(model['vp'], vp_circle, r=6, cx=35, cz=40)
+            model['vs'] = add_circle(model['vs'], vs_circle, r=6, cx=50, cz=50)
+            model['rho'] = add_circle(model['rho'], rho_circle, r=6, cx=65, cz=65)
             if vintage == 2:  # Monitor model
                 model['vp'][25:30, 30: 41] -= 0.2 * model['vp'][25:30, 30: 41]
                
@@ -443,10 +443,10 @@ def add_circle (model, circle_prop, r, cx, cz):
     return model
 
 
-def model_smoother(model, smooting_value, constant_surface=0, constant_left=0):
+def model_smoother(model, smoothing_value, constant_surface=0, constant_left=0):
     model0 = {}
     for params in model:
-        model0[params] = gaussian_filter(model[params], smooting_value)
+        model0[params] = gaussian_filter(model[params], smoothing_value)
         model0[params][:constant_surface, :] = model[params][:constant_surface, :]
         model0[params][:, :constant_left] = model[params][:, :constant_left]
     return model0
