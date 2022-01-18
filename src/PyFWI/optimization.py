@@ -5,6 +5,8 @@ from PyFWI.wave_propagation import wave_propagator as Wave
 import PyFWI.fwi_tools as tools
 from scipy.optimize.optimize import MemoizeJac
 import matplotlib.pyplot as plt
+import PyFWI.seiplot as splt
+import PyFWI.acquisition as acq
 
 
 def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, min=1e-8, bond=[-np.inf, np.inf], args=()):
@@ -83,7 +85,10 @@ class FWI(Wave):
         
         self.d_obs = d_obs
         self.fn = inpa['fn']
-        
+        try:
+            self.sd = inpa['sd']  # Virieux et al, 2009
+        except:
+            self.sd = 1.0
         self.GN_wave_propagator = Wave(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
         
         if 'cost_function_type' in keys:
@@ -96,10 +101,14 @@ class FWI(Wave):
         
         if method in [0, 'sd', 'SD']:
             m1, rms = self.steepest_descent(m, iter, freqs)
-        if method in [1, 'gn', 'GN']:
+        if method in [3, 'gn', 'GN']:
             m1, rms = self.gauss_newton(m, iter, freqs)
 
         return tools.vec2vel_dict(m1, self.nz, self.nx), rms
+    
+    def run(self, m0, method, iter, freqs, n_params=3, k_0=1, k_end=4):
+        m, rms = self(m0, method, iter, freqs)
+        return m, rms
     
     def steepest_descent(self, m0, iter, freqs):
         
@@ -140,16 +149,16 @@ class FWI(Wave):
         alpha = [10., 10., 10.]
         
         i = 0
-        while i < iter:
+        while i < iter[0]:
             print(f"Iteration === {i:1d}")
             i += 1
             
             rms_hist.append(rms)
             
             p = truncated(self.GN_wave_propagator, self.W, m_opt, grad, m1, iter=5)
-            
+            splt.gn_plot(p, grad, self.nz, self.nx)
+
             mtotal, alpha = self.parameter_optimization(m_opt, m1, p, rms, grad, alpha, freqs[0])
-        
         return mtotal, rms_hist
     
     def fprime(self, m0, m1, freq):
@@ -158,10 +167,11 @@ class FWI(Wave):
         m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
         
         d_est = self.forward_modeling(m, show=False)
-        
+        d_est = acq.prepare_residual(d_est, self.sd)
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1
                                                )
+        rms_data, adj_src = self.CF(d_est, self.d_obs)
         rms = rms_data
         
         g = self.gradient(adj_src)
@@ -232,7 +242,7 @@ def truncated(FO_waves, W, m0, grad0, m1, iter):
         while np.linalg.norm(Hx + r, 2) > etta * np.linalg.norm(r, 2) and (i <iter):
             data_section_ajoint = FO_waves.forward_modeling(m, False, W, x_dict)
             FO_waves.W = copy.deepcopy(W)
-            hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=False)
+            hess = FO_waves.gradient(data_section_ajoint, Lam=None, grad=None, show=True)
             Hx = tools.vel_dict2vec(hess)
             
             b1 = np.dot(Hx.T, x)
