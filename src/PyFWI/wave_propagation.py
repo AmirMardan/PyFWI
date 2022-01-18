@@ -25,7 +25,7 @@ class wave_preparation():
         
         self.t = inpa['t']
         self.dt = inpa['dt']
-        self.nt = int(self.t // self.dt)
+        self.nt = int(1 + self.t // self.dt)
         
         self.nx = np.int32(model_size[1])
         self.nz = np.int32(model_size[0])
@@ -48,9 +48,9 @@ class wave_preparation():
         self.dh = inpa['dh']
         
         if 'sdo' in keys:
-            self.sdo = inpa['sdo']
+            self.sdo = np.int(inpa['sdo'] / 2)
         else:
-            self.sdo = 4
+            self.sdo = 2
             
         self.srcx = np.int32(src.i + inpa['npml'])
         self.srcz = np.int32(src.j + inpa['npml'])
@@ -73,6 +73,7 @@ class wave_preparation():
         self.rec_loc = rec_loc
         self.nr = rec_loc.shape[0]
         self.n_well_rec = n_well_rec
+        self.n_surface_rec = self.nr - 2 * n_well_rec
         
         self.acq_type = inpa["acq_type"]
         if n_well_rec ==0 and self.acq_type == 2:
@@ -85,12 +86,12 @@ class wave_preparation():
 
         if inpa["acq_type"] == 0:
             self.rec_cts = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
-            self.rec_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])
+            self.rec_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
             self.src_cts = src.i[0]
             
         elif inpa["acq_type"] in [1, 2]:
             self.rec_cts = np.int32(rec_loc[0, 1] / self.dh + inpa['npml'])
-            self.rec_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])
+            self.rec_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])[0]
             self.src_cts = src.j[0]
 
         # ======== Parameters Boundary condition ======
@@ -118,7 +119,7 @@ class wave_preparation():
             'atauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
 
-        self.D = seis_process.derivatives(order=self.sdo)
+        self.D = seis_process.derivatives(order=self.sdo * 2)
         
         self.components = components
         self.R = recorder(self.nt, self.rec_loc, self.ns, self.dh)
@@ -147,7 +148,14 @@ class wave_preparation():
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
         
-        self.prg = cl.Program(self.ctx, self.kernel_caller()).build()
+        kernel_surface, kernel_crosswell = self.kernel_caller()
+        
+        self.prg_cw = cl.Program(self.ctx, kernel_crosswell).build()
+        self.prg = cl.Program(self.ctx, kernel_surface).build()
+        if inpa["acq_type"] == 0:
+            self.prg.injSrc = self.prg_cw.injSrc
+            self.prg.Adj_injSrc = self.prg_cw.Adj_injSrc
+            
         self.mf = cl.mem_flags
         
         # Buffer for residuals
@@ -283,8 +291,13 @@ class wave_preparation():
             factor = np.zeros((self.nz, self.nx), np.float32)
 
             denom = np.sqrt(precond)
-            denom = denom[self.npml + sdo + self.src_cts + 2:self.tnz - self.npml - sdo- self.src_cts - 2, self.npml + sdo + self.src_cts + 2:self.tnx - self.npml - sdo - self.src_cts - 2]
-            factor[sdo + self.src_cts + 2:-sdo- self.src_cts - 2, sdo + self.src_cts + 2:-sdo- self.src_cts - 2] = 1 / denom
+            if self.acq_type == 0:
+                denom = denom[self.npml + sdo:self.tnz - self.npml - sdo, self.npml + sdo + self.src_cts + 2:self.tnx - self.npml - sdo]
+                factor[sdo:-sdo, sdo + self.src_cts + 2:-sdo] = 1 / denom
+            else:
+                denom = denom[self.npml + sdo + self.src_cts + 2:self.tnz - self.npml - sdo, self.npml + sdo:self.tnx - self.npml - sdo]
+                factor[sdo + self.src_cts + 2:-sdo, sdo:-sdo] = 1 / denom
+            
             factor = factor / np.abs(factor).max()
 
             return np.copy(factor)
@@ -317,50 +330,25 @@ class wave_preparation():
             t : float
                 Current time step.
         """
-
-        # Make space to read data of each time step from the buffer
         def get_from_opencl(buffer):
-            # seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
-            # cl.enqueue_copy(self.queue, seismogram_id, buffer)
+            seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
+            cl.enqueue_copy(self.queue, seismogram_id, buffer)
+            return np.copy(seismogram_id)
+  
+        self.seismogram['vx'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+            get_from_opencl(self.seismogramid_vx_b)
+        self.seismogram['vz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+            get_from_opencl(self.seismogramid_vz_b)
+
+        self.seismogram['taux'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+            get_from_opencl(self.seismogramid_taux_b)
+
+        self.seismogram['tauz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+            get_from_opencl(self.seismogramid_tauz_b)
+
+        self.seismogram['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+            get_from_opencl(self.seismogramid_tauxz_b)
             
-            seismogram_component = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
-            cl.enqueue_copy(self.queue, seismogram_component, buffer)
-            return seismogram_component
-            # return np.copy(seismogram_id)
-
-        # Getting data from opencl
-        # cl.enqueue_copy(self.queue, seismogram_id, self.seismogramid_vx_b)
-        
-        vx = get_from_opencl(self.vx_b)
-        cond = self.data_guide_sampling[0, :] == s
-        data_guide_sampling = self.data_guide_sampling[:, cond]
-        
-        vx = get_from_opencl(self.vx_b)
-        self.seismogram['vx'][np.int32(t), s * self.nr:(s + 1) * self.nr] = \
-            np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
-            # get_from_opencl(self.seismogramid_vx_b)
-
-        vx = get_from_opencl(self.vz_b)
-        self.seismogram['vz'][np.int32(t), s * self.nr:(s + 1) * self.nr] = \
-            np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
-            # get_from_opencl(self.seismogramid_vz_b)
-
-        vx = get_from_opencl(self.taux_b)
-        self.seismogram['taux'][np.int32(t), s * self.nr:(s + 1) * self.nr] = \
-            np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
-            # get_from_opencl(self.seismogramid_taux_b)
-
-        vx = get_from_opencl(self.tauz_b)
-        self.seismogram['tauz'][np.int32(t), s * self.nr:(s + 1) * self.nr] = \
-            np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
-            # get_from_opencl(self.seismogramid_tauz_b)
-
-        vx = get_from_opencl(self.tauxz_b)
-        self.seismogram['tauxz'][np.int32(t), s * self.nr:(s + 1) * self.nr] = \
-            np.copy(vx[data_guide_sampling[4, :], data_guide_sampling[3, :]])
-            # get_from_opencl(self.seismogramid_tauxz_b)
-
-
     def make_residual(self, res, s, t):
         """
         This function reads the inject the residual to residual buffer based on source and the
@@ -378,33 +366,21 @@ class wave_preparation():
                 Current time step.
         """
         # Injection data into opencl
-        def prepare_to_opencl(residul):
-            cond = self.data_guide_sampling[0, :] == s
-            data_guide_sampling = self.data_guide_sampling[:, cond]
-            
-            res_vx = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
-            res_vx[data_guide_sampling[4, :], data_guide_sampling[3, :]] = residul[np.int32(t), s * self.nr:(s + 1) * self.nr]
-            return res_vx
-        
-        res_vx = prepare_to_opencl(res['vx'])
-        # res_src_vx = (res['vx'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
-        cl.enqueue_copy(self.queue, self.res_vx_b, res_vx)
+        res_src_vx = (res['vx'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_vx_b, res_src_vx)
 
-        res_vz = prepare_to_opencl(res['vx'])
-        res_src_vz = (res['vz'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
-        cl.enqueue_copy(self.queue, self.res_vz_b, res_vz)
-        
-        res_taux = prepare_to_opencl(res['taux'])
-        res_src_taux = (res['taux'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
-        cl.enqueue_copy(self.queue, self.res_taux_b, res_taux)
-        
-        res_tauz = prepare_to_opencl(res['taux'])
-        res_src_tauz = (res['tauz'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
-        cl.enqueue_copy(self.queue, self.res_tauz_b, res_tauz)
+        res_src_vz = (res['vz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_vz_b, res_src_vz)
 
-        res_tauxz = prepare_to_opencl(res['tauxz'])
-        res_src_tauxz = (res['tauxz'][np.int32(t), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
-        cl.enqueue_copy(self.queue, self.res_tauxz_b, res_tauxz)
+        res_src_taux = (res['taux'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_taux_b, res_src_taux)
+
+        res_src_tauz = (res['tauz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_tauz_b, res_src_tauz)
+
+        res_src_tauxz = (res['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
+        cl.enqueue_copy(self.queue, self.res_tauxz_b, res_src_tauxz)
+
 
     def pml_preparation(self, v_max):
         
@@ -430,16 +406,16 @@ class wave_preparation():
                 kernel_source : str
                     macro plus the openCl's source.
         '''
-        if self.sdo == 4:  # For O4
+        if self.sdo == 2:  # For O4
             c1 = 9 / 8
             c2 = -1 / 24
             c3 = 0
             c4 = 0
-        elif self.sdo == 8:  # For O8
-            c1 = 1715 / 1434  # 1.2257
-            c2 = -114 / 1434  # - 0.099537
-            c3 = 14 / 1434  # 0.018063
-            c4 = -1 / 1434  # - 0.0026274
+        elif self.sdo == 4:  # For O8
+            c1 = 1715 / 1434  #1.2257  # 
+            c2 = -114 / 1434  # - 0.099537  #  
+            c3 = 14 / 1434  # 0.018063  #  
+            c4 = -1 / 1434  # - 0.0026274  # 
 
         macro = """
             #define Nz	   %d
@@ -449,7 +425,9 @@ class wave_preparation():
             #define dx     %f
             #define dz     %f
             #define npml   %d
-
+            #define n_main_rec %d
+            #define n_extera_rec %d
+            
             #define sdo     %d
             #define c1     %f
             #define c2     %f
@@ -483,20 +461,23 @@ class wave_preparation():
                 //float Diff_Forward(float , float , float , float , int );
                 //float Diff_Backward(float , float , float , float , int );
         """ % (self.tnz, self.tnx, self.ns, self.dt, self.dh, self.dh, self.npml,
-               self.sdo,
+               self.n_surface_rec, self.n_well_rec, self.sdo,
                c1, c2, c3, c4, self.src_cts)
 
         # Decide on openCl file based on medium type
         cl_file_name = "elastic_velocity.cl"
-
-        print(cl_file_name)
+        
         # Call the openCl file
         path = os.path.dirname(__file__) + "/"
         f = open(path + cl_file_name, 'r')
+        f_cw = open(path + 'elastic_crosswell.cl', 'r')
         fstr = "".join(f.readlines())
+        fstr_cw = "".join(f_cw.readlines())
+        
         kernel_source = macro + fstr
+        kernel_src_crosswelll = macro + fstr_cw
 
-        return kernel_source
+        return kernel_source , kernel_src_crosswelll
     
     def initial_wavefield_plot(self, model, plot_type="Forward"):
         """
@@ -614,7 +595,7 @@ class wave_propagator(wave_preparation):
         chp_count_adjoint = 0
         
         if grad:
-            glam, gmu, grho = tools.adj_grad_lmd_to_vd(grad['vp'], grad['vs'], grad['rho'],
+            glam, gmu, grho = tools.grad_vd_to_lmd(grad['vp'], grad['vs'], grad['rho'],
                                                        self.lam[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
                                                        self.mu[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
                                                        self.rho[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml])
@@ -625,17 +606,19 @@ class wave_propagator(wave_preparation):
             
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
 
-        for t in range(1, self.nt):
-
+        for t in range(self.nt):
+            
             if W is None:
                 src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
-                
+                    
                 self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
                             self.vx_b, self.vz_b,
                             self.taux_b, self.tauz_b, self.tauxz_b,
-                            self.rho_b,
+                            self.seismogramid_vx_b, self.seismogramid_vz_b,
+                            self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
+                            self.dxr, self.rec_cts, self.rec_var,
                             self.srcx[s], self.srcz[s],
-                            src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz)
+                            src_kt_x, src_kt_z)
             else:
                 if t in self.chp:
                         vx = W['vx'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
@@ -684,8 +667,11 @@ class wave_propagator(wave_preparation):
                                   self.mu_b,
                                   self.vdx_pml_b, self.vdz_pml_b
                                   )
-            
-            
+
+                test = 2* np.ones(vx.shape, np.float32)
+                cl.enqueue_copy(self.queue, test, self.w_taux_b)
+                print(test[24, 68])
+
                 self.prg.forward_hessian_src_preparing(self.queue, (self.tnz, self.tnx), None,
                                                        self.w_vx_b, self.w_vz_b, self.w_taux_b, self.w_tauz_b, self.w_tauxz_b,
                                                        self.vx_b, self.vz_b, self.taux_b, self.tauz_b, self.tauxz_b,
@@ -725,8 +711,8 @@ class wave_propagator(wave_preparation):
                                   self.vdx_pml_b, self.vdz_pml_b
                                   )
 
-            copy_purpose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
             if t in self.chp:
+                copy_purpose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
                 cl.enqueue_copy(self.queue, copy_purpose, self.vx_b)
                 self.W['vx'][:, :, s, chpc] = np.copy(copy_purpose)
 
@@ -744,14 +730,11 @@ class wave_propagator(wave_preparation):
 
                 chpc += 1
 
-            # cl.enqueue_copy(self.queue, self.seismogram_id, self.seismogramid_b)
-            # print(self.seismogram_id.max())
             self.make_seismogram(s, t)
 
             if self.forward_show and np.remainder(t, 20) == 0:
-                cl.enqueue_copy(self.queue, showpurose, self.taux_b)
+                cl.enqueue_copy(self.queue, showpurose, self.w_vx_b)
                 self.plot_propagation(showpurose, t)
-        # return 
     
     def __adjoint_modelling_per_source(self, res):
         self.prg.MakeGradZero(self.queue, (self.tnz, self.tnx), None,
@@ -838,7 +821,9 @@ class wave_propagator(wave_preparation):
                                 self.avx_b, self.avz_b,
                                 self.ataux_b, self.atauz_b, self.atauxz_b,
                                 self.res_vx_b, self.res_vz_b,
-                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b)
+                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
+                                self.dxr, self.rec_cts,
+                                self.rec_var, self.rec_var)
                                 
             self.prg.Adj_update_tau(self.queue, (self.tnz, self.tnx), None,
                                     self.avx_b, self.avz_b,
@@ -923,3 +908,105 @@ class wave_propagator(wave_preparation):
         
         return final_grad
         
+        
+if __name__ == "__main__":
+    import PyFWI.model_dataset as md
+    import PyFWI.acquisition as acq
+    import PyFWI.seiplot as splt
+    
+    GRADIENT = True  #  False  #
+    INVERSION = False
+    
+    model_gen = md.ModelGenerator('yang') # louboutin') # 
+    
+    model = model_gen()
+    model['vs'] *=0
+    # model_gen.show(['vs'])
+    model_shape = model[[*model][0]].shape
+    
+    inpa = {}
+    # Number of pml layers
+    inpa['npml'] = 20
+    inpa['pmlR'] = 1e-5
+    inpa['pml_dir'] = 2
+    inpa['device'] = 1
+    inpa['energy_balancing'] = True
+    inpa['seisout'] = 0
+    
+    chpr = 100
+    sdo = 4
+    fdom = 25
+    inpa['fn'] = 125
+    vp = model['vp']
+    D = seis_process.derivatives(order=sdo)
+    dh = vp.min()/(D.dh_n * inpa['fn'])
+    dh = 2.
+    inpa['dh'] = dh
+    
+    dt = D.dt_computation(vp.max(), inpa['dh'])
+    inpa['dt'] = dt
+    
+    print(f'{dh = } ........... {dt = }')
+    inpa['t'] = 0.36
+    
+    offsetx = inpa['dh'] * model_shape[1]
+    depth = inpa['dh'] * model_shape[0]
+
+    inpa['rec_dis'] = 2.  # inpa['dh']
+    ns = 1
+    inpa['acq_type'] = 0
+
+    src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
+    
+    src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
+    src.Ricker(fdom)
+    
+    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
+    d_obs = W.forward_modeling(model, False)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    splt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5) 
+        
+    m0 = model_gen(vintage=1, smoothing=True)
+    
+    if GRADIENT:
+        Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=inpa['seisout'])
+        d_est = Lam.forward_modeling(m0, show=False)
+
+        CF = tools.CostFunction('l2')
+        rms, res = CF(d_est, d_obs)
+
+        print(rms)
+    
+        # fig = plt.figure()
+        # ax = fig.add_subplot(1, 3, 1)
+        # seiplt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5)
+        # ax = fig.add_subplot(1, 3, 2)
+        # seiplt.seismic_section(ax, d_est['taux'])
+        # ax = fig.add_subplot(1, 3, 3)
+        # seiplt.seismic_section(ax, res['taux'])
+        # plt.show()
+        
+        grad = Lam.gradient(res, show=False)
+        
+        splt.earth_model(grad, cmap='jet')
+        plt.show()
+        a=1
+    
+    elif INVERSION:
+        import PyFWI.optimization as fwi
+        
+        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4)
+        inverted_model, rms = FWI(m0, method=1, iter=3, freqs=[25])
+        
+        
+        splt.earth_model(inverted_model, cmap='jet')
+        plt.show(block=False)
+        
+        plt.figure()
+        plt.plot(rms/max(rms))
+        plt.show()
+        
+
+    

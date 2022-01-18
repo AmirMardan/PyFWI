@@ -120,17 +120,27 @@ def gn_plot(p, grad, nz, nx):
     cax = axes_divider.append_axes('right', size='7%', pad='2%')
     cb = fig.colorbar(im, cax=cax)
 
-def inversion_video(m_video, **kwargs):
+def inversion_video(m_video, pause=0.2, **kwargs):
+    """
+    inversion_video show the procedure of updating the model during the FWI
+
+    Args:
+        m_video ([type]): Matrix of model after each iteration
+        pause (float, optional): Lenght of pause between each model. Defaults to 0.2.
+    """
+    
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     
     axes_divider = make_axes_locatable(ax)
-    cax = axes_divider.append_axes('right', size='7%', pad='2%')
+    cax = axes_divider.append_axes('right', size='4%', pad='2%')
         
     for i in range(m_video.shape[2]):
-        im = ax.imshow(m_video[:, :, i], **kwargs)
+        im = ax.imshow(m_video[20:-20, 20:-20, i], **kwargs)
         cb = fig.colorbar(im, cax=cax)
-        plt.pause(0.2)
+        ax.set_title(f"Iteration {i+1}")
+        plt.pause(pause)
+        
         
         
 if __name__ == "__main__":
