@@ -61,3 +61,25 @@ if(i%dxr==0 && j == recDepth){
   }
 
 }
+
+__kernel void hessian_seismogram(__global float *vx,__global float *vz,
+                     __global float *taux, __global float *tauz, __global float *tauxz,
+                     __global float *seismogram_vxi,__global float *seismogram_vzi,
+                     __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
+                     int dxr, int recDepth, int first_rec)
+
+
+{
+  int i = get_global_id(0) ;
+  int j = get_global_id(1) ;
+
+   if(i%dxr==0 && j == recDepth){
+    int ir =  i/dxr;
+      seismogram_vxi[ir]  =  vx[(i+first_rec)*Nx + j];
+      seismogram_vzi[ir]  =  vx[(i+first_rec)*Nx + j];
+      seismogram_tauxi[ir]  =  taux[(i+first_rec)*Nx + j];
+      seismogram_tauzi[ir]  =  tauz[(i+first_rec)*Nx + j];
+      seismogram_tauxzi[ir]  =  tauxz[(i+first_rec)*Nx + j];
+  }
+
+}

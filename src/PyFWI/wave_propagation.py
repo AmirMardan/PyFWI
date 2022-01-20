@@ -155,6 +155,7 @@ class wave_preparation():
         if inpa["acq_type"] == 0:
             self.prg.injSrc = self.prg_cw.injSrc
             self.prg.Adj_injSrc = self.prg_cw.Adj_injSrc
+            self.prg.hessian_seismogram = self.prg_cw.hessian_seismogram
             
         self.mf = cl.mem_flags
         
@@ -583,8 +584,13 @@ class wave_propagator(wave_preparation):
         for s in range(self.ns):
             self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
                                  self.vx_b, self.vz_b,
-                                 self.taux_b, self.tauz_b, self.tauxz_b)
+                                 self.taux_b, self.tauz_b, self.tauxz_b,
+                                 )
             
+            self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
+                                 self.w_vx_b, self.w_vz_b,
+                                 self.w_taux_b, self.w_tauz_b, self.w_tauxz_b)
+
             self.__kernel(s, coeff, W, grad) 
             
         return self.seismogram
@@ -668,15 +674,18 @@ class wave_propagator(wave_preparation):
                                   self.vdx_pml_b, self.vdz_pml_b
                                   )
 
-                test = 2* np.ones(vx.shape, np.float32)
-                cl.enqueue_copy(self.queue, test, self.w_taux_b)
-                print(test[24, 68])
-
                 self.prg.forward_hessian_src_preparing(self.queue, (self.tnz, self.tnx), None,
                                                        self.w_vx_b, self.w_vz_b, self.w_taux_b, self.w_tauz_b, self.w_tauxz_b,
                                                        self.vx_b, self.vz_b, self.taux_b, self.tauz_b, self.tauxz_b,
                                                         self.w_glam_b, self.w_gmu_b, self.w_grho_b, self.rho_b) 
 
+                self.prg.hessian_seismogram(self.queue, (self.tnz, self.tnx), None,
+                                        self.vx_b, self.vz_b,
+                                        self.taux_b, self.tauz_b, self.tauxz_b,
+                                        self.seismogramid_vx_b, self.seismogramid_vz_b,
+                                        self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
+                                        self.dxr, self.rec_cts, self.rec_var,
+                                        )
 
 
             self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,

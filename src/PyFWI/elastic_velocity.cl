@@ -137,11 +137,6 @@ __kernel void forward_hessian_src_preparing(__global float *w_vx,__global float 
   taux[center] += dt * glam[center] * (DxpVx + DzmVz) + 2 * dt * gmu[center] * DxpVx;
   tauz[center] += dt * glam[center] * (DxpVx + DzmVz) + 2 * dt * gmu[center] * DzmVz;
   tauxz[center] += dt * gmu[center] * (DzpVx + DxmVz);
-  // if (i>22 & i<26){
-  //   if (j>66 & j<70){
-  //     printf("%d, %d, %.11f \n",i, j, tauz[center]*1000000000000);
-  //   }
-  // }
   
 }
 
