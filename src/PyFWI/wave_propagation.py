@@ -110,14 +110,6 @@ class wave_preparation():
             'tauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
             'tauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
-        
-        self.Lam = {
-            'avx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32), 
-            'avz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
-            'ataux': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
-            'atauz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
-            'atauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
-        }
 
         self.D = seis_process.derivatives(order=self.sdo * 2)
         
@@ -148,14 +140,18 @@ class wave_preparation():
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
         
-        kernel_surface, kernel_crosswell = self.kernel_caller()
+        kernel, kernel_crosswell, kernel_surface = self.kernel_caller()
         
         self.prg_cw = cl.Program(self.ctx, kernel_crosswell).build()
-        self.prg = cl.Program(self.ctx, kernel_surface).build()
+        self.prg = cl.Program(self.ctx, kernel).build()
+        self.prg_surf = cl.Program(self.ctx, kernel_surface).build()
+        
         if inpa["acq_type"] == 0:
             self.prg.injSrc = self.prg_cw.injSrc
             self.prg.Adj_injSrc = self.prg_cw.Adj_injSrc
-            self.prg.hessian_seismogram = self.prg_cw.hessian_seismogram
+        elif inpa["acq_type"] == 1:
+            self.prg.injSrc = self.prg_surf.injSrc
+            self.prg.Adj_injSrc = self.prg_surf.Adj_injSrc
             
         self.mf = cl.mem_flags
         
@@ -188,25 +184,6 @@ class wave_preparation():
                                 self.mf.COPY_HOST_PTR, hostbuf=v)
         self.tauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                                  self.mf.COPY_HOST_PTR, hostbuf=v)
-        
-        # Buffer for forward modelling of Hessian
-        self.w_vx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_vz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_taux_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_tauz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_tauxz_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                                 self.mf.COPY_HOST_PTR, hostbuf=v)
-                
-        self.w_glam_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_gmu_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
-        self.w_grho_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
-                              self.mf.COPY_HOST_PTR, hostbuf=v)
         
         # Buffer for seismograms
         seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
@@ -466,19 +443,23 @@ class wave_preparation():
                c1, c2, c3, c4, self.src_cts)
 
         # Decide on openCl file based on medium type
-        cl_file_name = "elastic_velocity.cl"
+        cl_file_name = "elastic.cl"
         
         # Call the openCl file
         path = os.path.dirname(__file__) + "/"
         f = open(path + cl_file_name, 'r')
         f_cw = open(path + 'elastic_crosswell.cl', 'r')
+        f_surf = open(path + 'elastic_surface.cl', 'r')
+        
         fstr = "".join(f.readlines())
         fstr_cw = "".join(f_cw.readlines())
+        fstr_surf = "".join(f_surf.readlines())
         
         kernel_source = macro + fstr
-        kernel_src_crosswelll = macro + fstr_cw
-
-        return kernel_source , kernel_src_crosswelll
+        kernel_src_crosswell = macro + fstr_cw
+        kernel_surface = macro + fstr_surf
+        
+        return kernel_source , kernel_src_crosswell, kernel_surface
     
     def initial_wavefield_plot(self, model, plot_type="Forward"):
         """
@@ -586,38 +567,22 @@ class wave_propagator(wave_preparation):
                                  self.vx_b, self.vz_b,
                                  self.taux_b, self.tauz_b, self.tauxz_b,
                                  )
-            
-            self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
-                                 self.w_vx_b, self.w_vz_b,
-                                 self.w_taux_b, self.w_tauz_b, self.w_tauxz_b)
 
-            self.__kernel(s, coeff, W, grad) 
+            self.__kernel(s, coeff) 
             
         return self.seismogram
             
-    def __kernel(self, s, coeff=+1, W=None, grad=None):
+    def __kernel(self, s, coeff=+1):
 
         chpc = 0
-        chp_count_adjoint = 0
-        
-        if grad:
-            glam, gmu, grho = tools.grad_vd_to_lmd(grad['vp'], grad['vs'], grad['rho'],
-                                                       self.lam[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
-                                                       self.mu[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml],
-                                                       self.rho[self.npml:self.tnz-self.npml, self.npml:self.tnx-self.npml])
-            
-            cl.enqueue_copy(self.queue, self.w_glam_b, glam)
-            cl.enqueue_copy(self.queue, self.w_gmu_b, gmu)
-            cl.enqueue_copy(self.queue, self.w_grho_b, grho)
-            
+                    
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
 
         for t in range(self.nt):
             
-            if W is None:
-                src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
+            src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
                     
-                self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
+            self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
                             self.vx_b, self.vz_b,
                             self.taux_b, self.tauz_b, self.tauxz_b,
                             self.seismogramid_vx_b, self.seismogramid_vz_b,
@@ -625,69 +590,7 @@ class wave_propagator(wave_preparation):
                             self.dxr, self.rec_cts, self.rec_var,
                             self.srcx[s], self.srcz[s],
                             src_kt_x, src_kt_z)
-            else:
-                if t in self.chp:
-                        vx = W['vx'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
-                        vz = W['vz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
-                        taux = W['taux'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
-                        tauz = W['tauz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
-                        tauxz = W['tauxz'][:, :, s, chp_count_adjoint].astype(np.float32, order='C')
-                        
-                        chp_count_adjoint += 1
-                        
-                        cl.enqueue_copy(self.queue, self.w_vx_b, vx)
-                        cl.enqueue_copy(self.queue, self.w_vz_b, vz)
-                        cl.enqueue_copy(self.queue, self.w_taux_b, taux)
-                        cl.enqueue_copy(self.queue, self.w_tauz_b, tauz)
-                        cl.enqueue_copy(self.queue, self.w_tauxz_b, tauxz)
-                        
-                else:
-                    self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
-                                 np.int32(1),
-                                 self.w_vx_b,
-                                 self.w_taux_b, self.w_tauxz_b,
-                                 self.rho_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-                    
-                    self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
-                                 np.int32(1),
-                                 self.w_vz_b,
-                                 self.w_tauz_b, self.w_tauxz_b,
-                                 self.rho_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-
-                    self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
-                                 np.int32(1),
-                                 self.w_vx_b, self.w_vz_b,
-                                 self.w_taux_b, self.w_tauz_b,
-                                 self.lam_b, self.mu_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-
-                    self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
-                                  np.int32(1),
-                                  self.w_vx_b, self.w_vz_b,
-                                  self.w_tauxz_b,
-                                  self.mu_b,
-                                  self.vdx_pml_b, self.vdz_pml_b
-                                  )
-
-                self.prg.forward_hessian_src_preparing(self.queue, (self.tnz, self.tnx), None,
-                                                       self.w_vx_b, self.w_vz_b, self.w_taux_b, self.w_tauz_b, self.w_tauxz_b,
-                                                       self.vx_b, self.vz_b, self.taux_b, self.tauz_b, self.tauxz_b,
-                                                        self.w_glam_b, self.w_gmu_b, self.w_grho_b, self.rho_b) 
-
-                self.prg.hessian_seismogram(self.queue, (self.tnz, self.tnx), None,
-                                        self.vx_b, self.vz_b,
-                                        self.taux_b, self.tauz_b, self.tauxz_b,
-                                        self.seismogramid_vx_b, self.seismogramid_vz_b,
-                                        self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
-                                        self.dxr, self.rec_cts, self.rec_var,
-                                        )
-
-
+            
             self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
                                  coeff,
                                  self.vx_b,
