@@ -50,6 +50,7 @@ class FWI(Wave):
             self.sd = inpa['sd']  # Virieux et al, 2009
         except:
             self.sd = 1.0
+            
         self.d_obs = acq.prepare_residual(d_obs, 1)
         
         self.fn = inpa['fn']
@@ -60,6 +61,11 @@ class FWI(Wave):
             self.CF = tools.CostFunction(inpa["cost_function_type"])
         else:
             self.CF = tools.CostFunction('l2')
+        
+        if 'grad_coeff' in keys:
+            self.grad_coeff = inpa['grad_coeff']
+        else:
+            self.grad_coeff = [1.0, 1.0, 1.0]
         
         self.n_elements = self.nz * self.nx
         
@@ -131,8 +137,6 @@ class FWI(Wave):
         return m, rms
 
     def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
-        # n_params: number of parameters to seek for in one iteration
-
         n_element = self.nz * self.nx
         mtotal = np.copy(m0)
 
@@ -176,6 +180,11 @@ class FWI(Wave):
 
         grad_dv = self.gradient(adj_src, parameterization='dv')
         grad = self.grad_from_dv(grad_dv, m_old)
+        
+        params = [*grad]
+        grad[params[0]] *= self.grad_coeff[0]
+        grad[params[1]] *= self.grad_coeff[1]
+        grad[params[2]] *= self.grad_coeff[2]
         
         grad = self.dict2vec(grad)
  
