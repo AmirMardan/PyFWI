@@ -236,7 +236,10 @@ class ModelGenerator(Circular, Laminar):
     
     def marmousi(self, vintage, smoothing):
         path = os.path.dirname(__file__) + '/data/'
-    
+        
+        if os.path.exists(path) is False:
+            os.mkdir(path)
+
         target_path = path + "elastic-marmousi-model.tar.gz"
 
         models_url = "https://s3.amazonaws.com/open.source.geoscience/open_data/elastic-marmousi/elastic-marmousi-model.tar.gz"
