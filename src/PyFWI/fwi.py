@@ -65,35 +65,8 @@ class FWI(Wave):
         self.n_elements = self.nz * self.nx
         
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
-        m = self.dict2vec(m0)
-
-        method = self.__fwi_method(method)
-
-        c = 0
-        rms = []
-        for freq in freqs:
-            m, rms0 = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
-            
-            rms.append(rms0)
-            c += 1
-
-        return self.vec2dict(m, self.nz, self.nx), np.array(rms)
-
-    def __fwi_method(self, user_method):
-
-        method = 'self.'
-        if user_method in [0, 'SD', 'sd']:
-            raise ("Steepest descent is not provided yet.")
-        elif user_method in [1, 'GD', 'gd']:
-            raise ("Gradient descent is not provided yet.")
-        elif user_method in [2, 'lbfgs']:
-            method += 'lbfgs'
-
-        return method
-
-    def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
-        run method performs the FWI
+        Calling this object performs the FWI
 
         Parameters
         ----------
@@ -119,8 +92,31 @@ class FWI(Wave):
             rms : ndarray
                 The rms error
         """
-        m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
-        return m, rms
+        m = self.dict2vec(m0)
+
+        method = self.__fwi_method(method)
+
+        c = 0
+        rms = []
+        for freq in freqs:
+            m, rms0 = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
+            
+            rms.append(rms0)
+            c += 1
+
+        return self.vec2dict(m, self.nz, self.nx), np.array(rms)
+
+    def __fwi_method(self, user_method):
+
+        method = 'self.'
+        if user_method in [0, 'SD', 'sd']:
+            raise ("Steepest descent is not provided yet.")
+        elif user_method in [1, 'GD', 'gd']:
+            raise ("Gradient descent is not provided yet.")
+        elif user_method in [2, 'lbfgs']:
+            method += 'lbfgs'
+
+        return method
 
     def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
         
