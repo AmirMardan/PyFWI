@@ -12,7 +12,7 @@ acquisition
 fwi
 ----------------
 
-.. automodule:: PyFWI.fwi
+.. autoclass:: PyFWI.fwi.FWI
    :members:
    :undoc-members:
    :show-inheritance:
