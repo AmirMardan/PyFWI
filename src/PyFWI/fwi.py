@@ -10,6 +10,7 @@ from mpl_toolkits.axes_grid1 import axes_grid, make_axes_locatable
 from scipy.optimize import line_search
 import copy
 import PyFWI.seiplot as splt
+from PyFWI.fwi_tools import regularization
 
 class FWI(Wave):
     """
@@ -33,7 +34,8 @@ class FWI(Wave):
         """
     
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
-
+        self.regularization = regularization(self.nx, self.nz, self.dh, self.dh)
+        
         if param_functions is None:
             self.dict2vec = tools.vel_dict2vec
             self.vec2dict = tools.vec2vel_dict
@@ -50,6 +52,18 @@ class FWI(Wave):
             self.sd = inpa['sd']  # Virieux et al, 2009
         except:
             self.sd = 1.0
+            
+        # Dictionnary for TV regularization
+        if 'tv' in keys:
+            self.tv_properties = inpa['tv']
+        else:
+            self.tv_properties = None
+        
+        if 'tikhonov' in keys:
+            self.tikhonov_properties = inpa['tikhonov']
+        else:
+            self.tikhonov_properties = None
+                                                 
             
         self.d_obs = acq.prepare_residual(d_obs, 1)
         
@@ -195,9 +209,18 @@ class FWI(Wave):
         shape_1 = np.shape(m_1)[0]
         shape0 = np.shape(m0)[0]
 
-        rms, grad = self.fprime(mtotal, freq)
+        rms_data, grad_model = self.fprime(mtotal, freq)
+        
+        rms_reg, grad_reg = self.regularization.cost_regularization(m0,
+                                                  tv_properties=self.tv_properties,
+                                                  tikhonov_properties=self.tikhonov_properties
+                                                  )
+        
+        rms = rms_data + rms_reg
+        grad = grad_model[shape_1: shape_1 + shape0] + grad_reg
+        
         print(m0.min(), m0.max())
-        print(" for f= {}: rms is: {}".format(freq, rms))
+        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}".format(freq, rms, rms_reg, rms_data))
 
-        return rms, grad[shape_1: shape_1 + shape0]
+        return rms, grad
     

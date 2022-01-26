@@ -7,16 +7,463 @@ from numpy.core.arrayprint import dtype_is_implied
 from scipy.signal import butter, hilbert, freqz
 import numpy.fft as fft
 import matplotlib.pyplot as plt
+import scipy.sparse as sp
 
-try:
-    from PyFWI.seismic_io import load_mat
-    from PyFWI import rock_physics as rp 
-except:
-    from seismic_io import load_mat
-    import rock_physics as rp 
+from PyFWI.seismic_io import load_mat
+from PyFWI import rock_physics as rp 
 import PyFWI.processing as seis_process
 
+def derivative(nx, nz, dx, dz, order):
+    """
+    Compute spatial derivative operators for grid _cells_
+    For 1st order:
+        forward operator is (u_{i+1} - u_i)/dx
+        centered operator is (u_{i+1} - u_{i-1})/(2dx)
+        backward operator is (u_i - u_{i-1})/dx
+    For 2nd order:
+        forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
+        centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
+        backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
+    """
 
+    if order == 1:
+
+        # forward operator is (u_{i+1} - u_i)/dx
+        # centered operator is (u_{i+1} - u_{i-1})/(2dx)
+        # backward operator is (u_i - u_{i-1})/dx
+
+        idx = 1 / dx
+        idz = 1 / dz
+
+        i = np.kron(np.arange(nz * nx), np.ones((2,), dtype=np.int64))
+        j = np.zeros((nz * nx * 2,), dtype=np.int64)
+        v = np.zeros((nz * nx * 2,))
+
+        jj = np.vstack((np.arange(nx), nx + np.arange(nx))).T
+        jj = jj.flatten()
+        j[:2 * nx] = jj
+
+        vd = idx * np.tile(np.array([-1, 1]), (nx,))
+        v[:2 * nx] = vd
+
+        jj = np.vstack((-nx + np.arange(nx), nx + np.arange(nx))).T
+        jj = jj.flatten()
+        for n in range(1, nz - 1):
+            j[n * 2 * nx:(n + 1) * 2 * nx] = n * nx + jj
+            v[n * 2 * nx:(n + 1) * 2 * nx] = 0.5 * vd
+
+        jj = np.vstack((-nx + np.arange(nx), np.arange(nx))).T
+        jj = jj.flatten()
+        j[(nz - 1) * 2 * nx:nz * 2 * nx] = (nz - 1) * nx + jj
+        v[(nz - 1) * 2 * nx:nz * 2 * nx] = vd
+
+        Dz = sp.csr_matrix((v, (i, j)))
+
+        jj = np.vstack((np.hstack((0, np.arange(nx - 1))),
+                        np.hstack((np.arange(1, nx), nx - 1)))).T
+        jj = jj.flatten()
+        vd = idz * np.hstack((np.array([-1, 1]),
+                              np.tile(np.array([-0.5, 0.5]), (nx - 2,)),
+                              np.array([-1, 1])))
+
+        for n in range(nz):
+            j[n * 2 * nx:(n + 1) * 2 * nx] = n * nx + jj
+            v[n * 2 * nx:(n + 1) * 2 * nx] = vd
+
+        Dx = sp.csr_matrix((v, (i, j)))
+    else:  # 2nd order
+        idx2 = 1 / (dx * dx)
+        idz2 = 1 / (dz * dz)
+
+        i = np.kron(np.arange(nz * nx), np.ones((3,), dtype=np.int64))
+        j = np.zeros((nz * nx * 3,), dtype=np.int64)
+        v = np.zeros((nz * nx * 3,))
+
+        jj = np.vstack((np.arange(nx), nx + np.arange(nx),
+                        2 * nx + np.arange(nx))).T
+        jj = jj.flatten()
+        j[:3 * nx] = jj
+        vd = idx2 * np.tile(np.array([1.0, -2.0, 1.0]), (nx,))
+        v[:3 * nx] = vd
+
+        for n in range(1, nz - 1):
+            j[n * 3 * nx:(n + 1) * 3 * nx] = (n - 1) * nx + jj
+            v[n * 3 * nx:(n + 1) * 3 * nx] = vd
+
+        j[(nz - 1) * 3 * nx:nz * 3 * nx] = (nz - 3) * nx + jj
+        v[(nz - 1) * 3 * nx:nz * 3 * nx] = vd
+
+        Dz = sp.csr_matrix((v, (i, j)))
+
+        jj = np.vstack((np.hstack((0, np.arange(nx - 2), nx - 3)),
+                        np.hstack((1, np.arange(1, nx - 1), nx - 2)),
+                        np.hstack((2, np.arange(2, nx), nx - 1)))).T
+        jj = jj.flatten()
+        vd = vd * idz2 / idx2
+
+        for n in range(nz):
+            j[n * 3 * nx:(n + 1) * 3 * nx] = n * nx + jj
+            v[n * 3 * nx:(n + 1) * 3 * nx] = vd
+
+        Dx = sp.csr_matrix((v, (i, j)))
+
+    return Dx, Dz
+
+
+class regularization:
+    def __init__(self, nx, nz, dx, dz):
+        self.idx = 1 / dx
+        self.idz = 1 / dz
+
+        self.idx2 = 1 / (dx * dx)
+        self.idz2 = 1 / (dz * dz)
+
+        self.dx = dx
+        self.dz = dz
+
+        self.nx = nx
+        self.nz = nz
+        self.n_elements = nz * nx
+
+        self.Bx2, self.Bz2 = derivative(nx, nz, dx, dz, 2)
+        self.Bx1, self.Bz1 = derivative(nx, nz, dx, dz, 1)
+
+        self.D2 = self.Bx2.T @ self.Bx2 + self.Bz2.T @ self.Bz2
+
+    def cost_regularization(self, x0,
+                            tv_properties=None,
+                            tikhonov_properties=None,
+                            tikhonov0_properties=None):
+        x = np.copy(x0)
+        rms = 0
+        grad = np.zeros(x.shape)
+
+        # Because we may provide the properties but ask for regularization in some special frequencies
+        if tv_properties:
+            f_tv, g_tv = self.tv(x, 1e-7, alpha_z=tv_properties['az'], alpha_x=tv_properties['ax'])
+
+            rms += tv_properties['lambda_weight'] * f_tv
+            grad += tv_properties['lambda_weight'] * g_tv
+
+        if tikhonov_properties:
+            f_tikh, g_tikh = self.tikhonov(x, alpha_z=tikhonov_properties['az'], alpha_x=tikhonov_properties['ax'])
+
+            rms += tikhonov_properties['lambda_weight'] * f_tikh
+            grad += tikhonov_properties['lambda_weight'] * g_tikh
+
+        if tikhonov0_properties:
+            f_tikh, g_tikh = self.tikhonov_0(x)
+
+            rms += tikhonov0_properties['lambda_weight'] * f_tikh
+            grad += tikhonov0_properties['lambda_weight']  # No gradient
+
+        return rms, grad
+
+    def tv(self, x0, eps, alpha_z, alpha_x):
+        """
+        Inputs:
+            x: Data
+            eps: small value for make it deffrintiable at zero
+            az: coefficient of Dz
+            ax: coefficient of Dx
+            nz:
+        """
+        x = np.copy(x0)
+
+        ln = (self.nx*self.nz)
+        ln_x = len(x)
+        n = ln_x//ln  # NOT self.n_parameter
+
+        x1 = np.zeros(ln_x,)
+        for i in range(n):
+            mx1 = self.Bx1 @ x[i*ln:(i+1)*ln]
+            mz1 = self.Bz1 @ x[i*ln:(i+1)*ln]
+
+            # To ignore the effect of sharp change after first 15 samples
+            mz1[:17*self.nx] = 0.0
+
+            x1[i*ln:(i+1)*ln] = alpha_x * mx1 + alpha_z * mz1
+        rms, grad = self.l1(x1, eps)
+
+        return rms, grad
+
+    @staticmethod
+    def l1(x0, eps=1e-7):
+        x = np.copy(x0)
+
+        x1 = np.copy(x)
+        len_x = len(x)
+        x1[np.abs(x1) <= eps] = eps
+        w_1 = np.sqrt(np.abs(x1))
+        w = sp.spdiags(1/w_1, diags=0, m=len_x,  n=len_x)
+
+        wx = w@x
+        rms = wx.T @ wx  # np.sum(np.abs(x))
+
+        grad = 2 * wx.T @ w
+
+        return rms, grad
+
+    @staticmethod
+    def l2(x0):
+        x = np.copy(x0)
+        rms = x.T @ x
+
+        return rms
+
+    def tikhonov(self, x0, alpha_z, alpha_x):
+        """
+        A method to implement Tikhonov
+        Inputs:
+            x0: Data
+            alpha_z: coefficient of Dz
+            alpha_x: coefficient of Dx
+        """
+        x = np.copy(x0)
+        ln = (self.nx * self.nz)
+        ln_x = len(x)
+        n = ln_x // ln  # NOT self.n_parameter
+
+        x1 = np.zeros(ln_x,)
+        grad = np.zeros(x.shape)
+        for i in range(n):
+            m = np.copy(x[i * ln:(i + 1) * ln])
+            mx1 = self.Bx1 @ m
+            mz1 = self.Bz1 @ m
+
+            # To ignore the effect of sharp change after first 15 samples
+            mz1[:17 * self.nx] = 0.0
+
+            x1[i * ln:(i + 1) * ln] = alpha_x * mx1 + alpha_z * mz1
+            grad[i * ln:(i + 1) * ln] = alpha_x * (self.Bx1.T @ self.Bx1) @ m +\
+                                        alpha_z * (self.Bz1.T @ self.Bz1) @ m
+
+        ms = self.l2(x1)
+
+        return rms, grad
+
+    def tikhonov_0(self, x0):
+        """
+        A method to implement Tikhonov
+        Inputs:
+            x0: Data
+            alpha_z: coefficient of Dz
+            alpha_x: coefficient of Dx
+        """
+        x = np.copy(x0)
+
+        ln = (self.nx * self.nz)
+        ln_x = len(x)
+        n = ln_x // ln  # NOT self.n_parameter
+
+        x1 = np.zeros(ln_x, )
+        for i in range(n):
+            mx1 = x[i * ln:(i + 1) * ln]
+
+            x1[i * ln:(i + 1) * ln] = mx1
+        rms, grad = self.l1(x1)
+
+        return rms, grad
+
+
+class fdm(object):
+    def __init__(self, order):
+        """
+        fdm is a class to implemenet the the finite difference method for wave modeling
+
+        The coeeficients are based on Lavendar, 1988 and Hasym et al., 2014.
+
+        Args:
+            order (int, optional): [description]. Defaults to 4.
+        """
+        self._order = order
+        
+        if order == 4:
+            self._c1 = 9/8
+            self._c2 = - 1 / 24
+            self._c3 = 0
+            self._c4 = 0
+
+        elif order == 8:
+            self._c1 = 1715 / 1434
+            self._c2 = -114 / 1434
+            self._c3 = 14 / 1434
+            self._c4 = -1 / 1434
+            
+        else:
+            raise AssertionError ("Order of the derivative has be either 4 or 8!")
+
+        dh_n = { # Dablain, 1986, Bai et al., 2013
+            '4': 4,
+            '8': 3
+        } 
+        
+        self.dh_n = dh_n[str(order)] # Pick the appropriate n for calculating dh
+        
+    @property
+    def order(self):
+        return self._order
+    
+    @order.setter
+    def order(self, value):
+        if value in [4, 8]:
+            self._order = value
+        else:
+            raise AssertionError ("Order of the derivative has be either 4 or 8!")
+    
+    @property
+    def c1(self):
+        return self._c1
+        
+    @c1.setter
+    def c1(self, value):
+        raise AttributeError("Denied! You can't change the derivative's coefficients")
+    
+    @property
+    def c2(self):
+        return self._c2
+        
+    @c2.setter
+    def c2(self, value):
+        raise AttributeError("Denied! You can't change the derivative's coefficients")
+    
+    @property
+    def c3(self):
+        return self._c3
+        
+    @c3.setter
+    def c3(self, value):
+        raise AttributeError("Denied! You can't change the derivative's coefficients")
+    
+    @property
+    def c4(self):
+        return self._c4
+        
+    @c4.setter
+    def c3(self, value):
+        raise AttributeError("Denied! You can't change the derivative's coefficients")
+    
+    
+    def dxp(self, x, dx):
+         if self.order == 4:
+             return self._dxp4(x, dx)
+         else:
+             return self._dxp8(x, dx)
+         
+    def dxm(self, x, dx):
+         if self.order == 4:
+             return self._dxm4(x, dx)
+         else:
+             return self._dxm8(x, dx)
+         
+    def dzp(self, x, dx):
+         if self.order == 4:
+             return self._dzp4(x, dx)
+         else:
+             return self._dzp8(x, dx)
+         
+    def dzm(self, x, dx):
+         if self.order == 4:
+             return self._dzm4(x, dx)
+         else:
+             return self._dzm8(x, dx)
+         
+    def _dxp4(self, x, dx):
+        y = np.zeros(x.shape)
+        
+        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 3:-1] - x[2:-2, 2:-2]) +
+                         self._c2 * (x[2:-2, 4:] - x[2:-2, 1:-3])) / dx
+        return y
+    
+    def _dxp8(self, x, dx): 
+        y = np.zeros(x.shape)
+        
+        y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 5:-3] - x[4:-4, 4:-4]) +
+                         self._c2 * (x[4:-4, 6:-2] - x[4:-4, 3:-5]) + 
+                         self._c3 * (x[4:-4, 7:-1] - x[4:-4, 2:-6]) + 
+                         self._c4 * (x[4:-4, 8:  ] - x[4:-4, 1:-7])) / dx
+        return y
+
+
+    def _dxm4(self, x, dx):        
+        y = np.zeros((x.shape))
+        
+        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) + 
+                         self._c2 * (x[2:-2, 3:-1] - x[2:-2, :-4])) / dx
+        return y 
+    
+    def _dxm8(self, x, dx):
+        y = np.zeros((x.shape))
+        
+        y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 4:-4] - x[4:-4, 3:-5]) +
+                         self._c2 * (x[4:-4, 5:-3] - x[4:-4, 2:-6]) +
+                         self._c3 * (x[4:-4, 6:-2] - x[4:-4, 1:-7]) +
+                         self._c4 * (x[4:-4, 7:-1] - x[4:-4, :-8]) ) / dx
+        return y 
+
+    def _dzp4(self, x, dx):
+        y = np.zeros(x.shape)
+        
+        y[2:-2, 2:-2] = (self.c1 * (x[3:-1, 2:-2] - x[2:-2, 2:-2]) +
+                         self.c2 * (x[4:, 2:-2] - x[1:-3, 2:-2])) / dx
+        return y
+    
+    def _dzp8(self, x, dx):
+        y = np.zeros(x.shape)
+        
+        y[4:-4, 4:-4] = (self.c1 * (x[5:-3, 4:-4] - x[4:-4, 4:-4]) +
+                         self.c2 * (x[6:-2, 4:-4] - x[3:-5, 4:-4]) +
+                         self.c3 * (x[7:-1, 4:-4] - x[2:-6, 4:-4]) +
+                         self.c4 * (x[8: , 4:-4] - x[1:-7, 4:-4])) / dx
+        return y
+
+
+    def _dzm4(self, x, dx):
+        y = np.zeros((x.shape))
+        
+        y[2:-2, 2:-2] = (self.c1 * (x[2:-2, 2:-2] - x[1:-3, 2:-2]) +
+                         self.c2 * (x[3:-1, 2:-2] - x[:-4, 2:-2])) / dx
+        return y 
+    
+    def _dzm8(self, x, dx):
+        y = np.zeros((x.shape))
+        
+        y[4:-4, 4:-4] = (self.c1 * (x[4:-4, 4:-4] - x[3:-5, 4:-4]) +
+                         self.c2 * (x[5:-3, 4:-4] - x[2:-6, 4:-4]) +
+                         self.c3 * (x[6:-2, 4:-4] - x[1:-7, 4:-4]) +
+                         self.c4 * (x[7:-1, 4:-4] - x[ :-8, 4:-4])) / dx
+        return y 
+
+
+    def dot_product_test_derivatives(self):
+        
+        x = np.random.rand(100, 100)
+        x[:4, :] = x[-4:, :] = x[:, :4] = x[:, -4:] = 0
+
+        y = np.random.rand(100, 100)
+        y[:4, :] = y[-4:, :] = y[:, :4] = y[:, -4:] = 0
+
+        error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxm(x, 1) * y)
+        error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzm(x, 1) * y)
+
+        print(f"Errors for derivatives are \n {error_x = }, {error_z = }")    
+
+    def dt_computation(self, vp_max, dx, dz=None):
+        '''
+        ref: Bai et al, 2013
+        '''
+        if dz is None:
+            dz = dx
+        
+        c_sum = np.abs(self._c1) + np.abs(self._c2) + \
+            np.abs(self._c3) + np.abs(self._c4)
+        
+        a = 1/dx/dx * c_sum + 1/dz/dz * c_sum
+        dt = 2 / vp_max / np.sqrt(a*(1 + 4.0)) 
+        
+        return dt
+        
+        
 def inpa_generator(vp, sdo, fn, **kwargs):
     D = seis_process.derivatives(order=sdo)
     dh = vp.min()/(D.dh_n * fn)

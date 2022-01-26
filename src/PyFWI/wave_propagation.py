@@ -13,7 +13,6 @@ from scipy.ndimage import gaussian_filter
 import PyFWI.acquisition as acq
 
 
-
 class wave_preparation():
     def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=0, chpr=10, components=0):
         '''
@@ -111,7 +110,7 @@ class wave_preparation():
             'tauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
 
-        self.D = seis_process.derivatives(order=self.sdo * 2)
+        self.D = tools.fdm(order=self.sdo * 2)
         
         self.components = components
         self.R = recorder(self.nt, self.rec_loc, self.ns, self.dh)
