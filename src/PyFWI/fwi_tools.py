@@ -16,16 +16,38 @@ import PyFWI.processing as seis_process
 def derivative(nx, nz, dx, dz, order):
     """
     Compute spatial derivative operators for grid _cells_
-    For 1st order:
-        forward operator is (u_{i+1} - u_i)/dx
-        centered operator is (u_{i+1} - u_{i-1})/(2dx)
-        backward operator is (u_i - u_{i-1})/dx
-    For 2nd order:
-        forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
-        centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
-        backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
+    For 1st order: \n
+    \tforward operator is (u_{i+1} - u_i)/dx\n
+    \tcentered operator is (u_{i+1} - u_{i-1})/(2dx)\n
+    \tbackward operator is (u_i - u_{i-1})/dx \n
+    
+    For 2nd order: \n
+    \tforward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2 \n
+    \tcentered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2 \n
+    \tbackward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2 \n
+    
+    Parameters
+    ----------
+        nx : int
+            Number of samples in X-direction
+        nz : int
+            Number of samples in Z-direction
+        dx : float
+            Samplikng rate in X-direction
+        dz : float
+            Samplikng rate in Z-direction
+        order : int
+            Order of derivative
+    
+    Returns
+    -------
+        Dx : Dispersed matrix
+            Derivative matrix in X-direction
+        Dz : Dispersed matrix
+            Derivative matrix in Z-direction
+   
     """
-
+        
     if order == 1:
 
         # forward operator is (u_{i+1} - u_i)/dx
@@ -213,11 +235,23 @@ class regularization:
 
     def tikhonov(self, x0, alpha_z, alpha_x):
         """
-        A method to implement Tikhonov
-        Inputs:
-            x0: Data
-            alpha_z: coefficient of Dz
-            alpha_x: coefficient of Dx
+        A method to implement Tikhonov regularization with order of 2
+        
+        Parameters
+        ----------
+            x0 : 1D ndarray
+                Data
+            alpha_z : float 
+                coefficient of Dz
+            alpha_x : float 
+                coefficient of Dx
+        
+        Returns
+        -------
+            rms : float
+                error
+            grad : 1D ndarray
+                gradient of the regularization
         """
         x = np.copy(x0)
         ln = (self.nx * self.nz)
@@ -238,17 +272,29 @@ class regularization:
             grad[i * ln:(i + 1) * ln] = alpha_x * (self.Bx1.T @ self.Bx1) @ m +\
                                         alpha_z * (self.Bz1.T @ self.Bz1) @ m
 
-        ms = self.l2(x1)
+        rms = self.l2(x1)
 
         return rms, grad
 
     def tikhonov_0(self, x0):
         """
-        A method to implement Tikhonov
-        Inputs:
-            x0: Data
-            alpha_z: coefficient of Dz
-            alpha_x: coefficient of Dx
+        A method to implement Tikhonov regularization with order of 0
+        
+        Parameters
+        ----------
+            x0 : 1D ndarray
+                Data
+            alpha_z : float 
+                coefficient of Dz
+            alpha_x : float 
+                coefficient of Dx
+        
+        Returns
+        -------
+            rms : float
+                error
+            grad : 1D ndarray
+                gradient of the regularization
         """
         x = np.copy(x0)
 

@@ -127,27 +127,37 @@ class FWI(Wave):
 
     def run(self, m0, method, iter, freqs, n_params, k_0, k_end):
         """
-        run implements the FWI
+        run method performs the FWI
 
-        Args:
-            m0 (dict): The initial model
-            method (int, str): The optimization method
-            iter (ndarray): An array of iteration for each frequency
-            freqs (float): Frequencies for multi-scale inversion.
-            n_params (int): Number of parameter to invert for in each time
-            k_0 (int): The first parameter of interest
-            k_end (int): The last parameter of interest
+        Parameters
+        ----------
+            m0 : dict
+                The initial model
+            method : int, str
+                The optimization method
+            iter : ndarray)
+                An array of iteration for each frequency
+            freqs : float
+                Frequencies for multi-scale inversion.
+            n_params : int
+                Number of parameter to invert for in each time
+            k_0 : int
+                The first parameter of interest
+            k_end : int
+                The last parameter of interest
 
-        Returns:
-            m_est (dictionary): The estimated model
-            rms (ndarray): The rms error
+        Returns
+        -------
+            m_est : dictionary
+                The estimated model
+            rms : ndarray
+                The rms error
         """
         m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
         return m, rms
 
     def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
-        # n_params: number of parameters to seek for in one iteration
-
+        
         n_element = self.nz * self.nx
         mtotal = np.copy(m0)
 
