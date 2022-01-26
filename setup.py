@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
               
 setup(name='PyFWI',
-      version='0.1.1',
+      version='0.1.2',
       packages=['PyFWI'],
       description='The initial package for seismic FWI', 
       long_description=long_description,
@@ -41,7 +41,10 @@ setup(name='PyFWI',
           "datetime"
       ],
       package_data={
-        "PyFWI": ["elastic_velocity.cl"],
+        "PyFWI": ["elastic.cl",
+                  "elastic_crosswell.cl",
+                  "elastic_surface.cl"
+                  ],
         },
       zip_safe=False,
       python_requires=">=3.10"

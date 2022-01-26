@@ -311,9 +311,10 @@ class wave_preparation():
             seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
             cl.enqueue_copy(self.queue, seismogram_id, buffer)
             return np.copy(seismogram_id)
-  
+        
         self.seismogram['vx'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
             get_from_opencl(self.seismogramid_vx_b)
+
         self.seismogram['vz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
             get_from_opencl(self.seismogramid_vz_b)
 
@@ -564,21 +565,17 @@ class wave_propagator(wave_preparation):
         for s in range(self.ns):
             self.prg.MakeAllZero(self.queue, (self.tnz, self.tnx), None,
                                  self.vx_b, self.vz_b,
-                                 self.taux_b, self.tauz_b, self.tauxz_b,
+                                 self.taux_b, self.tauz_b, self.tauxz_b
                                  )
-
+            
             self.__kernel(s, coeff) 
             
         return self.seismogram
             
     def __kernel(self, s, coeff=+1):
-
-        chpc = 0
-                    
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
-
+        chpc = 0
         for t in range(self.nt):
-            
             src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
                     
             self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
@@ -759,7 +756,7 @@ class wave_propagator(wave_preparation):
                              self.Glam_b, self.g_lam_precond_b,
                              self.Grho_b, self.g_rho_precond_b
                              )
-
+            
             # Plotting wave propagation
             if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
                 cl.enqueue_copy(self.queue, vx_show, self.vx_b)

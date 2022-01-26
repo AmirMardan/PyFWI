@@ -52,7 +52,7 @@ class FWI(Wave):
             self.sd = inpa['sd']  # Virieux et al, 2009
         except:
             self.sd = 1.0
-            
+        
         # Dictionnary for TV regularization
         if 'tv' in keys:
             self.tv_properties = inpa['tv']
@@ -63,7 +63,6 @@ class FWI(Wave):
             self.tikhonov_properties = inpa['tikhonov']
         else:
             self.tikhonov_properties = None
-                                                 
             
         self.d_obs = acq.prepare_residual(d_obs, 1)
         
@@ -80,7 +79,7 @@ class FWI(Wave):
             self.grad_coeff = inpa['grad_coeff']
         else:
             self.grad_coeff = [1.0, 1.0, 1.0]
-        
+            
         self.n_elements = self.nz * self.nx
         
     def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
@@ -111,7 +110,7 @@ class FWI(Wave):
             
             rms.append(rms0)
             c += 1
-        
+
         return self.vec2dict(m, self.nz, self.nx), np.array(rms)
 
     def __fwi_method(self, user_method):
@@ -139,18 +138,16 @@ class FWI(Wave):
             k_0 (int): The first parameter of interest
             k_end (int): The last parameter of interest
 
-        Returns
-        --------
-            m_est :dict
-                The estimated model
-
-            rms: ndarray
-                The rms error
+        Returns:
+            m_est (dictionary): The estimated model
+            rms (ndarray): The rms error
         """
         m, rms = self(m0, method, iter, freqs, n_params, k_0, k_end)
         return m, rms
 
     def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
+        # n_params: number of parameters to seek for in one iteration
+
         n_element = self.nz * self.nx
         mtotal = np.copy(m0)
 
@@ -169,7 +166,7 @@ class FWI(Wave):
             m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq],
                                            m=10, factr=1e7, pgtol=1e-8, iprint=99,
                                            bounds=None, maxfun=15000, maxiter=ITER,
-                                           disp=None, callback=None, maxls=20)
+                                           disp=None, callback=None, maxls=15)
 
             # print(m_opt.max(), m_opt.min())
             rms_hist.append(hist)

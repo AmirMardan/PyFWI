@@ -686,7 +686,7 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
 
 def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):
     """
-    grad_lmr_to_vd [summary]
+    grad_vd_to_lmd [summary]
 
     [extended_summary]
 
@@ -702,8 +702,6 @@ def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):
          1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
          2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
     """
-    # vp = np.sqrt((lam + 2 * mu) / rho)
-    # vs = np.sqrt(mu / rho)
     
     gvp_lam = gvp / (2 * rho * vp)
     gvs_lam = gvs * 0
