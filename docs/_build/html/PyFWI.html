@@ -266,7 +266,6 @@
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_functions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#PyFWI.wave_propagation.wave_propagator" title="PyFWI.wave_propagation.wave_propagator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.wave_propagation.wave_propagator</span></code></a></p>
-<p>FWI implement full-waveform inversion (FWI)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI.fprime">
 <span class="sig-name descname"><span class="pre">fprime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.fprime" title="Permalink to this definition"></a></dt>
@@ -285,32 +284,25 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.fwi.FWI.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.run" title="Permalink to this definition"></a></dt>
-<dd><p>Hu_circles a model including porosity, clay content, and saturation.</p>
-<p>This method creates a model including porosity, clay content, and saturation.
-It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues.
-If you use non-default values, new model with the same structure and new values will be generated.</p>
+<dd><p>run method performs the FWI</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rho</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – A dictionary containing the density of quartz, clay, water, and hydrocarbon. Defaults to None.</p></li>
-<li><p><strong>prop_back</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – A dictionary containing background properties (porosity, clay content, and saturation). Defaults to None.</p></li>
-<li><p><strong>prop_circle</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – A dictionary containing properties in the circles (porosity, clay content, and saturation). Defaults to None.</p></li>
-<li><p><strong>nz</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of saples in z-direction (rows). Defaults to 100.</p></li>
-<li><p><strong>nx</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of saples in x-direction (column). Defaults to 100.</p></li>
-<li><p><strong>r</strong> (<em>int</em><em>, </em><em>optional</em>) – Radius of the circles. Defaults to 8.</p></li>
-<li><p><strong>monitor</strong> (<em>bool</em><em>, </em><em>optional</em>) – Specify if you are looking for monitor model. Defaults to False.</p></li>
+<li><p><strong>m0</strong> (<em>dict</em>) – The initial model</p></li>
+<li><p><strong>method</strong> (<em>int</em><em>, </em><em>str</em>) – The optimization method</p></li>
+<li><p><strong>iter</strong> (<em>ndarray</em><em>)</em>) – An array of iteration for each frequency</p></li>
+<li><p><strong>freqs</strong> (<em>float</em>) – Frequencies for multi-scale inversion.</p></li>
+<li><p><strong>n_params</strong> (<em>int</em>) – Number of parameter to invert for in each time</p></li>
+<li><p><strong>k_0</strong> (<em>int</em>) – The first parameter of interest</p></li>
+<li><p><strong>k_end</strong> (<em>int</em>) – The last parameter of interest</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A dictionary containing the created model.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>model (dictionary)</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Reference:</dt><dd><p>Hu, Q., S. Keating, K. A. Innanen, and H. Chen, 2021,
-Direct updating of rock-physics properties using elastic full-waveform inversion: Geophysics, 86, 3, MR117-MR132, doi: 10.1190/GEO2020-0199.1.</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>m_est</strong> (<em>dictionary</em>) – The estimated model</p></li>
+<li><p><strong>rms</strong> (<em>ndarray</em>) – The rms error</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
