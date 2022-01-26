@@ -1596,5 +1596,5 @@ def dict_summation(dict1, dict2, division=1.0):
     return sum_val
 
 if __name__ == "__main__":
-    R = recorder(['vx', 'vz'], 10, 10, 1)
-    print(R.vx)
+    R = recorder(100, np.array([10]), 10, 1)
+    print(R.vx.shape)
