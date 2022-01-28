@@ -155,8 +155,7 @@ class wave_preparation():
         self.mf = cl.mem_flags
         
         # Buffer for residuals
-        # res = np.zeros((np.int32(self.nr))).astype(np.float32, order='C')
-        res = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
+        res = np.zeros((np.int32(self.nr))).astype(np.float32, order='C')
 
         self.res_vx_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                                   self.mf.COPY_HOST_PTR, hostbuf=res)
