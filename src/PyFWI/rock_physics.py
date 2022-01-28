@@ -301,6 +301,35 @@ def reverse_Han(vp, vs, a1=5.5, a2=6.9, a3=2.2, b1=3.4, b2=4.7, b3=1.8):
 
 
 def drained_moduli(phi, k_s, g_s, cs):
+    """
+    drained_moduli computes the effective mechanical moduli KD and GD
+
+    [extended_summary]
+
+    Parameters
+    ----------
+    phi : float
+        Porosity
+    k_s : float
+        Solid bulk modulus
+    g_s : float
+        Solid shear modulus
+    cs : float
+        general consolidation parameter
+
+    Returns
+    -------
+    k_d : float
+        Effective drained bulk modulus
+    
+    g_d : float
+        Effective drained shear modulus
+        
+    Reference
+    ---------
+    Dupuy et al., 2016, Estimation of rock physics properties from seismic attributes — Part 1: Strategy and sensitivity analysis,
+    Geophysics
+    """
     if (phi >= 1).any():
         phi /= 100
 
@@ -333,6 +362,56 @@ def delta_biot_gassmann(phi, k_f, k_s, k_d):
     return ((1 - phi) / phi) * (k_f / k_s) * (1 - (k_d / (k_s - k_s * phi)))
 
 
+def weighted_average(prop1, prop2, volume1):
+        """
+        weighted_average is a function to
+        calculate the wighted average of properties
+
+        Parameters
+        ----------
+            prop1 : float
+                Property of the material 1
+            prop2 : float
+                Property of the material 2
+            volume1 : float
+                Value specifying the rational volume of the material 1
+
+        Returns
+        -------
+            mixed : float
+                Property of mixed material
+        """
+        volume2 = 1 - volume1
+        mixed = prop1 * volume1 + prop2 * volume2
+
+        return mixed
+    
+    
+def vrh(prop1, prop2, volume1):
+    """
+    vrh performs Voigt-Reuss-Hill boundary
+
+    [extended_summary]
+
+    Parameters
+    ----------
+    prop1 : float
+        Property of the material 1
+    prop2 : float
+        Property of the material 2
+    volume1 : float
+        Value specifying the rational volume of the material 1
+
+    Returns
+    -------
+    mixed : float
+        Property of mixed material
+    """
+    
+    volume2 = 1 - volume1
+    mixed = 0.5 * ((volume1 * prop1 + volume2 * prop2) + (1 / ((volume1/prop1) + (volume2/prop2))))
+    return mixed 
+    
 def lmd2vd(lam, mu, rho):
     """
     lmd2vd switches Lama modulus and density to vp, vs, density
