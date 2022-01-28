@@ -698,7 +698,7 @@ def disperasion_stability(vp, sdo, fn):
     dt : float 
         Temporal sampling rate 
     """
-    D = seis_process.derivatives(order=sdo)
+    D = fdm(order=sdo)
     
     dh = vp.min() / (D.dh_n * fn)    
     dt = D.dt_computation(vp.max(), dh)

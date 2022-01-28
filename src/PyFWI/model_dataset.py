@@ -102,7 +102,7 @@ class Circular():
             Direct updating of rock-physics properties using elastic full-waveform inversion: Geophysics, 86, 3, MR117-MR132, doi: 10.1190/GEO2020-0199.1.
         """
         model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.4})
-        if smoothing is False:  # Not m0
+        if not smoothing:  # Not m0
             model['phi'] = add_circle(model['phi'], 0.3, r=7, cx=25, cz=25)
             model['cc'] = add_circle(model['cc'], 0.4, r=7, cx=50, cz=50)
             model['sw'] = add_circle(model['sw'], 0.8, r=7, cx=75, cz=75)
@@ -214,14 +214,14 @@ class ModelGenerator(Circular, Laminar):
 
         self.model = None
 
-    def __call__(self, vintage=1, smoothing=0):
+    def __call__(self, **kwargs):
         try:  # in case if there is a model from before, it should be deleted
             self.__dict__.pop('model')
         except:
             pass
         
         # name of the model
-        model = eval("self." + self.name)(vintage, smoothing)
+        model = eval("self." + self.name)(**kwargs)
         self.model = copy.deepcopy(model)
         return model
     
