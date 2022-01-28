@@ -102,7 +102,7 @@ class Circular():
             Direct updating of rock-physics properties using elastic full-waveform inversion: Geophysics, 86, 3, MR117-MR132, doi: 10.1190/GEO2020-0199.1.
         """
         model = background((100, 100), {'phi':0.2, 'cc':0.2, 'sw':0.4})
-        if not smoothing:  # Not m0
+        if smoothing is False:  # Not m0
             model['phi'] = add_circle(model['phi'], 0.3, r=7, cx=25, cz=25)
             model['cc'] = add_circle(model['cc'], 0.4, r=7, cx=50, cz=50)
             model['sw'] = add_circle(model['sw'], 0.8, r=7, cx=75, cz=75)

@@ -14,7 +14,7 @@ import PyFWI.acquisition as acq
 
 
 class wave_preparation():
-    def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=0, chpr=10, components=0):
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0):
         '''
         A class to prepare the variable and basic functions for wave propagation.
         
@@ -26,8 +26,8 @@ class wave_preparation():
         self.dt = inpa['dt']
         self.nt = int(1 + self.t // self.dt)
         
-        self.nx = np.int32(model_size[1])
-        self.nz = np.int32(model_size[0])
+        self.nx = np.int32(model_shape[1])
+        self.nz = np.int32(model_shape[0])
         
         if 'g_smooth' in keys:
             self.g_smooth = inpa['g_smooth']
@@ -545,8 +545,8 @@ class wave_preparation():
         
         
 class wave_propagator(wave_preparation):
-    def __init__(self, inpa, src, rec_loc, model_size, n_well_rec=None, chpr=10, components=4):
-        wave_preparation.__init__(self, inpa, src, rec_loc, model_size, n_well_rec, chpr=chpr, components=components)
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=4):
+        wave_preparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
     
     def forward_propagator(self, model, W=None, grad=None):
         """ This function is in charge of forward modelling for acoustic case

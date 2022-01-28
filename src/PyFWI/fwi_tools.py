@@ -676,6 +676,36 @@ def _elastic_model_preparation(model0, med_type):
     return model
 
 
+def disperasion_stability(vp, sdo, fn):
+    """
+    disperasion_stability returns the appropriate parameters for FD 
+    that prevent unstability and dispersion
+
+
+    Parameters
+    ----------
+    vp : float
+        P-wave velocity
+    sdo : int
+        Spatial order of derivation
+    fn : float
+        Nyquist frequency
+
+    Returns
+    -------
+    dh : float
+        Spatial sampling rate
+    dt : float 
+        Temporal sampling rate 
+    """
+    D = seis_process.derivatives(order=sdo)
+    
+    dh = vp.min() / (D.dh_n * fn)    
+    dt = D.dt_computation(vp.max(), dh)
+    
+    return dh, dt
+
+
 def modeling_model(model, med_type):
 
     if med_type in [0, 'acoustic']:
