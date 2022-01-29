@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradient estimation &mdash; PyFWI 0.0.4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Regularization" href="tools.html" />
+    <link rel="prev" title="Synthetic model" href="forward_modeling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> PyFWI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="init.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="init.html#example">Example</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Forward modeling</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="forward_modeling.html">Synthetic model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forward_modeling.html#module-PyFWI.acquisition">Acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forward_modeling.html#wave-propagation">Wave propagation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Inversion</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Gradient estimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#full-waveform-inversion">Full-waveform inversion</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Regularization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html#gradient-switching">Gradient switching</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html#cost-function">Cost Function</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html#visualization">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Rock physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rock_physics.html">Rock physics</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyFWI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Gradient estimation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/sub_doc/inversion.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gradient-estimation">
+<h1>Gradient estimation<a class="headerlink" href="#gradient-estimation" title="Permalink to this headline"></a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_propagator.gradient">
+<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.gradient" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="full-waveform-inversion">
+<h1>Full-waveform inversion<a class="headerlink" href="#full-waveform-inversion" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyFWI.fwi.FWI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi.</span></span><span class="sig-name descname"><span class="pre">FWI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_functions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI" title="Permalink to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="PyFWI.fwi.FWI.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Calling this object performs the FWI</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m0</strong> (<em>dict</em>) – The initial model</p></li>
+<li><p><strong>method</strong> (<em>int</em><em>, </em><em>str</em>) – The optimization method</p></li>
+<li><p><strong>iter</strong> (<em>ndarray</em><em>)</em>) – An array of iteration for each frequency</p></li>
+<li><p><strong>freqs</strong> (<em>float</em>) – Frequencies for multi-scale inversion.</p></li>
+<li><p><strong>n_params</strong> (<em>int</em>) – Number of parameter to invert for in each time</p></li>
+<li><p><strong>k_0</strong> (<em>int</em>) – The first parameter of interest</p></li>
+<li><p><strong>k_end</strong> (<em>int</em>) – The last parameter of interest</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>m_est</strong> (<em>dictionary</em>) – The estimated model</p></li>
+<li><p><strong>rms</strong> (<em>ndarray</em>) – The rms error</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyFWI.fwi.FWI.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chpr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_functions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi.FWI.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>FWI perform full-waveform inversion</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_obs</strong> (<em>dict</em>) – Observed data</p></li>
+<li><p><strong>inpa</strong> (<em>dict</em>) – Input parameters</p></li>
+<li><p><strong>src</strong> (<em>Class</em>) – Source object</p></li>
+<li><p><strong>rec_loc</strong> (<em>float</em>) – Receiver location</p></li>
+<li><p><strong>model_size</strong> (<em>tuple</em>) – Shape of the model</p></li>
+<li><p><strong>n_well_rec</strong> (<em>int</em>) – Number of receivers in the well</p></li>
+<li><p><strong>chpr</strong> (<em>flaot</em><em> (</em><em>percentage</em><em>)</em>) – Percentage for check point</p></li>
+<li><p><strong>components</strong> (<em>int</em>) – Type of output</p></li>
+<li><p><strong>param_functions</strong> (<em>list of function</em><em>, </em><em>optional</em>) – List of functions required in case of inversion with different parameterization than dv, by default None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="forward_modeling.html" class="btn btn-neutral float-left" title="Synthetic model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tools.html" class="btn btn-neutral float-right" title="Regularization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Amir.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
