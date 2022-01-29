@@ -325,8 +325,8 @@ def drained_moduli(phi, k_s, g_s, cs):
     g_d : float
         Effective drained shear modulus
         
-    Reference
-    ---------
+    References
+    ----------
     Dupuy et al., 2016, Estimation of rock physics properties from seismic attributes — Part 1: Strategy and sensitivity analysis,
     Geophysics
     """

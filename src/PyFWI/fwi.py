@@ -13,9 +13,33 @@ import PyFWI.seiplot as splt
 from PyFWI.fwi_tools import regularization
 
 class FWI(Wave):
-    def __init__(self, d_obs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
-    
-        super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
+    def __init__(self, d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr, components, param_functions=None):
+        """
+        FWI perform full-waveform inversion
+
+
+        Parameters
+        ----------
+        d_obs : dict
+            Observed data
+        inpa : dict
+            Input parameters
+        src : Class
+            Source object
+        rec_loc : float
+            Receiver location
+        model_size : tuple
+            Shape of the model
+        n_well_rec : int
+            Number of receivers in the well
+        chpr : flaot (percentage)
+            Percentage for check point 
+        components : int
+            Type of output
+        param_functions : list of function, optional
+            List of functions required in case of inversion with different parameterization than dv, by default None
+        """
+        super().__init__(inpa, src, rec_loc, model_shape, n_well_rec, chpr, components)
         self.regularization = regularization(self.nx, self.nz, self.dh, self.dh)
         
         if param_functions is None:
@@ -54,8 +78,6 @@ class FWI(Wave):
         self.d_obs = acq.prepare_residual(d_obs, 1)
         
         self.fn = inpa['fn']
-
-        self.GN_wave_propagator = Wave(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
 
         if 'cost_function_type' in keys:
             self.CF = tools.CostFunction(inpa["cost_function_type"])
