@@ -45,6 +45,6 @@ Earth model
 
 
 Seismic Section
-_______________
+---------------
 .. automethod:: PyFWI.seiplot.seismic_section
 
