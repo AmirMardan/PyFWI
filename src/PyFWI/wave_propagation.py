@@ -547,7 +547,7 @@ class wave_propagator(wave_preparation):
     def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=4):
         wave_preparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
     
-    def forward_propagator(self, model, W=None, grad=None):
+    def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
 
         Parameters
@@ -765,7 +765,7 @@ class wave_propagator(wave_preparation):
                 self.plot_propagation(vx_show, t, adj_vx_show)
                 
             
-    def forward_modeling(self, model0, show=False, W=None, grad=None):
+    def forward_modeling(self, model0, show=False):
         self.forward_show = show
         model = model0.copy()
 
@@ -775,11 +775,11 @@ class wave_propagator(wave_preparation):
         
         self.pml_preparation(model['vp'].max())
         self.elastic_buffers(model)
-        seismo = self.forward_propagator(model, W, grad) 
+        seismo = self.forward_propagator(model) 
         data = acq.seismic_section(seismo, self.components)
         return data
     
-    def gradient(self, res, show=False, Lam=None, grad=None, parameterization='dv'):
+    def gradient(self, res, show=False, parameterization='dv'):
         self.backward_show = show
         self.adjoint_buffer_preparing()
         
