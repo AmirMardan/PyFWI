@@ -47,7 +47,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
             break
         
         fval_new = phi(alpha0)
-        print(f"{alpha0 = } .......... {fval_new = :.6f} .......... {fval_old = :.6f}")
+        # print(f"{alpha0 = } .......... {fval_new = :.6f} .......... {fval_old = :.6f}")
         count += 1
 
     if count == 0: # If we need to increase the alpha
@@ -56,7 +56,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
             fval_new_inc = phi(alpha_inc)
 
             count += 1
-            print(f"{alpha_inc = } .......... {fval_new_inc = :.6f} .......... {fval_old = :.6f}")
+            # print(f"{alpha_inc = } .......... {fval_new_inc = :.6f} .......... {fval_old = :.6f}")
             if fval_new_inc < fval_new:
                 alpha0 = np.copy(alpha_inc)
                 fval_new = np.copy(fval_new_inc)
@@ -72,7 +72,7 @@ def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=Non
     fval_new = phi(alpha)
     grad_new = dephi(alpha) 
     
-    print(f'{fval_new = } -------------------------------{fval_old = } with {alpha = } with  {count = }')
+    # print(f'{fval_new = } -------------------------------{fval_old = } with {alpha = } with  {count = }')
     
     return alpha, fval_new, grad_new
 
@@ -123,7 +123,7 @@ class FWI(Wave):
         alpha = [10., 10., 10.]
         for freq in freqs:
             for i in range(iter):
-                print(f"Iteration === {i:1d}")
+                # print(f"Iteration === {i:1d}")
                 rms, grad = self.fprime(m_opt, m1, freq)
                 rms_hist.append(rms)
                 
@@ -246,7 +246,7 @@ def truncated(FO_waves, W, m0, grad0, m1, iter):
             Hx = tools.vel_dict2vec(hess)
             
             b1 = np.dot(Hx.T, x)
-            print(f'{b1 = }')
+            # print(f'{b1 = }')
             if b1<0:
                 if np.all(dp == 0):
                     dp = x

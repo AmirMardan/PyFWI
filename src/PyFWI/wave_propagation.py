@@ -846,7 +846,7 @@ if __name__ == "__main__":
     dt = D.dt_computation(vp.max(), inpa['dh'])
     inpa['dt'] = dt
     
-    print(f'{dh = } ........... {dt = }')
+    # print(f'{dh = } ........... {dt = }')
     inpa['t'] = 0.36
     
     offsetx = inpa['dh'] * model_shape[1]

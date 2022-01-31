@@ -45,8 +45,8 @@ class FWI(Wave):
         if param_functions is None:
             self.dict2vec = tools.vel_dict2vec
             self.vec2dict = tools.vec2vel_dict
-            self.to_dv = lambda a: a
-            self.grad_from_dv = lambda a, b: a
+            self.to_dv = lambda a, param_functions_args: a
+            self.grad_from_dv = lambda a, param_functions_args, b: a
             self.param_functions_args = []
         else:
             self.dict2vec = param_functions['dict2vec']
