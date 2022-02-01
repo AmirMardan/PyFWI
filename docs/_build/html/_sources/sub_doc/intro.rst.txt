@@ -1,0 +1,1 @@
+**PyFWI** is open source Python package to perform weismic modeling and full-waveform inversion in elastic media.
