@@ -199,6 +199,14 @@ class Laminar():
 
 
 class ModelGenerator(Circular, Laminar):
+    """
+    ModelGenerator provides synthetic models for your research.
+
+    Parameters
+    ----------
+    name : str
+        Name of the desired model.
+    """
 
     def __init__(self, name):
         Circular.__init__(self, name)
@@ -235,6 +243,22 @@ class ModelGenerator(Circular, Laminar):
         
     
     def marmousi(self, vintage, smoothing):
+        """
+        marmousi method generates the Maemousi-2 model.
+
+
+        Parameters
+        ----------
+        vintage : int
+            Baseline (1) or monitor (2) model.
+        smoothing : float
+            If you need to get the smooth version of the model, specify the smoothness 
+
+        Returns
+        -------
+        model : dict
+            A dictionary containing Vp, Vs, and density.
+        """
         path = os.path.dirname(__file__) + '/data/'
         
         if os.path.exists(path) is False:
@@ -447,12 +471,33 @@ def add_circle (model, circle_prop, r, cx, cz):
 
 
 def model_smoother(model, smoothing_value, constant_surface=0, constant_left=0):
+    """
+    model_smoother smoothens all parameters of inside model.
+
+
+    Parameters
+    ----------
+    model : dict
+        Dictionary of true model.
+    smoothing_value : float
+        Smoothness value
+    constant_surface : int, optional
+        Number of rows untouched for surface acquisition, by default 0
+    constant_left : int, optional
+        Number of columns untouched for cross-well acquisition, by default 0
+
+    Returns
+    -------
+    dict
+        Smoothed model
+    """
     model0 = {}
     for params in model:
         model0[params] = gaussian_filter(model[params], smoothing_value)
         model0[params][:constant_surface, :] = model[params][:constant_surface, :]
         model0[params][:, :constant_left] = model[params][:, :constant_left]
     return model0
+
 
 def pcs_perturbation(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100, r=8, monitor=False):
     """
@@ -530,6 +575,31 @@ def pcs_perturbation(rho=None, prop_back=None, prop_circle=None, nz=100, nx=100,
 
 
 def model_resizing(model0,  bx=None, ex=None, bz=None, ez=None, ssr=(1, 1)):
+    """
+    model_resizing resizes your model which is dictionary by cutting and interpolation.
+
+    
+
+    Parameters
+    ----------
+    model0 : dict
+        The input model to be resized
+    bx : int, optional
+        First column of desired model, by default None
+    ex : int, optional
+        Last column of desired model, by default None
+    bz : int, optional
+        First row of desired model, by default None
+    ez : int, optional
+        Last row of desired model, by default None
+    ssr : tuple, optional
+        Sampling rate for interpolation in Z- and X-directions, by default (1, 1)
+
+    Returns
+    -------
+    model : dict
+        Dictionary containg the resized model
+    """
     model = copy.deepcopy(model0)
     for param in model:
         gz, gx = np.mgrid[:model[param].shape[0], :model[param].shape[1]]

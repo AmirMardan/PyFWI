@@ -6,6 +6,7 @@ Synthetic model
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: show
 
 Acquisition 
 ============
@@ -14,6 +15,7 @@ Acquisition
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: seismic_section
 
 Wave propagation
 =================

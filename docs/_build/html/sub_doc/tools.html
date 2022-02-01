@@ -108,6 +108,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Regularization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#total-variation-tv">Total variation (TV)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tikhonov">Tikhonov</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameter-relation">Parameter relation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#gradient-switching">Gradient switching</a><ul>
@@ -233,6 +234,34 @@ nz:</p>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>rms</strong> (<em>float</em>) – error</p></li>
 <li><p><strong>grad</strong> (<em>1D ndarray</em>) – gradient of the regularization</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="parameter-relation">
+<h2>Parameter relation<a class="headerlink" href="#parameter-relation" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyFWI.fwi_tools.regularization.parameter_relation">
+<span class="sig-prename descclassname"><span class="pre">regularization.</span></span><span class="sig-name descname"><span class="pre">parameter_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kend</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.regularization.parameter_relation" title="Permalink to this definition">¶</a></dt>
+<dd><p>parameter_relation considers regularization for the
+relation between parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m0</strong> (<em>ndarray</em>) – Vector of parameters</p></li>
+<li><p><strong>models</strong> (<em>dict</em>) – A dictionary containing couple of dictionaries which includes a numpy
+polyfit model and regularization parameter.</p></li>
+<li><p><strong>k0</strong> (<em>int</em>) – Index of the first parameter in m0</p></li>
+<li><p><strong>kend</strong> (<em>int</em>) – Index of the last parameter in m0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rms</strong> (<em>float</em>) – rms of regularization</p></li>
+<li><p><strong>grad</strong> (<em>ndarray</em>) – Vector of gradient od the regularization</p></li>
 </ul>
 </p>
 </dd>

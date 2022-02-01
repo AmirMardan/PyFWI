@@ -316,6 +316,21 @@ def seismic_section(seismo, components=0):
     return data
 
 def prepare_residual(res, s):
+    """
+    prepare_residual prepares the seismic data as the desire format of FWI class.
+
+    Parameters
+    ----------
+    res : dict
+        Seismic section
+    s : ndarray
+        Parqameter to create the square matirix of W as the weight of seismic data in cost function.
+
+    Returns
+    -------
+    dict
+        Reformatted seismic section 
+    """
     
     data = {}
     shape = res[[*res][0]].shape

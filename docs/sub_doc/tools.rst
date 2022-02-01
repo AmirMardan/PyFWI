@@ -14,7 +14,12 @@ Tikhonov
 ---------
 
 .. automethod:: PyFWI.fwi_tools.regularization.tikhonov
-    
+
+
+Parameter relation  
+-------------------
+
+.. automethod:: PyFWI.fwi_tools.regularization.parameter_relation   
        
 Gradient switching
 ===================

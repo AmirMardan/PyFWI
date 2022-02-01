@@ -40,13 +40,6 @@ Welcome to PyFWI's documentation!
    sub_doc/rock_physics
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 Citing PyFWI
 ============
 

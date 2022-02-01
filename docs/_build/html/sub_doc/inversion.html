@@ -184,8 +184,24 @@
 <h1>Gradient estimation<a class="headerlink" href="#gradient-estimation" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_propagator.gradient">
-<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.gradient" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>gradient estimates the gradient using adjoint-state method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>res</strong> (<em>dict</em>) – The adjoint of the derivative of ost function with respect to wavefield</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you desire to see the backward wave propagation, by default False</p></li>
+<li><p><strong>parameterization</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify the parameterization for output, by default ‘dv’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Gradient</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="full-waveform-inversion">

@@ -544,7 +544,29 @@ class wave_preparation():
         
         
 class wave_propagator(wave_preparation):
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=4):
+    """
+    wave_propagator is a class to handle the forward modeling and gradient calculation.
+
+    [extended_summary]
+
+    Parameters
+    ----------
+    inpa : dict
+        A dictionary including most of the required inputs
+    src : class
+        Source object
+    rec_loc : ndarray
+        Location of the receivers
+    model_shape : tuple
+        Shape of the model
+    n_well_rec: int
+        Number of receivers in the well
+    chpr : percentage
+        Checkpoint ratio in percentage
+    component:
+        Seismic output
+    """
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0):
         wave_preparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
     
     def forward_propagator(self, model):
@@ -766,6 +788,22 @@ class wave_propagator(wave_preparation):
                 
             
     def forward_modeling(self, model0, show=False):
+        """
+        forward_modeling performs the forward modeling.
+
+
+        Parameters
+        ----------
+        model0 : dict
+            The earth model
+        show : bool, optional
+            True if you desire to see the propagation of the wave, by default False
+
+        Returns
+        -------
+        dict
+            Seismic section
+        """
         self.forward_show = show
         model = model0.copy()
 
@@ -780,6 +818,23 @@ class wave_propagator(wave_preparation):
         return data
     
     def gradient(self, res, show=False, parameterization='dv'):
+        """
+        gradient estimates the gradient using adjoint-state method.
+
+        Parameters
+        ----------
+        res : dict
+            The adjoint of the derivative of ost function with respect to wavefield
+        show : bool, optional
+            True if you desire to see the backward wave propagation, by default False
+        parameterization : str, optional
+            Specify the parameterization for output, by default 'dv'
+
+        Returns
+        -------
+        dict
+            Gradient
+        """
         self.backward_show = show
         self.adjoint_buffer_preparing()
         

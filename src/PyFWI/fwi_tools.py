@@ -313,8 +313,8 @@ class regularization:
 
     def parameter_relation(self, m0, models, k0, kend):
         """
-        parameter_relation considers a regularization for the 
-        relation of parameters.
+        parameter_relation considers regularization for the 
+        relation between parameters.
         
 
         Parameters

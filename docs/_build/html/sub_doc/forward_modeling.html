@@ -278,7 +278,7 @@ based on vp, vs, density</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Laminar.dupuy">
-<span class="sig-name descname"><span class="pre">dupuy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.dupuy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">dupuy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.dupuy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -287,15 +287,31 @@ based on vp, vs, density</p>
 <dt class="sig sig-object py" id="PyFWI.model_dataset.ModelGenerator">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">ModelGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#PyFWI.model_dataset.Circular" title="PyFWI.model_dataset.Circular"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.model_dataset.Circular</span></code></a>, <a class="reference internal" href="#PyFWI.model_dataset.Laminar" title="PyFWI.model_dataset.Laminar"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.model_dataset.Laminar</span></code></a></p>
+<p>ModelGenerator provides synthetic models for your research.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the desired model.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.ModelGenerator.marmousi">
 <span class="sig-name descname"><span class="pre">marmousi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator.marmousi" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.model_dataset.ModelGenerator.show">
-<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">property</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['vp']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator.show" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>marmousi method generates the Maemousi-2 model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vintage</strong> (<em>int</em>) – Baseline (1) or monitor (2) model.</p></li>
+<li><p><strong>smoothing</strong> (<em>float</em>) – If you need to get the smooth version of the model, specify the smoothness</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>model</strong> – A dictionary containing Vp, Vs, and density.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -390,12 +406,48 @@ based on vp, vs, density</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.model_resizing">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_resizing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ez</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_resizing" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>model_resizing resizes your model which is dictionary by cutting and interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model0</strong> (<em>dict</em>) – The input model to be resized</p></li>
+<li><p><strong>bx</strong> (<em>int</em><em>, </em><em>optional</em>) – First column of desired model, by default None</p></li>
+<li><p><strong>ex</strong> (<em>int</em><em>, </em><em>optional</em>) – Last column of desired model, by default None</p></li>
+<li><p><strong>bz</strong> (<em>int</em><em>, </em><em>optional</em>) – First row of desired model, by default None</p></li>
+<li><p><strong>ez</strong> (<em>int</em><em>, </em><em>optional</em>) – Last row of desired model, by default None</p></li>
+<li><p><strong>ssr</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Sampling rate for interpolation in Z- and X-directions, by default (1, 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>model</strong> – Dictionary containg the resized model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.model_smoother">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_smoother</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_smoother" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>model_smoother smoothens all parameters of inside model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>dict</em>) – Dictionary of true model.</p></li>
+<li><p><strong>smoothing_value</strong> (<em>float</em>) – Smoothness value</p></li>
+<li><p><strong>constant_surface</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of rows untouched for surface acquisition, by default 0</p></li>
+<li><p><strong>constant_left</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of columns untouched for cross-well acquisition, by default 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Smoothed model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.pcs_perturbation">
@@ -602,20 +654,45 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.prepare_residual">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">prepare_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.prepare_residual" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="PyFWI.acquisition.seismic_section">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">seismic_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seismo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.seismic_section" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>prepare_residual prepares the seismic data as the desire format of FWI class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>res</strong> (<em>dict</em>) – Seismic section</p></li>
+<li><p><strong>s</strong> (<em>ndarray</em>) – Parqameter to create the square matirix of W as the weight of seismic data in cost function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reformatted seismic section</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="wave-propagation">
 <h1>Wave propagation<a class="headerlink" href="#wave-propagation" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_propagator.forward_modeling">
-<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">forward_modeling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.forward_modeling" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">forward_modeling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.forward_modeling" title="Permalink to this definition">¶</a></dt>
+<dd><p>forward_modeling performs the forward modeling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model0</strong> (<em>dict</em>) – The earth model</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you desire to see the propagation of the wave, by default False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Seismic section</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 
