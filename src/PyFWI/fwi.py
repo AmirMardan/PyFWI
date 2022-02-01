@@ -64,6 +64,11 @@ class FWI(Wave):
         except:
             self.sd = 1.0
         
+        try:
+            self.param_relation = inpa['param_relation']
+        except:
+            self.param_relation = {}
+            
         # Dictionnary for TV regularization
         if 'tv' in keys:
             self.tv_properties = inpa['tv']
@@ -185,11 +190,11 @@ class FWI(Wave):
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1
                                                )
-
-        rms = rms_data
-
+        
         grad_dv = self.gradient(adj_src, parameterization='dv')
         grad = self.grad_from_dv(grad_dv, self.param_functions_args, m_old)
+        
+        rms_model_realtion, grad_model_realtion = self.regularization.parameter_relation(m0, self.param_relation)
         
         params = [*grad]
         grad[params[0]] *= self.grad_coeff[0]
@@ -197,7 +202,8 @@ class FWI(Wave):
         grad[params[2]] *= self.grad_coeff[2]
         
         grad = self.dict2vec(grad)
- 
+        grad += grad_model_realtion
+        rms = rms_data + rms_model_realtion
         return rms, grad
     
     def fprime_single(self, m0, m_1, m1, freq):

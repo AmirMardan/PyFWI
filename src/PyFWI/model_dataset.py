@@ -163,7 +163,7 @@ class Laminar():
         return model
 
 
-    def dupuy(self, vintage, smoothing):
+    def dupuy(self, vintage=1, smoothing=0):
         # based on Dupuy et al, 2016, 
         # Estimation of rock physics properties from seismic attributes — Part 2: Applications
 

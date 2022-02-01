@@ -311,7 +311,49 @@ class regularization:
 
         return rms, grad
 
+    def parameter_relation(self, m0, models):
+        """
+        parameter_relation considers a regularization for the 
+        relation of parameters.
+        
 
+        Parameters
+        ----------
+        m0 : ndarray
+            Vector of parameters
+        models : dict
+            A dictionary containing couple of dictionaries which includes a numpy 
+            polyfit model and regularization parameter.
+
+        Returns
+        -------
+        rms : float
+            rms of regularization
+        grad: ndarray
+            Vector of gradient od the regularization
+        """
+        rms = 0
+        grad = np.zeros(m0.shape)
+        
+        for param in models:
+            par = [char for char in param]
+            model = models[param]['model']
+            lam = models[param]['lam']
+            
+            par_int = np.int32(par)
+            
+            pre21 = model(m0[par_int[0] * self.n_elements:(par_int[0] + 1) * self.n_elements])
+        
+            dm21 = m0[par_int[1] * self.n_elements:(par_int[1] + 1) * self.n_elements] - pre21  
+        
+            rms += 0.5 * lam * np.dot(dm21.T, dm21)
+            grad[par_int[1] * self.n_elements: (par_int[1] + 1) *self.n_elements] = lam * dm21 * 1
+        
+        return rms, grad
+        
+         
+        
+    
 class fdm(object):
     def __init__(self, order):
         """
@@ -492,7 +534,7 @@ class fdm(object):
         error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxm(x, 1) * y)
         error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzm(x, 1) * y)
 
-        # print(f"Errors for derivatives are \n {error_x = }, {error_z = }")    
+        print(f"Errors for derivatives are \n {error_x = }, {error_z = }")    
 
     def dt_computation(self, vp_max, dx, dz=None):
         '''
