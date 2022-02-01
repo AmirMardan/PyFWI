@@ -311,7 +311,7 @@ class regularization:
 
         return rms, grad
 
-    def parameter_relation(self, m0, models):
+    def parameter_relation(self, m0, models, k0, kend):
         """
         parameter_relation considers a regularization for the 
         relation of parameters.
@@ -324,6 +324,11 @@ class regularization:
         models : dict
             A dictionary containing couple of dictionaries which includes a numpy 
             polyfit model and regularization parameter.
+        k0 : int
+            Index of the first parameter in m0
+        kend : int
+            Index of the last parameter in m0
+             
 
         Returns
         -------
@@ -341,13 +346,13 @@ class regularization:
             lam = models[param]['lam']
             
             par_int = np.int32(par)
+            if par_int[1] in np.arange(k0+1, kend+1):
+                pre21 = model(m0[(par_int[0]-1) * self.n_elements:par_int[0] * self.n_elements])
             
-            pre21 = model(m0[par_int[0] * self.n_elements:(par_int[0] + 1) * self.n_elements])
-        
-            dm21 = m0[par_int[1] * self.n_elements:(par_int[1] + 1) * self.n_elements] - pre21  
-        
-            rms += 0.5 * lam * np.dot(dm21.T, dm21)
-            grad[par_int[1] * self.n_elements: (par_int[1] + 1) *self.n_elements] = lam * dm21 * 1
+                dm21 = m0[(par_int[1]-1)  * self.n_elements:par_int[1] * self.n_elements] - pre21  
+            
+                rms += 0.5 * lam * np.dot(dm21.T, dm21)
+                grad[(par_int[1]-1)  * self.n_elements: par_int[1] *self.n_elements] = lam * dm21 * 1
         
         return rms, grad
         

@@ -194,23 +194,23 @@ class FWI(Wave):
         grad_dv = self.gradient(adj_src, parameterization='dv')
         grad = self.grad_from_dv(grad_dv, self.param_functions_args, m_old)
         
-        rms_model_realtion, grad_model_realtion = self.regularization.parameter_relation(m0, self.param_relation)
-        
         params = [*grad]
         grad[params[0]] *= self.grad_coeff[0]
         grad[params[1]] *= self.grad_coeff[1]
         grad[params[2]] *= self.grad_coeff[2]
         
         grad = self.dict2vec(grad)
-        grad += grad_model_realtion
-        rms = rms_data + rms_model_realtion
+        rms = rms_data 
         return rms, grad
     
     def fprime_single(self, m0, m_1, m1, freq):
         mtotal = np.hstack((m_1, m0, m1))
         shape_1 = np.shape(m_1)[0]
         shape0 = np.shape(m0)[0]
-
+        
+        k0 = np.int32(shape_1/self.n_elements)
+        kend = np.int32(k0 + shape0/self.n_elements)
+        
         rms_data, grad_model = self.fprime(mtotal, freq)
         
         rms_reg, grad_reg = self.regularization.cost_regularization(m0,
@@ -218,8 +218,11 @@ class FWI(Wave):
                                                   tikhonov_properties=self.tikhonov_properties
                                                   )
         
-        rms = rms_data + rms_reg
-        grad = grad_model[shape_1: shape_1 + shape0] + grad_reg
+        rms_model_realtion, grad_model_realtion = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend)
+        
+        rms = rms_data + rms_reg + rms_model_realtion
+        grad = grad_model[shape_1: shape_1 + shape0] + grad_reg + grad_model_realtion[shape_1: shape_1 + shape0]
+        
         
         print(m0.min(), m0.max())
         print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}".format(freq, rms, rms_reg, rms_data))
