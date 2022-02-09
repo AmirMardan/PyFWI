@@ -355,6 +355,60 @@ class regularization:
                 grad[(par_int[1]-1)  * self.n_elements: par_int[1] *self.n_elements] = lam * dm21 * 1
         
         return rms, grad
+    
+    def priori_regularization(self, m0, regularization_dict, k0, kend):
+        """
+        priori_regularization consider the priori information regularization.
+        
+
+        Parameters
+        ----------
+        m0 : float
+            Vector of parameters
+        regularization_dict : dict
+            A dictionary containing couple of priori model and regularization hyperparameter
+        k0 : int
+            Index of the first parameter in m0
+        kend : int
+            Index of the last parameter in m0
+             
+        Returns
+        -------
+        rms : float
+            rms of regularization
+        grad: ndarray
+            Vector of gradient od the regularization
+            
+        References
+        -----------
+        Asnaashari et al., 2013, Regularized seismic full waveform inversion with prior model information, Geophysics, 78(2), R25-R36, eq. 5.
+        """
+        if regularization_dict is None:
+            return 0.0, np.zeros(m0.shape, np.float64)
+        
+        m0 = np.copy(m0[: kend * self.n_elements])
+        mp = np.zeros(m0.shape)
+        
+        lam = regularization_dict['lam']
+        
+        
+        mp_dict = regularization_dict['mp']
+        
+        for i in range(kend - k0):
+            mp[i * self.n_elements: (i + 1) * self.n_elements] = mp_dict[[*mp_dict][i]].reshape(-1)
+                    
+        ii = jj = np.arange((kend - k0) * self.n_elements)
+        v = np.ones((ii.shape)) / np.var(mp)
+        
+        W = sp.csr_matrix((v, (ii, jj)))
+        
+        diff = (m0 - mp).reshape(-1, 1) 
+                
+        rms = lam * 0.5 * (diff.T @ W) @ diff
+        
+        grad = lam * W.T @ diff
+        
+        return rms.item(), grad.reshape(-1)
         
          
         

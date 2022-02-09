@@ -68,6 +68,12 @@ class FWI(Wave):
             self.param_relation = inpa['param_relation']
         except:
             self.param_relation = {}
+        
+        try:
+            self.prior_model = inpa['prior_model']
+        except:
+            self.prior_model = None
+            
             
         # Dictionnary for TV regularization
         if 'tv' in keys:
@@ -130,6 +136,13 @@ class FWI(Wave):
 
         c = 0
         rms = []
+        
+        k_0 = k_0 - 1
+        k_end -= 1
+        
+        if k_0 + n_params > k_end:
+            raise Exception("k_0 + n_params can't be larger than k_end!!")
+        
         for freq in freqs:
             m, rms0 = eval(method)(m, iter[c], freq, n_params, k_0, k_end)
             
@@ -150,7 +163,7 @@ class FWI(Wave):
 
         return method
 
-    def lbfgs(self, m0, ITER, freq, n_params=1, k0=0, k_end=1):
+    def lbfgs(self, m0, ITER, freq, n_params=1, k0=1, k_end=2):
         
         n_element = self.nz * self.nx
         mtotal = np.copy(m0)
@@ -159,8 +172,8 @@ class FWI(Wave):
 
         fun = MemoizeJac(self.fprime_single)
         jac = fun.derivative
-
-        for k in np.arange(k0-1, k_end-1, n_params):
+        
+        for k in np.arange(k0, k_end, n_params):
             print(f'Parameter number {k + 1: } to {k + n_params: }')
 
             m_1 = mtotal[:k * n_element]
@@ -220,12 +233,17 @@ class FWI(Wave):
         
         rms_model_realtion, grad_model_realtion = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend)
         
-        rms = rms_data + rms_reg + rms_model_realtion
-        grad = grad_model[shape_1: shape_1 + shape0] + grad_reg + grad_model_realtion[shape_1: shape_1 + shape0]
+        rms_mp, grad_mp = self.regularization.priori_regularization(mtotal, self.prior_model, k0, kend)
+        
+        rms = rms_data + rms_reg + rms_model_realtion + rms_mp
+        grad = grad_model[shape_1: shape_1 + shape0] + \
+            grad_reg + \
+            grad_model_realtion[shape_1: shape_1 + shape0] + \
+            grad_mp[shape_1: shape_1 + shape0]
         
         
         print(m0.min(), m0.max())
-        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}".format(freq, rms, rms_reg, rms_data))
+        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}, rms_mp: {}".format(freq, rms, rms_reg, rms_data, rms_mp))
 
         return rms, grad
     
