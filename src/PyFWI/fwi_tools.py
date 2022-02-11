@@ -12,6 +12,7 @@ import scipy.sparse as sp
 from PyFWI.seismic_io import load_mat
 from PyFWI import rock_physics as rp 
 import PyFWI.processing as seis_process
+from scipy.ndimage import gaussian_filter
 
 def derivative(nx, nz, dx, dz, order):
     """
@@ -352,8 +353,8 @@ class regularization:
                 dm21 = m0[(par_int[1]-1)  * self.n_elements:par_int[1] * self.n_elements] - pre21  
             
                 rms += 0.5 * lam * np.dot(dm21.T, dm21)
-                grad[(par_int[1]-1)  * self.n_elements: par_int[1] *self.n_elements] = lam * dm21 * 1
-        
+                grad[(par_int[1]-1)  * self.n_elements: par_int[1] *self.n_elements] = gaussian_filter(lam * dm21 * 1, 1)
+                
         return rms, grad
     
     def priori_regularization(self, m0, regularization_dict, k0, kend):

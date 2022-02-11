@@ -224,26 +224,26 @@ class FWI(Wave):
         k0 = np.int32(shape_1/self.n_elements)
         kend = np.int32(k0 + shape0/self.n_elements)
         
-        rms_data, grad_model = self.fprime(mtotal, freq)
+        rms_data, grad_data = self.fprime(mtotal, freq)
         
         rms_reg, grad_reg = self.regularization.cost_regularization(m0,
                                                   tv_properties=self.tv_properties,
                                                   tikhonov_properties=self.tikhonov_properties
                                                   )
         
-        rms_model_realtion, grad_model_realtion = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend)
+        rms_model_relation, grad_model_relation = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend)
         
-        rms_mp, grad_mp = self.regularization.priori_regularization(mtotal, self.prior_model, k0, kend)
+        rms_mp, grad_mp = self.regularization.priori_regularization(m0, self.prior_model, k0, kend)
         
-        rms = rms_data + rms_reg + rms_model_realtion + rms_mp
-        grad = grad_model[shape_1: shape_1 + shape0] + \
+        rms = rms_data + rms_reg + rms_model_relation + rms_mp
+        grad = grad_data[shape_1: shape_1 + shape0] + \
             grad_reg + \
-            grad_model_realtion[shape_1: shape_1 + shape0] + \
-            grad_mp[shape_1: shape_1 + shape0]
+            grad_model_relation[shape_1: shape_1 + shape0] + \
+            grad_mp
         
         
         print(m0.min(), m0.max())
-        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}, rms_mp: {}".format(freq, rms, rms_reg, rms_data, rms_mp))
+        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}, rms_mp: {}, rms_model_realtion: {}".format(freq, rms, rms_reg, rms_data, rms_mp, rms_model_relation))
 
         return rms, grad
     
