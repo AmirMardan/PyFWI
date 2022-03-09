@@ -6,3 +6,6 @@ hdf5storage
 requests
 segyio
 datetime
+sphinx>=1.4
+ipykernel
+nbsphinx
