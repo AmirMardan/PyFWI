@@ -16,7 +16,7 @@ class Circular():
     def __init__(self, name):
         self.name = name
         
-    def louboutin(self, vintage, smoothing):
+    def louboutin(self, vintage=1, smoothing=0):
         """
         louboutin Generate perturbation model based on only vp.
 
@@ -77,7 +77,7 @@ class Circular():
                
         return model
 
-    def Hu_circles(self, vintage, smoothing):
+    def Hu_circles(self, vintage=1, smoothing=0):
         """
         Hu_circles a model including porosity, clay content, and saturation.
 
@@ -112,7 +112,7 @@ class Circular():
         return model
     
     
-    def perturbation_dv(self, vintage, smoothing):
+    def perturbation_dv(self, vintage=1, smoothing=0):
         """
         perturbation_dv creates perturbation model in different locations
 
@@ -148,7 +148,7 @@ class Laminar():
     def __init__(self,name) -> None:
         self.name = name
         
-    def Hu_laminar(self, vintage, smoothing):
+    def Hu_laminar(self, vintage=1, smoothing=0):
         # Based on Hu et al., 2020, Direct rock physics inversion 
         
         model = background((100, 100), {'phi':0.3, 'cc':0.1, 'sw':0.2})
@@ -242,7 +242,7 @@ class ModelGenerator(Circular, Laminar):
         ax.imshow(self.model[property[0]])
         
     
-    def marmousi(self, vintage, smoothing):
+    def marmousi(self, vintage=1, smoothing=0):
         """
         marmousi method generates the Maemousi-2 model.
 
