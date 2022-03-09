@@ -2,7 +2,7 @@ __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *taux, __global float *tauz, __global float *tauxz,
                      __global float *seismogram_vxi,__global float *seismogram_vzi,
                      __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
-                     int dxr, int recDepth, int first_rec,
+                     int dxr,
                      int sourcex, int sourcez,
                      float srcx, float srcz)
 
@@ -14,18 +14,16 @@ __kernel void injSrc(__global float *vx,__global float *vz,
   if (i==sourcez && j==sourcex){
     taux[center] += srcx;
     tauz[center] += srcz;
-    // printf("%f\n",src );
-    // printf("%d, %d,  %d, %d \n",dxr,n_extera_rec, first_rec, n_main_rec );
 
   }
 
-   if(i%dxr==0 && j == recDepth){
+   if(i%dxr==0 && j == rec_top_right_const){
     int ir =  i/dxr;
-      seismogram_vxi[ir]  =  vx[(i+first_rec)*Nx + j];
-      seismogram_vzi[ir]  =  vx[(i+first_rec)*Nx + j];
-      seismogram_tauxi[ir]  =  taux[(i+first_rec)*Nx + j];
-      seismogram_tauzi[ir]  =  tauz[(i+first_rec)*Nx + j];
-      seismogram_tauxzi[ir]  =  tauxz[(i+first_rec)*Nx + j];
+      seismogram_vxi[ir]  =  vx[(i+rec_top_right_var)*Nx + j];
+      seismogram_vzi[ir]  =  vx[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauxi[ir]  =  taux[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauzi[ir]  =  tauz[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauxzi[ir]  =  tauxz[(i+rec_top_right_var)*Nx + j];
   }
 
 }
@@ -35,7 +33,7 @@ __kernel void Adj_injSrc(
                          __global float *Ataux, __global float *Atauz, __global float *Atauxz,
                          __global float *res_vx, __global float * res_vz,
                          __global float *res_taux, __global float *res_tauz, __global float *res_tauxz,
-                         int dxr, int recDepth, int first_rec, int last_rec
+                         int dxr
                          )
 
 
@@ -43,21 +41,15 @@ __kernel void Adj_injSrc(
   int i = get_global_id(0) ;
   int j = get_global_id(1) ;
 
-
-
-if(i%dxr==0 && j == recDepth){
+if(i%dxr==0 && j == rec_top_right_const){
     int ir =  i/dxr;
     // if (ir < n_main_rec){
-    Avx[(i+first_rec)*Nx + j] += res_vx[ir];
-    Avz[(i+first_rec)*Nx + j] += res_vz[ir];
-    Ataux[(i+first_rec)*Nx + j] += res_taux[ir];
-    Atauz[(i+first_rec)*Nx + j] += res_tauz[ir];
-    Atauxz[(i+first_rec)*Nx + j] += res_tauxz[ir];
+    Avx[(i+rec_top_right_var)*Nx + j] += res_vx[ir];
+    Avz[(i+rec_top_right_var)*Nx + j] += res_vz[ir];
+    Ataux[(i+rec_top_right_var)*Nx + j] += res_taux[ir];
+    Atauz[(i+rec_top_right_var)*Nx + j] += res_tauz[ir];
+    Atauxz[(i+rec_top_right_var)*Nx + j] += res_tauxz[ir];
     
-//      Apx[(i + first_rec)*Nx+ j] += res[ir]; 
-//      Apz[(i + first_rec)*Nx+ j] += res[ir];
-
-    // }
   }
 
 }

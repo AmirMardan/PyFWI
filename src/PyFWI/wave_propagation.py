@@ -83,14 +83,34 @@ class wave_preparation():
         
         self.data_guide_sampling = acq.discretized_acquisition_plan(data_guide, self.dh, inpa['npml'])
 
+        self.rec_top_left_const = np.int32(0)
+        self.rec_top_left_var = np.int32(0)
+        self.rec_top_right_const = np.int32(0)
+        self.rec_top_right_var = np.int32(0)
+        self.rec_surface_const = np.int32(0)
+        self.rec_surface_var = np.int32(0)
+               
         if inpa["acq_type"] == 0:
-            self.rec_cts = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
-            self.rec_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
+            self.rec_top_right_const = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
+            self.rec_top_right_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
             self.src_cts = src.i[0]
             
-        elif inpa["acq_type"] in [1, 2]:
-            self.rec_cts = np.int32(rec_loc[0, 1] / self.dh + inpa['npml'])
-            self.rec_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])[0]
+        elif inpa["acq_type"] == 1:
+            self.rec_surface_const = np.int32(rec_loc[0, 1] / self.dh + inpa['npml'])
+            self.rec_surface_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])[0]
+            self.src_cts = src.j[0]
+            
+        elif inpa["acq_type"] == 2:
+            a = np.int32(rec_loc[-self.n_well_rec, :]/ self.dh + inpa['npml'])
+            self.rec_top_right_const = np.copy(a[0])
+            self.rec_top_right_var = np.copy(a[1])
+            
+            a = np.int32(rec_loc[self.n_well_rec, :]/ self.dh + inpa['npml'])
+            self.rec_surface_const = np.copy(a[1])
+            self.rec_surface_var = np.copy(a[0])
+            
+            self.rec_top_left_const = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
+            self.rec_top_left_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
             self.src_cts = src.j[0]
 
         # ======== Parameters Boundary condition ======
@@ -434,12 +454,22 @@ class wave_preparation():
             #define left4   (i)*Nx + (j-4)
             
             #define src_depth %d
+            #define rec_top_left_const  %d
+            #define rec_top_left_var %d
+            #define rec_top_right_const %d
+            #define rec_top_right_var %d
+            #define rec_surface_const %d
+            #define rec_surface_var %d
+            
 
                 //float Diff_Forward(float , float , float , float , int );
                 //float Diff_Backward(float , float , float , float , int );
         """ % (self.tnz, self.tnx, self.ns, self.dt, self.dh, self.dh, self.npml,
                self.n_surface_rec, self.n_well_rec, self.sdo,
-               c1, c2, c3, c4, self.src_cts)
+               c1, c2, c3, c4, self.src_cts,
+               self.rec_top_left_const, self.rec_top_left_var,
+               self.rec_top_right_const, self.rec_top_right_var,
+               self.rec_surface_const, self.rec_surface_var)
 
         # Decide on openCl file based on medium type
         cl_file_name = "elastic.cl"
@@ -590,7 +620,10 @@ class wave_propagator(wave_preparation):
                                  )
             
             self.__kernel(s, coeff) 
-            
+        
+        if self.acq_type == 2:
+            for par in self.seismogram:
+                self.seismogram[par][:, :self.n_well_rec] = np.flip(self.seismogram[par][:, :self.n_well_rec], axis=1)
         return self.seismogram
             
     def __kernel(self, s, coeff=+1):
@@ -604,7 +637,7 @@ class wave_propagator(wave_preparation):
                             self.taux_b, self.tauz_b, self.tauxz_b,
                             self.seismogramid_vx_b, self.seismogramid_vz_b,
                             self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
-                            self.dxr, self.rec_cts, self.rec_var,
+                            self.dxr,
                             self.srcx[s], self.srcz[s],
                             src_kt_x, src_kt_z)
             
@@ -751,8 +784,7 @@ class wave_propagator(wave_preparation):
                                 self.ataux_b, self.atauz_b, self.atauxz_b,
                                 self.res_vx_b, self.res_vz_b,
                                 self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
-                                self.dxr, self.rec_cts,
-                                self.rec_var, self.rec_var)
+                                self.dxr)
                                 
             self.prg.Adj_update_tau(self.queue, (self.tnz, self.tnx), None,
                                     self.avx_b, self.avz_b,
@@ -780,9 +812,9 @@ class wave_propagator(wave_preparation):
             
             # Plotting wave propagation
             if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
-                cl.enqueue_copy(self.queue, vx_show, self.vx_b)
+                cl.enqueue_copy(self.queue, vx_show, self.taux_b)
 
-                cl.enqueue_copy(self.queue, adj_vx_show, self.avx_b)
+                cl.enqueue_copy(self.queue, adj_vx_show, self.ataux_b)
 
                 self.plot_propagation(vx_show, t, adj_vx_show)
                 
@@ -837,6 +869,11 @@ class wave_propagator(wave_preparation):
         """
         self.backward_show = show
         self.adjoint_buffer_preparing()
+        
+        # To reorder the receivers in the left well
+        if self.acq_type == 2:
+            for par in self.seismogram:
+                self.seismogram[par][:, :self.n_well_rec] = np.flip(self.seismogram[par][:, :self.n_well_rec], axis=1)
         
         res = acq.prepare_residual(res, 1)
         if show:
@@ -933,15 +970,6 @@ if __name__ == "__main__":
         rms, res = CF(d_est, d_obs)
 
         print(rms)
-    
-        # fig = plt.figure()
-        # ax = fig.add_subplot(1, 3, 1)
-        # seiplt.seismic_section(ax, d_obs['taux'], vmin=d_obs['taux'].min() / 5, vmax=d_obs['taux'].max() / 5)
-        # ax = fig.add_subplot(1, 3, 2)
-        # seiplt.seismic_section(ax, d_est['taux'])
-        # ax = fig.add_subplot(1, 3, 3)
-        # seiplt.seismic_section(ax, res['taux'])
-        # plt.show()
         
         grad = Lam.gradient(res, show=False)
         

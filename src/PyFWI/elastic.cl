@@ -44,7 +44,7 @@ __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *taux, __global float *tauz, __global float *tauxz,
                      __global float *seismogram_vxi,__global float *seismogram_vzi,
                      __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
-                     int dxr, int recDepth, int first_rec,
+                     int dxr,
                      int sourcex, int sourcez,
                      float srcx, float srcz)
 
@@ -58,35 +58,37 @@ __kernel void injSrc(__global float *vx,__global float *vz,
     tauz[center] += srcz;
   }
   
-  if(i%dxr==0 && j == recDepth){
-    int ir = i/dxr;      
-      seismogram_vxi[n_extera_rec -1 - ir]  =  vx[(i+first_rec)*Nx + j];
-      seismogram_vzi[n_extera_rec -1 - ir]  =  vz[(i+first_rec)*Nx + j];
-      seismogram_tauxi[n_extera_rec -1 - ir]  =  taux[(i+first_rec)*Nx + j];
-      seismogram_tauzi[n_extera_rec -1 - ir]  =  tauz[(i+first_rec)*Nx + j];
-      seismogram_tauxzi[n_extera_rec -1 - ir]  =  tauxz[(i+first_rec)*Nx + j];
+  if(i%dxr==0 && j == rec_top_left_const && i/dxr<n_extera_rec){
+    int ir = i/dxr;    
+
+      seismogram_vxi[ir]  =  vx[(i+ rec_top_left_var)*Nx + j];
+      seismogram_vzi[ir]  =  vz[(i+ rec_top_left_var)*Nx + j];
+      seismogram_tauxi[ir]  =  taux[(i+ rec_top_left_var)*Nx + j];
+      seismogram_tauzi[ir]  =  tauz[(i+ rec_top_left_var)*Nx + j];
+      seismogram_tauxzi[ir]  =  tauxz[(i+ rec_top_left_var)*Nx + j];
+      
   }
 
-  if(j%dxr==0 && i == recDepth){
+  if(j%dxr==0 && i == rec_surface_const){
     int ir =  j/dxr;
     if (ir < n_main_rec){
-        seismogram_vxi[n_extera_rec + ir]  =  vx[i*Nx+ (j + first_rec)];
-        seismogram_vzi[n_extera_rec + ir]  =  vz[i*Nx+ (j + first_rec)];
-        seismogram_tauxi[n_extera_rec + ir]  =  taux[i*Nx+ (j + first_rec)];
-        seismogram_tauzi[n_extera_rec + ir]  =  tauz[i*Nx+ (j + first_rec)];
-        seismogram_tauxzi[n_extera_rec + ir]  =  tauxz[i*Nx+ (j + first_rec)];
+        seismogram_vxi[n_extera_rec + ir]  =  vx[i*Nx + (j + rec_surface_var)];
+        seismogram_vzi[n_extera_rec + ir]  =  vz[i*Nx + (j + rec_surface_var)];
+        seismogram_tauxi[n_extera_rec + ir]  =  taux[i*Nx + (j + rec_surface_var)];
+        seismogram_tauzi[n_extera_rec + ir]  =  tauz[i*Nx + (j + rec_surface_var)];
+        seismogram_tauxzi[n_extera_rec + ir]  =  tauxz[i*Nx + (j + rec_surface_var)];
     }
   }
 
   int startOfThirdRec = n_extera_rec + n_main_rec;
 
-  if(i%dxr==0 && j == recDepth){
+  if(i%dxr==0 && j == rec_top_right_const){
     int ir = i/dxr;
-      seismogram_vxi[startOfThirdRec + ir]  =  vx[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_vzi[startOfThirdRec + ir]  =  vz[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauxi[startOfThirdRec + ir]  =  taux[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauzi[startOfThirdRec + ir]  =  tauz[(i+first_rec)*Nx + (Nx-j)];
-      seismogram_tauxzi[startOfThirdRec + ir]  =  tauxz[(i+first_rec)*Nx + (Nx-j)];
+      seismogram_vxi[startOfThirdRec + ir]  =  vx[(i+ rec_top_right_var)*Nx + j];
+      seismogram_vzi[startOfThirdRec + ir]  =  vz[(i+ rec_top_right_var)*Nx + j];
+      seismogram_tauxi[startOfThirdRec + ir]  =  taux[(i+ rec_top_right_var)*Nx + j];
+      seismogram_tauzi[startOfThirdRec + ir]  =  tauz[(i+ rec_top_right_var)*Nx + j];
+      seismogram_tauxzi[startOfThirdRec + ir]  =  tauxz[(i+ rec_top_right_var)*Nx + j];
   }
 
 }
@@ -176,16 +178,6 @@ __kernel void update_velx(int coeff,
     
     } 
 
-
-//    ====== CPML ===========
-//  vx[center]+= coeff * ((dt/rho[center]) * (DxmTx/nux[center] + psi_txxx[center]) +
-//             (dt/rho[center]) * (DzmTxz / nuz[center] + psi_txzz[center]));
-//
-//psi_txxx[center] = bx[center] * psi_txxx[center] + cx[center] * DxmTx;
-//psi_txzz[center] = bz[center] * psi_txzz[center] + cz[center] * DzmTxz;
-
-
-
 }
 
         ////////////////////////////////////////////////////////////////////////
@@ -226,16 +218,6 @@ if (coeff==1){
       vz[center] += coeff * dt * (rho_b[center] * (DzpTz + DxpTxz));
     } 
 
-
-    
-    //    ====== CPML ===========
-
-//  vz[center]+= coeff * ((dt/rho[center]) * (DzpTz / nuz[center] + psi_tzzz[center]) +
-//                        (dt/rho[center]) * (DxpTxz / nux[center] + psi_txzx[center]));
-//
-//
-//    psi_txzx[center] = bx[center] * psi_txzx[center] + cx[center] * DxpTxz;
-//    psi_tzzz[center] = bz[center] * psi_tzzz[center] + cz[center] * DzpTz;
 
 }
 
@@ -281,19 +263,6 @@ __kernel void update_tauz(int coeff,
       tauz[center]+= coeff* dt * ((lambda[center] + 2 * mu[center]) * DzmVz + lambda[center] * DxpVx);
     } 
 
-
-    //    ====== CPML ===========
-//  taux[center]+= coeff* (dt *(lambda[center] + 2 * mu[center]) * (DxpVx / nux[center]+ psi_vxx[center]) +
-//                        dt * lambda[center] * (DzmVz / nuz[center] + psi_vzz[center]));
-//
-//
-//  tauz[center]+= coeff* (dt * (lambda[center] + 2 * mu[center]) * (DzmVz / nuz[center] + psi_vzz[center]) +
-//                        dt * lambda[center] * (DxpVx / nux[center] + psi_vxx[center]));
-//
-//
-//  psi_vxx[center] = bx[center] * psi_vxx[center] + cx[center] * DxpVx;
-//  psi_vzz[center] = bz[center] * psi_vzz[center] + cz[center] * DzmVz;
-    
 }
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////
@@ -332,17 +301,6 @@ __kernel void update_tauxz(int coeff,
       tauxz[center] += coeff * dt * (mu[center] *(DxmVz + DzpVx));
     }
     
-    
-    //    ====== CPML ===========
-
-//  tauxz[center]+= coeff * (dt * mu[center] *(DxmVz / nux[center] + psi_vzx[center]) +
-//                           dt * mu[center] *(DzpVx / nuz[center] + psi_vxz[center]));
-//
-//
-//psi_vxz[center] = bz[center] * psi_vxz[center] + cz[center] * DzpVx;
-//psi_vzx[center] = bx[center] * psi_vzx[center] + cx[center] * DxmVz;
-
-
 
 }
 
@@ -357,52 +315,49 @@ __kernel void Adj_injSrc(
                          __global float *Ataux, __global float *Atauz, __global float *Atauxz,
                          __global float *res_vx, __global float * res_vz,
                          __global float *res_taux, __global float *res_tauz, __global float *res_tauxz,
-                         int dxr, int recDepth, int first_rec, int last_rec
+                         int dxr
                          )
 
 
 {
+
   int i = get_global_id(0) ;
-  int j = get_global_id(1) ;
+  int j = get_global_id(1);
 
-    if(i%dxr==0 && j == recDepth){
+// if (i>Nz - npml - rec_top_left_var){return;}
+
+    if(i%dxr==0 && j == rec_top_left_const && i/dxr<n_extera_rec){
     int ir = i/dxr;
-//    res[n_extera_rec -1 - ir]=res[n_extera_rec -1 - ir]/2;
-
-        Avx[(i+first_rec)*Nx + j] += res_vx[n_extera_rec -1 - ir];
-        Avz[(i+first_rec)*Nx + j] += res_vz[n_extera_rec -1 - ir];
-        Ataux[(i+first_rec)*Nx + j] += res_taux[n_extera_rec -1 - ir];
-        Atauz[(i+first_rec)*Nx + j] += res_tauz[n_extera_rec -1 - ir];
-        Atauxz[(i+first_rec)*Nx + j] += res_tauxz[n_extera_rec -1 - ir];
-        
+        // if (ir < n_extera_rec){
+        Avx[(i+ rec_top_left_var)*Nx + j] += res_vx[ir];
+        Avz[(i+ rec_top_left_var)*Nx + j] += res_vz[ir];
+        Ataux[(i+ rec_top_left_var)*Nx + j] += res_taux[ir];
+        Atauz[(i+ rec_top_left_var)*Nx + j] += res_tauz[ir];
+        Atauxz[(i+ rec_top_left_var)*Nx + j] += res_tauxz[ir];
+        // }
 }
-
-
-
-  if(j%dxr==0 && i == recDepth){
+  if(j%dxr==0 && i == rec_surface_const){
     int ir =  j/dxr;
     if (ir < n_main_rec){
-//      res[n_extera_rec + ir]=res[n_extera_rec + ir]/2;
 
-        Avx[i*Nx + (j+first_rec)] += res_vx[n_extera_rec + ir];
-        Avz[i*Nx + (j+first_rec)] += res_vz[n_extera_rec + ir];
-        Ataux[i*Nx + (j+first_rec)] += res_taux[n_extera_rec + ir];
-        Atauz[i*Nx + (j+first_rec)] += res_tauz[n_extera_rec + ir];
-        Atauxz[i*Nx + (j+first_rec)] += res_tauxz[n_extera_rec + ir];
+        Avx[i*Nx + (j+ rec_surface_var)] += res_vx[n_extera_rec + ir];
+        Avz[i*Nx + (j+ rec_surface_var)] += res_vz[n_extera_rec + ir];
+        Ataux[i*Nx + (j+ rec_surface_var)] += res_taux[n_extera_rec + ir];
+        Atauz[i*Nx + (j+ rec_surface_var)] += res_tauz[n_extera_rec + ir];
+        Atauxz[i*Nx + (j+ rec_surface_var)] += res_tauxz[n_extera_rec + ir];
         }
   }
 
   int startOfThirdRec = n_extera_rec + n_main_rec;
 
-  if(i%dxr==0 && j == recDepth){
+  if(i%dxr==0 && j == rec_top_right_const){
     int ir = i/dxr;
-//    res[startOfThirdRec + ir]=res[startOfThirdRec + ir]/2;
 
-      Avx[(i+first_rec)*Nx + (Nx-j)] += res_vx[startOfThirdRec + ir];
-      Avz[(i+first_rec)*Nx + (Nx-j)] += res_vz[startOfThirdRec + ir];
-      Ataux[(i+first_rec)*Nx + (Nx-j)] += res_taux[startOfThirdRec + ir];
-      Atauz[(i+first_rec)*Nx + (Nx-j)] += res_tauz[startOfThirdRec + ir];
-      Atauxz[(i+first_rec)*Nx + (Nx-j)] += res_tauxz[startOfThirdRec + ir];
+      Avx[(i+ rec_top_right_var)*Nx + j] += res_vx[startOfThirdRec + ir];
+      Avz[(i+ rec_top_right_var)*Nx + j] += res_vz[startOfThirdRec + ir];
+      Ataux[(i+ rec_top_right_var)*Nx + j] += res_taux[startOfThirdRec + ir];
+      Atauz[(i+ rec_top_right_var)*Nx + j] += res_tauz[startOfThirdRec + ir];
+      Atauxz[(i+ rec_top_right_var)*Nx + j] += res_tauxz[startOfThirdRec + ir];
       
 }
 
