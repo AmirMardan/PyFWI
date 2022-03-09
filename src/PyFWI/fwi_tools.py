@@ -603,7 +603,7 @@ class fdm(object):
         error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxm(x, 1) * y)
         error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzm(x, 1) * y)
 
-        print(f"Errors for derivatives are \n {error_x = }, {error_z = }")    
+        print("Errors for derivatives are \n {}, {}".format(error_x, error_z))    
 
     def dt_computation(self, vp_max, dx, dz=None):
         '''
