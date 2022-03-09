@@ -1,73 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Synthetic model &mdash; PyFWI 0.1.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Synthetic model &mdash; PyFWI 0.1.4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Gradient estimation" href="inversion.html" />
-    <link rel="prev" title="Installation" href="init.html" /> 
+    <link rel="prev" title="Installation" href="example.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PyFWI
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -75,22 +37,11 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="init.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="init.html#example">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html#Example">Example</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Forward modeling</span></p>
 <ul class="current">
@@ -115,80 +66,63 @@
 <li class="toctree-l1"><a class="reference internal" href="rock_physics.html">Rock physics</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PyFWI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Synthetic model</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/sub_doc/forward_modeling.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="module-PyFWI.model_dataset">
-<span id="synthetic-model"></span><h1>Synthetic model<a class="headerlink" href="#module-PyFWI.model_dataset" title="Permalink to this headline">¶</a></h1>
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-PyFWI.model_dataset">
+<span id="synthetic-model"></span><h1>Synthetic model<a class="headerlink" href="#module-PyFWI.model_dataset" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">Circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">Circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular.Hu_circles">
-<span class="sig-name descname"><span class="pre">Hu_circles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.Hu_circles" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Hu_circles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.Hu_circles" title="Permalink to this definition"></a></dt>
 <dd><p>Hu_circles a model including porosity, clay content, and saturation.</p>
 <p>This method creates a model including porosity, clay content, and saturation.
 It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues.
@@ -221,7 +155,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular.louboutin">
-<span class="sig-name descname"><span class="pre">louboutin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.louboutin" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">louboutin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.louboutin" title="Permalink to this definition"></a></dt>
 <dd><p>louboutin Generate perturbation model based on only vp.</p>
 <p>[extended_summary]</p>
 <dl class="field-list simple">
@@ -236,7 +170,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular.perturbation_dv">
-<span class="sig-name descname"><span class="pre">perturbation_dv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.perturbation_dv" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">perturbation_dv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.perturbation_dv" title="Permalink to this definition"></a></dt>
 <dd><p>perturbation_dv creates perturbation model in different locations</p>
 <p>perturbation_dv creates perturbation model in different locations
 based on vp, vs, density</p>
@@ -252,7 +186,7 @@ based on vp, vs, density</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Circular.yang">
-<span class="sig-name descname"><span class="pre">yang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.yang" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">yang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Circular.yang" title="Permalink to this definition"></a></dt>
 <dd><p>Yang et al., 2018 for Truncated Newton method.</p>
 <p>[extended_summary]</p>
 <dl class="field-list simple">
@@ -269,23 +203,23 @@ based on vp, vs, density</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Laminar">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">Laminar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">Laminar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Laminar.Hu_laminar">
-<span class="sig-name descname"><span class="pre">Hu_laminar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.Hu_laminar" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Hu_laminar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.Hu_laminar" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.Laminar.dupuy">
-<span class="sig-name descname"><span class="pre">dupuy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.dupuy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">dupuy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.Laminar.dupuy" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.ModelGenerator">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">ModelGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">ModelGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#PyFWI.model_dataset.Circular" title="PyFWI.model_dataset.Circular"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.model_dataset.Circular</span></code></a>, <a class="reference internal" href="#PyFWI.model_dataset.Laminar" title="PyFWI.model_dataset.Laminar"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyFWI.model_dataset.Laminar</span></code></a></p>
 <p>ModelGenerator provides synthetic models for your research.</p>
 <dl class="field-list simple">
@@ -295,7 +229,7 @@ based on vp, vs, density</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.ModelGenerator.marmousi">
-<span class="sig-name descname"><span class="pre">marmousi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator.marmousi" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">marmousi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vintage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.ModelGenerator.marmousi" title="Permalink to this definition"></a></dt>
 <dd><p>marmousi method generates the Maemousi-2 model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -317,7 +251,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.add_anomaly">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_anomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anomaly</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circle'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_anomaly" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_anomaly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anomaly</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circle'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_anomaly" title="Permalink to this definition"></a></dt>
 <dd><p>add_anomaly adds anomaly to the previously created model.</p>
 <p>This mathod add an anomally to the Earth mode that is already createad.</p>
 <dl class="field-list simple">
@@ -343,7 +277,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.add_circle">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_circle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circle_prop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_circle" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_circle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circle_prop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_circle" title="Permalink to this definition"></a></dt>
 <dd><p>add_circle adds a circle to the model</p>
 <p>This function generates a circle in the model.</p>
 <dl class="field-list simple">
@@ -367,7 +301,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.add_layer">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_layer" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">add_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.add_layer" title="Permalink to this definition"></a></dt>
 <dd><p>add_layer add alyer to the model</p>
 <p>This function add a layer to the mdoel</p>
 <dl class="field-list simple">
@@ -393,7 +327,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.background">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">background</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.background" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">background</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.background" title="Permalink to this definition"></a></dt>
 <dd><p>add_layer genearte a layer of property.</p>
 <p>This method generates one layer with property “bp”</p>
 <dl class="field-list simple">
@@ -405,7 +339,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.model_resizing">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_resizing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ez</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_resizing" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_resizing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ez</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_resizing" title="Permalink to this definition"></a></dt>
 <dd><p>model_resizing resizes your model which is dictionary by cutting and interpolation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -429,7 +363,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.model_smoother">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_smoother</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_smoother" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">model_smoother</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.model_smoother" title="Permalink to this definition"></a></dt>
 <dd><p>model_smoother smoothens all parameters of inside model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -451,7 +385,7 @@ based on vp, vs, density</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.model_dataset.pcs_perturbation">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">pcs_perturbation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_back</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_circle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.pcs_perturbation" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.model_dataset.</span></span><span class="sig-name descname"><span class="pre">pcs_perturbation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_back</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_circle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.model_dataset.pcs_perturbation" title="Permalink to this definition"></a></dt>
 <dd><p>pcs_perturbation a model including porosity, clay content, and saturation.</p>
 <p>This function creates a model including porosity, clay content, and saturation.
 It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues.
@@ -482,12 +416,12 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-PyFWI.acquisition">
-<span id="acquisition"></span><h1>Acquisition<a class="headerlink" href="#module-PyFWI.acquisition" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="module-PyFWI.acquisition">
+<span id="acquisition"></span><h1>Acquisition<a class="headerlink" href="#module-PyFWI.acquisition" title="Permalink to this headline"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.AcqParameters">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">AcqParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.AcqParameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">AcqParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.AcqParameters" title="Permalink to this definition"></a></dt>
 <dd><p>A function to define the acquisition based on user’s demand</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -517,7 +451,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py class">
 <dt class="sig sig-object py" id="PyFWI.acquisition.Source">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">Source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">Source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class for defining different types of sources.</p>
 <dl class="field-list simple">
@@ -531,7 +465,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.acquisition.Source.Ricker">
-<span class="sig-name descname"><span class="pre">Ricker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fdom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source.Ricker" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Ricker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fdom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source.Ricker" title="Permalink to this definition"></a></dt>
 <dd><p>Amethod to generate Ricker wavelet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -542,7 +476,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.acquisition.Source.delta">
-<span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source.delta" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.Source.delta" title="Permalink to this definition"></a></dt>
 <dd><p>A method to generate spike.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -555,7 +489,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.SurfaceSeismic">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">SurfaceSeismic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.SurfaceSeismic" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">SurfaceSeismic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.SurfaceSeismic" title="Permalink to this definition"></a></dt>
 <dd><p>A function to design a surface seismic acquisition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -580,7 +514,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.acquisition_plan">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">acquisition_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.acquisition_plan" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">acquisition_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_well_rec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.acquisition_plan" title="Permalink to this definition"></a></dt>
 <dd><p>acquisition_plan generates the matrix of acquisition plan</p>
 <p>[extended_summary]</p>
 <dl class="field-list simple">
@@ -606,7 +540,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.crosswell">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">crosswell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.crosswell" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">crosswell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsetz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.crosswell" title="Permalink to this definition"></a></dt>
 <dd><p>A function to design a crosswell acquisition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -631,7 +565,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.discretized_acquisition_plan">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">discretized_acquisition_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_guide</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npml</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.discretized_acquisition_plan" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">discretized_acquisition_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_guide</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npml</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.discretized_acquisition_plan" title="Permalink to this definition"></a></dt>
 <dd><p>discretized_acquisition_plan discretizes the matrix of acquisition plan</p>
 <p>[extended_summary]</p>
 <dl class="field-list simple">
@@ -653,7 +587,7 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.acquisition.prepare_residual">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">prepare_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.prepare_residual" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.acquisition.</span></span><span class="sig-name descname"><span class="pre">prepare_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.acquisition.prepare_residual" title="Permalink to this definition"></a></dt>
 <dd><p>prepare_residual prepares the seismic data as the desire format of FWI class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -671,12 +605,12 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="wave-propagation">
-<h1>Wave propagation<a class="headerlink" href="#wave-propagation" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="wave-propagation">
+<h1>Wave propagation<a class="headerlink" href="#wave-propagation" title="Permalink to this headline"></a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="PyFWI.wave_propagation.wave_propagator.forward_modeling">
-<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">forward_modeling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.forward_modeling" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">wave_propagator.</span></span><span class="sig-name descname"><span class="pre">forward_modeling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.wave_propagation.wave_propagator.forward_modeling" title="Permalink to this definition"></a></dt>
 <dd><p>forward_modeling performs the forward modeling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -694,54 +628,37 @@ Direct updating of rock-physics properties using elastic full-waveform inversion
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="inversion.html" class="btn btn-neutral float-right" title="Gradient estimation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="init.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2022, Amir.
-
-    </p>
+    <p>&#169; Copyright 2022, Amir.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

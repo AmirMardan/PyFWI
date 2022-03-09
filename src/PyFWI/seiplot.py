@@ -69,10 +69,10 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False,
         aspect = (data.shape[0]/data.shape[1])
         ax.set_aspect(aspect)
 
-    if not x_axis:
+    if np.any(x_axis) is None:
         x_axis = np.arange(data.shape[1])
     
-    if not t_axis:
+    if np.any(t_axis) is None:
         t_axis = np.arange(data.shape[0])
 
     im = ax.pcolor(x_axis, t_axis, data,  cmap='gray', shading='nearest', **kargs)

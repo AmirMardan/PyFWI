@@ -1,72 +1,34 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Rock physics &mdash; PyFWI 0.1.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Rock physics &mdash; PyFWI 0.1.4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="Regularization" href="tools.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PyFWI
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -74,18 +36,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="init.html">Installation</a></li>
@@ -123,78 +74,61 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PyFWI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Rock physics</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/sub_doc/rock_physics.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="rock-physics">
-<h1>Rock physics<a class="headerlink" href="#rock-physics" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-PyFWI.rock_physics">
-<span id="han-model"></span><h2>Han model<a class="headerlink" href="#module-PyFWI.rock_physics" title="Permalink to this headline">¶</a></h2>
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="rock-physics">
+<h1>Rock physics<a class="headerlink" href="#rock-physics" title="Permalink to this headline"></a></h1>
+<section id="module-PyFWI.rock_physics">
+<span id="han-model"></span><h2>Han model<a class="headerlink" href="#module-PyFWI.rock_physics" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="PyFWI.rock_physics.Han">
-<span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">Han</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.Han" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">Han</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.rock_physics.Han" title="Permalink to this definition"></a></dt>
 <dd><p>Han estimates velocity based on porosity and clasy content</p>
 <p>Han found empirical regressions relating ultrasonic (laboratory) velocities to porosity and clay content</p>
 <dl class="field-list simple">
@@ -225,9 +159,9 @@ vs = S-wave velocity (km/s)</p>
 </ol>
 </dd></dl>
 
-</div>
-<div class="section" id="drained-k-and">
-<h2>Drained <em>K</em> and μ<a class="headerlink" href="#drained-k-and" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="drained-k-and">
+<h2>Drained <em>K</em> and μ<a class="headerlink" href="#drained-k-and" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">drained_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span></em><span class="sig-paren">)</span></dt>
@@ -255,15 +189,15 @@ vs = S-wave velocity (km/s)</p>
 Geophysics</p>
 </dd></dl>
 
-</div>
-<div class="section" id="voigt-berie">
-<h2>Voigt Berie<a class="headerlink" href="#voigt-berie" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="biot-gassmann-model">
-<h2>Biot-Gassmann model<a class="headerlink" href="#biot-gassmann-model" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="weighted-averaging">
-<h2>Weighted averaging<a class="headerlink" href="#weighted-averaging" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="voigt-berie">
+<h2>Voigt Berie<a class="headerlink" href="#voigt-berie" title="Permalink to this headline"></a></h2>
+</section>
+<section id="biot-gassmann-model">
+<h2>Biot-Gassmann model<a class="headerlink" href="#biot-gassmann-model" title="Permalink to this headline"></a></h2>
+</section>
+<section id="weighted-averaging">
+<h2>Weighted averaging<a class="headerlink" href="#weighted-averaging" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">weighted_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prop1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume1</span></span></em><span class="sig-paren">)</span></dt>
@@ -286,9 +220,9 @@ calculate the wighted average of properties</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="switch-lmd-to-vd">
-<h2>Switch lmd to vd<a class="headerlink" href="#switch-lmd-to-vd" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="switch-lmd-to-vd">
+<h2>Switch lmd to vd<a class="headerlink" href="#switch-lmd-to-vd" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">lmd2vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span></dt>
@@ -311,9 +245,9 @@ calculate the wighted average of properties</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="switch-vd-to-lmd">
-<h2>Switch vd to lmd<a class="headerlink" href="#switch-vd-to-lmd" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="switch-vd-to-lmd">
+<h2>Switch vd to lmd<a class="headerlink" href="#switch-vd-to-lmd" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">PyFWI.rock_physics.</span></span><span class="sig-name descname"><span class="pre">vd2lmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span></dt>
@@ -336,54 +270,37 @@ calculate the wighted average of properties</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tools.html" class="btn btn-neutral float-left" title="Regularization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2022, Amir.
-
-    </p>
+    <p>&#169; Copyright 2022, Amir.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
