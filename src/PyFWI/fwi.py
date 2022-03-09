@@ -183,7 +183,7 @@ class FWI(Wave):
             m_opt, hist, d = fmin_l_bfgs_b(fun, m_opt, jac, args=[m_1, m1, freq],
                                            m=10, factr=1e7, pgtol=1e-8, iprint=99,
                                            bounds=None, maxfun=15000, maxiter=ITER,
-                                           disp=None, callback=None, maxls=15)
+                                           disp=None, callback=None, maxls=10)
 
             # print(m_opt.max(), m_opt.min())
             rms_hist.append(hist)
@@ -231,9 +231,9 @@ class FWI(Wave):
                                                   tikhonov_properties=self.tikhonov_properties
                                                   )
         
-        rms_model_relation, grad_model_relation = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend)
+        rms_model_relation, grad_model_relation = self.regularization.parameter_relation(mtotal, self.param_relation, k0, kend, freq)
         
-        rms_mp, grad_mp = self.regularization.priori_regularization(m0, self.prior_model, k0, kend)
+        rms_mp, grad_mp = self.regularization.priori_regularization(m0, self.prior_model, k0, kend, freq)
         
         rms = rms_data + rms_reg + rms_model_relation + rms_mp
         grad = grad_data[shape_1: shape_1 + shape0] + \
@@ -241,9 +241,8 @@ class FWI(Wave):
             grad_model_relation[shape_1: shape_1 + shape0] + \
             grad_mp
         
-        
         print(m0.min(), m0.max())
-        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}, rms_mp: {}, rms_model_realtion: {}".format(freq, rms, rms_reg, rms_data, rms_mp, rms_model_relation))
+        print(" for f= {}: rms is: {} with rms_reg: {}, and rms_data: {}, rms_mp: {}, rms_model_relation: {}".format(freq, rms, rms_reg, rms_data, rms_mp, rms_model_relation))
 
         return rms, grad
     
