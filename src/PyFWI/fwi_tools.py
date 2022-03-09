@@ -312,7 +312,7 @@ class regularization:
 
         return rms, grad
 
-    def parameter_relation(self, m0, models, k0, kend):
+    def parameter_relation(self, m0, models, k0, kend, freq):
         """
         parameter_relation considers regularization for the 
         relation between parameters.
@@ -346,6 +346,12 @@ class regularization:
             model = models[param]['model']
             lam = models[param]['lam']
             
+            desired_freq  = models[param]['freqs']
+        
+            if freq not in np.array(desired_freq).reshape(-1): 
+                # has to be written like that to work eaither if freq is given as int or list
+                return 0.0, grad
+            
             par_int = np.int32(par)
             if par_int[1] in np.arange(k0+1, kend+1):
                 pre21 = model(m0[(par_int[0]-1) * self.n_elements:par_int[0] * self.n_elements])
@@ -357,7 +363,7 @@ class regularization:
                 
         return rms, grad
     
-    def priori_regularization(self, m0, regularization_dict, k0, kend):
+    def priori_regularization(self, m0, regularization_dict, k0, kend, freq):
         """
         priori_regularization consider the priori information regularization.
         
@@ -389,9 +395,12 @@ class regularization:
         
         m0 = np.copy(m0[: kend * self.n_elements])
         mp = np.zeros(m0.shape)
+        desired_freq  = regularization_dict['freqs']
+        
+        if freq not in np.array(desired_freq).reshape(-1):
+            return 0.0, np.zeros(m0.shape, np.float64)
         
         lam = regularization_dict['lam']
-        
         
         mp_dict = regularization_dict['mp']
         
@@ -1506,11 +1515,11 @@ def cost_seismic(d_pre0, d_obs0, fun,
                                    params_oh=params_oh)
 
     adj_src = {}
-    adj_src['vx'] = adj_src_ndarray[0, :, :]
-    adj_src['vz'] = adj_src_ndarray[1, :, :]
-    adj_src['taux'] = adj_src_ndarray[2, :, :]
-    adj_src['tauz'] = adj_src_ndarray[3, :, :]
-    adj_src['tauxz'] = adj_src_ndarray[4, :, :]
+    adj_src['vx'] = adj_src_ndarray[0, :, :].astype(np.float32)
+    adj_src['vz'] = adj_src_ndarray[1, :, :].astype(np.float32)
+    adj_src['taux'] = adj_src_ndarray[2, :, :].astype(np.float32)
+    adj_src['tauz'] = adj_src_ndarray[3, :, :].astype(np.float32)
+    adj_src['tauxz'] = adj_src_ndarray[4, :, :].astype(np.float32)
 
     return rms, adj_src
 
