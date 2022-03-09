@@ -331,7 +331,7 @@ def drained_moduli(phi, k_s, g_s, cs):
     Geophysics
     """
     if (phi >= 1).any():
-        phi /= 100
+        phi = np.copy(phi) / 100
 
     k_d = k_s * ((1 - phi) / (1 + cs * phi))
 
@@ -358,7 +358,7 @@ def biot_gassmann(phi, k_f, k_s, k_d):
 
 def delta_biot_gassmann(phi, k_f, k_s, k_d):
     if (phi >= 1).any():
-        phi /= 100
+        phi = np.copy(phi) / 100
     return ((1 - phi) / phi) * (k_f / k_s) * (1 - (k_d / (k_s - k_s * phi)))
 
 
