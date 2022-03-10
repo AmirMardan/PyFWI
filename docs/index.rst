@@ -13,7 +13,7 @@ This packages is implemented in time domain and coded using GPU programming (PyO
    :maxdepth: 1
    :caption: Getting started
 
-   sub_doc/init
+   sub_doc/example
 
 .. toctree::
    :maxdepth: 1
