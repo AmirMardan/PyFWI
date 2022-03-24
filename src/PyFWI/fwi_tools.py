@@ -1736,6 +1736,51 @@ def dict_summation(dict1, dict2, division=1.0):
 
     return sum_val
 
+
+def parameter_relation(m1, m2, order, idx=20, idx_test=-20, show=False):
+ 
+    x = m1[:, idx]
+    y = m2[:, idx]
+    
+    model = np.poly1d(np.polyfit(x, y, order))
+    
+    if show:
+    
+        x_test = m1[:, idx_test]
+        y_test = m2[:, idx_test]
+
+        y_test_pre = model(x_test)
+        y_train_pre = model(x)
+        
+        fig = plt.figure(figsize=(8,4))
+        ax = fig.add_subplot(1, 2, 1)
+        ax.plot(x, y, '*', label='True')
+        ax.plot(x, y_train_pre, label='Predicted')
+        res = y - y_train_pre
+        l2 = np.linalg.norm(res, ord=2)
+        ax.set_title(f'Training data rms: {l2:1.3}')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.legend()
+        ax.grid()
+        
+        ax = fig.add_subplot(1, 2, 2)
+        ax.plot(x_test, y_test, '*', label='True')
+        ax.plot(x_test, y_test_pre, 'o', label='Predicted')
+        ax.plot([x_test, x_test], [y_test, y_test_pre], 'r--')
+        res = y_test_pre - y_test
+        l2 = np.linalg.norm(res, ord=2)
+        ax.set_title(f'Test data rms: {l2:1.3}')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.legend()
+        ax.grid()
+        plt.subplots_adjust(wspace=0.15)
+        plt.show(block=False)
+        
+    return model
+
+
 if __name__ == "__main__":
     R = recorder(100, np.array([10]), 10, 1)
     print(R.vx.shape)
