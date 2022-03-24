@@ -405,7 +405,7 @@ class regularization:
         mp_dict = regularization_dict['mp']
         
         for i in range(kend - k0):
-            mp[i * self.n_elements: (i + 1) * self.n_elements] = mp_dict[[*mp_dict][i]].reshape(-1)
+            mp[i * self.n_elements: (i + 1) * self.n_elements] = mp_dict[[*mp_dict][k0 + i]].reshape(-1)
                     
         ii = jj = np.arange((kend - k0) * self.n_elements)
         v = np.ones((ii.shape)) / np.var(mp)
