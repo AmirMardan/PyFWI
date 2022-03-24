@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 try:
     from PyFWI.model_dataset import ModelGenerator
 except:
-    from PyFWI.model_dataset import ModelGenerator
+    from model_dataset import ModelGenerator
 
 def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     """

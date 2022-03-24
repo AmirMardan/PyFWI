@@ -8,12 +8,18 @@ from scipy.signal import butter, hilbert, freqz
 import numpy.fft as fft
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
-
-from PyFWI.seismic_io import load_mat
-from PyFWI import rock_physics as rp 
-import PyFWI.processing as seis_process
 from scipy.ndimage import gaussian_filter
 
+try:
+    from PyFWI.seismic_io import load_mat
+    from PyFWI import rock_physics as rp 
+    import PyFWI.processing as seis_process
+except:
+    from seismic_io import load_mat
+    import rock_physics as rp 
+    import processing as seis_process
+    
+    
 def derivative(nx, nz, dx, dz, order):
     """
     Compute spatial derivative operators for grid _cells_

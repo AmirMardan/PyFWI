@@ -1,9 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.core.shape_base import block
-import PyFWI.seismic_io as io
 
-from PyFWI.seiplot import seismic_section
+try:
+    from PyFWI.seiplot import seismic_section
+    import PyFWI.seismic_io as io
+except:
+    from seiplot import seismic_section
+    import seismic_io as io
 
 class Gain():
 

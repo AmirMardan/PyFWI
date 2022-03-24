@@ -1,18 +1,24 @@
 import numpy as np
 from numpy.core.shape_base import block
 # from PyFWI.optimization import FWI
-import PyFWI.processing as seis_process
-import PyFWI.fwi_tools as tools
-from PyFWI.fwi_tools import recorder, expand_model, CPML
 import pyopencl as cl
 import os
 from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
-import PyFWI.acquisition as acq
 
-
+try:
+    import PyFWI.processing as seis_process
+    import PyFWI.fwi_tools as tools
+    from PyFWI.fwi_tools import recorder, expand_model, CPML
+    import PyFWI.acquisition as acq
+except:
+    import processing as seis_process
+    import fwi_tools as tools
+    from fwi_tools import recorder, expand_model, CPML
+    import acquisition as acq
+  
 class wave_preparation():
     def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0):
         '''

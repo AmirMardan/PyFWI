@@ -1,9 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.core.defchararray import add
-import PyFWI.rock_physics as rp
 import hdf5storage as hdf5
-from PyFWI import seismic_io as io
 from scipy.ndimage.filters import gaussian_filter
 import os
 from scipy import interpolate as intp
@@ -11,6 +9,14 @@ import requests
 import shutil
 import segyio
 import copy
+
+try:
+  import PyFWI.rock_physics as rp
+  import PyFWI.seismic_io as io
+
+except:
+  import rock_physics as rp
+  import seismic_io as io
 
 class Circular():
     def __init__(self, name):
