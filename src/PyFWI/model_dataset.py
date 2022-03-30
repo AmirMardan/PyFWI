@@ -16,7 +16,7 @@ class Circular():
     def __init__(self, name):
         self.name = name
         
-    def louboutin(self, vintage, smoothing):
+    def louboutin(self, vintage=1, smoothing=0):
         """
         louboutin Generate perturbation model based on only vp.
 
@@ -47,7 +47,7 @@ class Circular():
                
         return model
     
-    def yang(self, vintage, smoothing):
+    def yang(self, vintage=1, smoothing=0):
         """
         Yang et al., 2018 for Truncated Newton method.
 
@@ -77,9 +77,9 @@ class Circular():
                
         return model
 
-    def Hu_circles(self, vintage, smoothing):
+    def hu_circles(self, vintage, smoothing):
         """
-        Hu_circles a model including porosity, clay content, and saturation.
+        hu_circles a model including porosity, clay content, and saturation.
 
         This method creates a model including porosity, clay content, and saturation.
         It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues. 
@@ -148,7 +148,7 @@ class Laminar():
     def __init__(self,name) -> None:
         self.name = name
         
-    def Hu_laminar(self, vintage=1, smoothing=0):
+    def hu_laminar(self, vintage=1, smoothing=0):
         
         # Based on Hu et al., 2020, Direct rock physics inversion 
         

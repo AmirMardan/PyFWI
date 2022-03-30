@@ -1,9 +1,10 @@
 import numpy as np
+import sys
+sys.path.append('/Users/amir/repos/seismic/src/')
 from numpy.core.shape_base import block
-# from PyFWI.optimization import FWI
 import PyFWI.processing as seis_process
 import PyFWI.fwi_tools as tools
-from PyFWI.fwi_tools import recorder, expand_model, CPML
+from PyFWI.fwi_tools import Recorder, expand_model, CPML
 import pyopencl as cl
 import os
 from pyopencl.tools import get_test_platforms_and_devices
@@ -11,9 +12,9 @@ import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
 import PyFWI.acquisition as acq
+from PyFWI.grad_swithcher import grad_lmd_to_vd
 
-
-class wave_preparation():
+class WavePreparation:
     def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0):
         '''
         A class to prepare the variable and basic functions for wave propagation.
@@ -130,10 +131,10 @@ class wave_preparation():
             'tauxz': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
         }
 
-        self.D = tools.fdm(order=self.sdo * 2)
+        self.D = tools.Fdm(order=self.sdo * 2)
         
         self.components = components
-        self.R = recorder(self.nt, self.rec_loc, self.ns, self.dh)
+        self.R = Recorder(self.nt, self.rec_loc, self.ns, self.dh)
         
         # To call openCl
         # Select the platform (if not provided, pick 0)
@@ -573,7 +574,7 @@ class wave_preparation():
                                hostbuf=self.lam)
         
         
-class wave_propagator(wave_preparation):
+class WavePropagator(WavePreparation):
     """
     wave_propagator is a class to handle the forward modeling and gradient calculation.
 
@@ -597,7 +598,7 @@ class wave_propagator(wave_preparation):
         Seismic output
     """
     def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0):
-        wave_preparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
+        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
     
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
@@ -884,7 +885,7 @@ class wave_propagator(wave_preparation):
         glam, gmu, grho0 = self.gradient_reading()
         
         if parameterization == 'dv':
-            gvp, gvs, grho = tools.grad_lmd_to_vd(glam, gmu, grho0,
+            gvp, gvs, grho = grad_lmd_to_vd(glam, gmu, grho0,
                                               self.lam[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.mu[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml],
                                               self.rho[self.npml: self.tnz-self.npml, self.npml: self.tnx-self.npml])
@@ -906,10 +907,10 @@ if __name__ == "__main__":
     import PyFWI.acquisition as acq
     import PyFWI.seiplot as splt
     
-    GRADIENT = True  #  False  #
-    INVERSION = False
+    GRADIENT = 1 
+    INVERSION = 0
     
-    model_gen = md.ModelGenerator('yang') # louboutin') # 
+    model_gen = md.ModelGenerator('louboutin') # 
     
     model = model_gen()
     model['vs'] *=0
@@ -922,7 +923,7 @@ if __name__ == "__main__":
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
     inpa['device'] = 1
-    inpa['energy_balancing'] = True
+    inpa['energy_balancing'] = False
     inpa['seisout'] = 0
     
     chpr = 100
@@ -930,7 +931,7 @@ if __name__ == "__main__":
     fdom = 25
     inpa['fn'] = 125
     vp = model['vp']
-    D = seis_process.derivatives(order=sdo)
+    D = tools.Fdm(order=sdo)
     dh = vp.min()/(D.dh_n * inpa['fn'])
     dh = 2.
     inpa['dh'] = dh
@@ -948,13 +949,14 @@ if __name__ == "__main__":
     ns = 1
     inpa['acq_type'] = 0
 
-    src_loc, rec_loc, n_surface_rec, n_well_rec = acq.AcqParameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
+    src_loc, rec_loc, n_surface_rec, n_well_rec = acq.acq_parameters(ns, inpa['rec_dis'], offsetx, depth, inpa['dh'], sdo, inpa['acq_type'])
     
     src = acq.Source(src_loc, inpa['dh'], inpa['dt'])
     src.Ricker(fdom)
     
-    W = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
+    W = WavePropagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
     d_obs = W.forward_modeling(model, False)
+    d_obs = acq.prepare_residual(d_obs, 1)
     
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -963,8 +965,9 @@ if __name__ == "__main__":
     m0 = model_gen(vintage=1, smoothing=True)
     
     if GRADIENT:
-        Lam = wave_propagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=inpa['seisout'])
+        Lam = WavePropagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=inpa['seisout'])
         d_est = Lam.forward_modeling(m0, show=False)
+        d_est = acq.prepare_residual(d_est, 1)
 
         CF = tools.CostFunction('l2')
         rms, res = CF(d_est, d_obs)
@@ -978,10 +981,10 @@ if __name__ == "__main__":
         a=1
     
     elif INVERSION:
-        import PyFWI.optimization as fwi
+        import PyFWI.fwi as fwi
         
-        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4)
-        inverted_model, rms = FWI(m0, method=1, iter=3, freqs=[25])
+        FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4, param_functions=None)
+        inverted_model, rms = FWI(m0, method=2, iter=[3], freqs=[25], n_params=1, k_0=1, k_end=2)
         
         
         splt.earth_model(inverted_model, cmap='jet')

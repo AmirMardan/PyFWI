@@ -1,25 +1,25 @@
 Regularization 
 ==============
 
-.. autoclass:: PyFWI.fwi_tools.regularization
+.. autoclass:: PyFWI.fwi_tools.Regularization
     :exclude-members:
 
 Total variation (TV) 
 --------------------
 
-.. automethod:: PyFWI.fwi_tools.regularization.tv
+.. automethod:: PyFWI.fwi_tools.Regularization.tv
 
 
 Tikhonov  
 ---------
 
-.. automethod:: PyFWI.fwi_tools.regularization.tikhonov
+.. automethod:: PyFWI.fwi_tools.Regularization.tikhonov
 
 
 Parameter relation  
 -------------------
 
-.. automethod:: PyFWI.fwi_tools.regularization.parameter_relation   
+.. automethod:: PyFWI.fwi_tools.Regularization.parameter_relation   
        
 Gradient switching
 ===================
@@ -27,13 +27,13 @@ Gradient switching
 lmd to vd
 ---------------------------------
 
-.. automethod:: PyFWI.fwi_tools.grad_lmd_to_vd
+.. automethod:: PyFWI.grad_swithcher.grad_lmd_to_vd
 
 
 vd to lmd
 ---------------------------------
 
-.. automethod:: PyFWI.fwi_tools.grad_vd_to_lmd
+.. automethod:: PyFWI.grad_swithcher.grad_vd_to_lmd
 
 Cost Function
 =============

@@ -368,7 +368,7 @@ div.rendered_html tbody tr:hover {
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">$ </span>pip install PyFWI
 </pre></div>
 </div>
-<p>n OS or</p>
+<p>on OS or</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">$ </span>py -m pip install PyFWI
 </pre></div>
 </div>
@@ -378,7 +378,7 @@ div.rendered_html tbody tr:hover {
 <h1>Example<a class="headerlink" href="#Example" title="Permalink to this headline"></a></h1>
 <p>In this simple example, we use PyFWI to do forward modeling. So, we need to first import the following packages</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -396,7 +396,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>A simple model can be created by using <code class="docutils literal notranslate"><span class="pre">model_dataset</span></code> module as</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Model</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">ModelGenerator</span><span class="p">(</span><span class="s1">&#39;louboutin&#39;</span><span class="p">)</span>
@@ -416,7 +416,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Then we need to create an input dictionary as follow</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_shape</span> <span class="o">=</span> <span class="n">model</span><span class="p">[[</span><span class="o">*</span><span class="n">model</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span>
@@ -442,13 +442,13 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Now, we obtain the location of sources and receivers based on specified parameters.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">offsetx</span> <span class="o">=</span> <span class="n">offsetx</span> <span class="o">=</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;dh&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">model_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;dh&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">model_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="n">src_loc</span><span class="p">,</span> <span class="n">rec_loc</span><span class="p">,</span> <span class="n">n_surface_rec</span><span class="p">,</span> <span class="n">n_well_rec</span> <span class="o">=</span> <span class="n">acq</span><span class="o">.</span><span class="n">AcqParameters</span><span class="p">(</span><span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;ns&#39;</span><span class="p">],</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;rec_dis&#39;</span><span class="p">],</span> <span class="n">offsetx</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;dh&#39;</span><span class="p">],</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;sdo&#39;</span><span class="p">],</span>
+<span class="n">src_loc</span><span class="p">,</span> <span class="n">rec_loc</span><span class="p">,</span> <span class="n">n_surface_rec</span><span class="p">,</span> <span class="n">n_well_rec</span> <span class="o">=</span> <span class="n">acq</span><span class="o">.</span><span class="n">acq_parameters</span><span class="p">(</span><span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;ns&#39;</span><span class="p">],</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;rec_dis&#39;</span><span class="p">],</span> <span class="n">offsetx</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;dh&#39;</span><span class="p">],</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;sdo&#39;</span><span class="p">],</span>
                                                               <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;acq_type&#39;</span><span class="p">])</span>
 <span class="n">src_loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;dh&#39;</span><span class="p">]</span>
 
@@ -460,11 +460,11 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Finally, we can have the forward modelling as</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the wave object</span>
-<span class="n">W</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">wave_propagator</span><span class="p">(</span><span class="n">inpa</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">rec_loc</span><span class="p">,</span> <span class="n">model_shape</span><span class="p">,</span> <span class="n">n_well_rec</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;seisout&#39;</span><span class="p">])</span>
+<span class="n">W</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">WavePropagator</span><span class="p">(</span><span class="n">inpa</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">rec_loc</span><span class="p">,</span> <span class="n">model_shape</span><span class="p">,</span> <span class="n">n_well_rec</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;seisout&#39;</span><span class="p">])</span>
 
 <span class="c1"># Call the forward modelling</span>
 <span class="n">db_obs</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">forward_modeling</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -473,22 +473,27 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>We saved the wavefield at 20% of the time steps to be used for gradient calculation. The value of wavefield is accessible using the attribute <code class="docutils literal notranslate"><span class="pre">W</span></code> which is a dictionary for <span class="math notranslate nohighlight">\(V_x\)</span>, <span class="math notranslate nohighlight">\(V_z\)</span>, <span class="math notranslate nohighlight">\(\tau_x\)</span>, <span class="math notranslate nohighlight">\(\tau_z\)</span>, and <span class="math notranslate nohighlight">\(\tau_{xz}\)</span> as <code class="docutils literal notranslate"><span class="pre">vx</span></code>, <code class="docutils literal notranslate"><span class="pre">vz</span></code>, <code class="docutils literal notranslate"><span class="pre">taux</span></code>, <code class="docutils literal notranslate"><span class="pre">tauz</span></code>, and <code class="docutils literal notranslate"><span class="pre">tauxz</span></code>. Each parameter is a 4D tensor. For example, we can have access to the last time step of <span class="math notranslate nohighlight">\(\tau_x\)</span> for the first shot as <code class="docutils literal notranslate"><span class="pre">W.W['taux'][:,</span> <span class="pre">:,</span> <span class="pre">0,</span> <span class="pre">-1]</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
 <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">180</span><span class="p">]:</span>
-    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;taux&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">splt</span><span class="o">.</span><span class="n">seismic_section</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">db_obs</span><span class="p">[</span><span class="s1">&#39;taux&#39;</span><span class="p">],</span> <span class="n">t_axis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">],</span> <span class="n">W</span><span class="o">.</span><span class="n">nt</span><span class="p">))</span>
+
+<span class="n">ax_loc</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<span class="n">snapshots</span> <span class="o">=</span> <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">180</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots</span><span class="p">)):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">ax_loc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;taux&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">snapshots</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
     <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">splt</span><span class="o">.</span><span class="n">seismic_section</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">db_obs</span><span class="p">[</span><span class="s1">&#39;taux&#39;</span><span class="p">],</span> <span class="n">t_axis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inpa</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">],</span> <span class="n">W</span><span class="o">.</span><span class="n">nt</span><span class="p">))</span>
-</pre></div>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Wave propagation and a shot gather&quot;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">);</span>
+<br/></pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">

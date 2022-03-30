@@ -1,7 +1,7 @@
 Gradient estimation
 ====================
 
-.. automethod:: PyFWI.wave_propagation.wave_propagator.gradient
+.. automethod:: PyFWI.wave_propagation.WavePropagator.gradient
 
 
 Full-waveform inversion

@@ -130,15 +130,15 @@
 <section id="regularization">
 <h1>Regularization<a class="headerlink" href="#regularization" title="Permalink to this headline"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.regularization">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">regularization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.regularization" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.fwi_tools.Regularization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyFWI.fwi_tools.</span></span><span class="sig-name descname"><span class="pre">Regularization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.Regularization" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <section id="total-variation-tv">
 <h2>Total variation (TV)<a class="headerlink" href="#total-variation-tv" title="Permalink to this headline"></a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.regularization.tv">
-<span class="sig-prename descclassname"><span class="pre">regularization.</span></span><span class="sig-name descname"><span class="pre">tv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.regularization.tv" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.fwi_tools.Regularization.tv">
+<span class="sig-prename descclassname"><span class="pre">Regularization.</span></span><span class="sig-name descname"><span class="pre">tv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.Regularization.tv" title="Permalink to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>Inputs:</dt><dd><p>x: Data
 eps: small value for make it deffrintiable at zero
@@ -153,8 +153,8 @@ nz:</p>
 <section id="tikhonov">
 <h2>Tikhonov<a class="headerlink" href="#tikhonov" title="Permalink to this headline"></a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.regularization.tikhonov">
-<span class="sig-prename descclassname"><span class="pre">regularization.</span></span><span class="sig-name descname"><span class="pre">tikhonov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.regularization.tikhonov" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.fwi_tools.Regularization.tikhonov">
+<span class="sig-prename descclassname"><span class="pre">Regularization.</span></span><span class="sig-name descname"><span class="pre">tikhonov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.Regularization.tikhonov" title="Permalink to this definition"></a></dt>
 <dd><p>A method to implement Tikhonov regularization with order of 2</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -178,8 +178,8 @@ nz:</p>
 <section id="parameter-relation">
 <h2>Parameter relation<a class="headerlink" href="#parameter-relation" title="Permalink to this headline"></a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.regularization.parameter_relation">
-<span class="sig-prename descclassname"><span class="pre">regularization.</span></span><span class="sig-name descname"><span class="pre">parameter_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.regularization.parameter_relation" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.fwi_tools.Regularization.parameter_relation">
+<span class="sig-prename descclassname"><span class="pre">Regularization.</span></span><span class="sig-name descname"><span class="pre">parameter_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.Regularization.parameter_relation" title="Permalink to this definition"></a></dt>
 <dd><p>parameter_relation considers regularization for the
 relation between parameters.</p>
 <dl class="field-list simple">
@@ -209,8 +209,8 @@ polyfit model and regularization parameter.</p></li>
 <section id="lmd-to-vd">
 <h2>lmd to vd<a class="headerlink" href="#lmd-to-vd" title="Permalink to this headline"></a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.grad_lmd_to_vd">
-<span class="sig-prename descclassname"><span class="pre">fwi_tools.</span></span><span class="sig-name descname"><span class="pre">grad_lmd_to_vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.grad_lmd_to_vd" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.grad_swithcher.grad_lmd_to_vd">
+<span class="sig-prename descclassname"><span class="pre">grad_swithcher.</span></span><span class="sig-name descname"><span class="pre">grad_lmd_to_vd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.grad_swithcher.grad_lmd_to_vd" title="Permalink to this definition"></a></dt>
 <dd><p>grad_lmr_to_vd switch the gradient.</p>
 <p>This function witch the gradient from (lambda, mu, rho)
 to (vp, vs, rho).</p>
@@ -239,8 +239,8 @@ to (vp, vs, rho).</p>
 <section id="vd-to-lmd">
 <h2>vd to lmd<a class="headerlink" href="#vd-to-lmd" title="Permalink to this headline"></a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyFWI.fwi_tools.grad_vd_to_lmd">
-<span class="sig-prename descclassname"><span class="pre">fwi_tools.</span></span><span class="sig-name descname"><span class="pre">grad_vd_to_lmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.fwi_tools.grad_vd_to_lmd" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyFWI.grad_swithcher.grad_vd_to_lmd">
+<span class="sig-prename descclassname"><span class="pre">grad_swithcher.</span></span><span class="sig-name descname"><span class="pre">grad_vd_to_lmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyFWI.grad_swithcher.grad_vd_to_lmd" title="Permalink to this definition"></a></dt>
 <dd><p>grad_vd_to_lmd [summary]</p>
 <p>[extended_summary]</p>
 <dl class="field-list simple">

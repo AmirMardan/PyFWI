@@ -1,11 +1,11 @@
-from PyFWI.wave_propagation import wave_propagator as Wave
+from PyFWI.wave_propagation import WavePropagator as Wave
 from scipy.optimize.optimize import MemoizeJac
 import PyFWI.optimization as opt
 import PyFWI.fwi_tools as tools
 import PyFWI.acquisition as acq
 import numpy as np
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
-from PyFWI.fwi_tools import regularization
+from PyFWI.fwi_tools import Regularization
 
 class FWI(Wave):
     def __init__(self, d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr, components, param_functions=None):
@@ -35,7 +35,7 @@ class FWI(Wave):
             List of functions required in case of inversion with different parameterization than dv, by default None
         """
         super().__init__(inpa, src, rec_loc, model_shape, n_well_rec, chpr, components)
-        self.regularization = regularization(self.nx, self.nz, self.dh, self.dh)
+        self.regularization = Regularization(self.nx, self.nz, self.dh, self.dh)
         
         if param_functions is None:
             self.dict2vec = tools.vel_dict2vec
@@ -151,8 +151,10 @@ class FWI(Wave):
         method = 'self.'
         if user_method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
+            # TODO Add option
         elif user_method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
+            # TODO Add option
         elif user_method in [2, 'lbfgs']:
             method += 'lbfgs'
 

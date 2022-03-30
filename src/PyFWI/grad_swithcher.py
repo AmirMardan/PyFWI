@@ -1,7 +1,7 @@
 import PyFWI.rock_physics as rp
 import numpy as np
 
-class pcs_parameterization:
+class PcsParameterization:
     def __init__(self, rp_model='gassmann'):
         if rp_model == 'gassmann':
             self.grad_dv2pcs = grad_dv2pcs_gassmann
@@ -322,3 +322,84 @@ def grad_dv2sw_han(phi, rho_w, rho_h):
     grho_sw = phi * (rho_w - rho_h)
     
     return gvp_sw, gvs_sw, grho_sw
+
+
+def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
+    """
+    grad_lmr_to_vd switch the gradient.
+
+    This function witch the gradient from (lambda, mu, rho)
+    to (vp, vs, rho).
+
+    Args:
+        glam (ndarray): Gradient w.r.t. lambda
+        gmu (ndarray): Gradient w.r.t. mu
+        grho (ndarray): Gradient w.r.t. density
+        lam (ndarray): Gradient w.r.t. lambda
+        mu (ndarray): Gradient w.r.t. mu
+        rho (ndarray): Gradient w.r.t. density
+    
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    vp = np.sqrt((lam + 2 * mu) / rho)
+    vs = np.sqrt(mu / rho)
+    vs2 = vs ** 2
+    vpvs = vp ** 2 - 2 * vs ** 2
+    
+    glam_vp = glam * 2 * vp * rho
+    gmu_vp = gmu * 0
+    grho_vp = grho * 0
+    gvp = glam_vp + gmu_vp + grho_vp  
+
+    glam_vs = glam * (-4 * rho * vs)
+    gmu_vs = gmu * 2 * vs * rho
+    grho_vs = grho * 0
+    gvs = glam_vs + gmu_vs + grho_vs  # gvs
+
+    glam_rho = glam * vpvs
+    gmu_rho = gmu * vs2
+    grho_rho = grho
+    grho = glam_rho + gmu_rho + grho_rho
+
+    return gvp.astype(np.float32), gvs.astype(np.float32), grho.astype(np.float32)
+
+
+def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):
+    """
+    grad_vd_to_lmd [summary]
+
+    [extended_summary]
+
+    Args:
+        glam ([type]): [description]
+        gmu ([type]): [description]
+        grho ([type]): [description]
+        lam ([type]): [description]
+        mu ([type]): [description]
+        rho ([type]): [description]
+    
+    Refrences:
+         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
+         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    """
+    
+    gvp_lam = gvp / (2 * rho * vp)
+    gvs_lam = gvs * 0
+    grho_lam = grho * 0 
+    glam = gvp_lam + gvs_lam + grho_lam  # glam
+
+    gvp_mu = gvp / (rho * vp)
+    gvs_mu = gvs / (2 * rho * vs)
+    grho_mu = grho * 0
+    gmu = gvp_mu + gvs_mu + grho_mu  # gmu
+
+    gvp_rho = gvp * (- vp / 2 / rho)
+    gvs_rho = gvs * (- vs / 2 / rho)
+    grho_rho = grho
+    grho = gvp_rho + gvs_rho + grho_rho
+
+
+    return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32) 
+

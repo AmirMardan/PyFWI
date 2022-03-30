@@ -20,5 +20,5 @@ Acquisition
 Wave propagation
 =================
 
-.. automethod:: PyFWI.wave_propagation.wave_propagator.forward_modeling
+.. automethod:: PyFWI.wave_propagation.WavePropagator.forward_modeling
    

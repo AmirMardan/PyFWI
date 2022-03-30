@@ -69,7 +69,7 @@ class Gain():
         ax.set_xlabel("Gain amplitude")
         ax.set_ylabel("Time sample")
 
-class Gain_function(Gain):
+class GainFunction(Gain):
     def __init__(self, t, dt, nt):
         """
         This class works with the choosen gain
@@ -77,7 +77,7 @@ class Gain_function(Gain):
         This class gets the gain function and apply it
 
         Args:
-            gain_function (float32): The gain function
+            GainFunction (float32): The gain function
         """
         Gain.__init__(self, t, dt, nt)
 
@@ -121,7 +121,7 @@ class Gain_function(Gain):
 if __name__ == "__main__":
     data = io.load_mat('/Users/amir/repos/seismic/src/PyFWI/data/test/bl_data.mat')
     data = data['bl']
-    G = Gain_function(t=0.45, dt=0.00061, nt=data.shape[0])
+    G = GainFunction(t=0.45, dt=0.00061, nt=data.shape[0])
     G.time_linear(False)
     plt.show()
     
