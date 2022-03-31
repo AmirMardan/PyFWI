@@ -47,16 +47,16 @@ def grad_dv2pcs_vrh(gdv, rock_properties, pcs_model):
     kr = 1 / ((1 - phi) * (cc / k_c + (1 - cc)/k_q) + phi * (sw/k_w + (1-sw)/k_h))         
 
 
-    gk, gmu, grho_kmr = grad_dv2kmr(gdv, vp, vs, rho)
+    gk, gmu, grho_kmd = grad_dv2kmd(gdv, vp, vs, rho)
     
-    gk_phi, gmu_phi, grho_phi = grad_kmr2phi_vrh(kr, k_c, k_q, k_w, k_h, mu_c, mu_q, cc, sw, rho_s, rho_f)
-    g_phi = gk * gk_phi + gmu * gmu_phi + grho_kmr * grho_phi
+    gk_phi, gmu_phi, grho_phi = grad_kmd2phi_vrh(kr, k_c, k_q, k_w, k_h, mu_c, mu_q, cc, sw, rho_s, rho_f)
+    g_phi = gk * gk_phi + gmu * gmu_phi + grho_kmd * grho_phi
     
-    gk_c, gmu_c, grho_c = grad_kmr2cc_vrh(kr, phi, k_c, mu_c, rho_c, k_q, mu_q, rho_q)
-    g_cc = gk * gk_c + gmu * gmu_c + grho_kmr * grho_c
+    gk_c, gmu_c, grho_c = grad_kmd2cc_vrh(kr, phi, k_c, mu_c, rho_c, k_q, mu_q, rho_q)
+    g_cc = gk * gk_c + gmu * gmu_c + grho_kmd * grho_c
     
-    gk_sw, gmu_sw, grho_sw = grad_kmr2sw_vrh(kr, phi, k_w, k_h, rho_w, rho_h)
-    g_sw = gk * gk_sw + gmu * gmu_sw + grho_kmr * grho_sw
+    gk_sw, gmu_sw, grho_sw = grad_kmd2sw_vrh(kr, phi, k_w, k_h, rho_w, rho_h)
+    g_sw = gk * gk_sw + gmu * gmu_sw + grho_kmd * grho_sw
       
     grad= {
         'phi': g_phi,
@@ -66,7 +66,7 @@ def grad_dv2pcs_vrh(gdv, rock_properties, pcs_model):
     return grad
 
 
-def grad_kmr2sw_vrh(kr, phi, kw, kh, rhow, rhoh):
+def grad_kmd2sw_vrh(kr, phi, kw, kh, rhow, rhoh):
     
     gkv_sw = phi * (kw - kh)
     gkr_sw = phi * kr**2 * (1/kh - 1/kw)
@@ -78,7 +78,7 @@ def grad_kmr2sw_vrh(kr, phi, kw, kh, rhow, rhoh):
     return gk_sw, gmu_sw, grho_sw
 
 
-def grad_kmr2cc_vrh(kr, phi, kc, muc, rhoc, kq, muq, rhoq):
+def grad_kmd2cc_vrh(kr, phi, kc, muc, rhoc, kq, muq, rhoq):
     
     gkv_c = (1 - phi) * (kc - kq)
     gkr_c = (1 - phi) * kr**2 * (1/kq - 1/kc)
@@ -92,7 +92,7 @@ def grad_kmr2cc_vrh(kr, phi, kc, muc, rhoc, kq, muq, rhoq):
     return gk_c, gmu_c, grho_c
 
 
-def grad_kmr2phi_vrh(kr, kc, kq, kw, kh, muc, muq, cc, sw, rhos, rhof):
+def grad_kmd2phi_vrh(kr, kc, kq, kw, kh, muc, muq, cc, sw, rhos, rhof):
     # voigt
     gkv_phi = - kc * cc - kq * (1 - cc) + kw * sw + kh * (1 - sw)
     #Reuss
@@ -140,16 +140,16 @@ def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model):
     rho_f = rp.weighted_average(rho_w, rho_h, sw)
     k_f = rp.weighted_average(k_w, k_h, sw)
     
-    gk, gmu, grho_kmr = grad_dv2kmr(gdv, vp, vs, rho)
+    gk, gmu, grho_kmd = grad_dv2kmd(gdv, vp, vs, rho)
     
-    gk_phi, gmu_phi, grho_phi = grad_kmr2phi_gassmann(phi, k_s, mu_s, rho_s, k_f, rho_f, cs)
-    g_phi = gk * gk_phi + gmu * gmu_phi + grho_kmr * grho_phi
+    gk_phi, gmu_phi, grho_phi = grad_kmd2phi_gassmann(phi, k_s, mu_s, rho_s, k_f, rho_f, cs)
+    g_phi = gk * gk_phi + gmu * gmu_phi + grho_kmd * grho_phi
     
-    gk_c, gmu_c, grho_c = grad_kmr2cc_gassmann(phi, cc, k_c, mu_c, rho_c, k_q, mu_q, rho_q, k_f, cs)
-    g_cc = gk * gk_c + gmu * gmu_c + grho_kmr * grho_c
+    gk_c, gmu_c, grho_c = grad_kmd2cc_gassmann(phi, cc, k_c, mu_c, rho_c, k_q, mu_q, rho_q, k_f, cs)
+    g_cc = gk * gk_c + gmu * gmu_c + grho_kmd * grho_c
     
-    gk_sw, gmu_sw, grho_sw = grad_kmr2sw_gassmann(phi, cc, k_c, k_w, k_h, mu_c, rho_w, k_q, mu_q, rho_h, k_f, cs)
-    g_sw = gk * gk_sw + gmu * gmu_sw + grho_kmr * grho_sw
+    gk_sw, gmu_sw, grho_sw = grad_kmd2sw_gassmann(phi, cc, k_c, k_w, k_h, mu_c, rho_w, k_q, mu_q, rho_h, k_f, cs)
+    g_sw = gk * gk_sw + gmu * gmu_sw + grho_kmd * grho_sw
       
     grad= {
         'phi': g_phi,#/1000,
@@ -159,7 +159,7 @@ def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model):
     return grad
 
 
-def grad_kmr2sw_gassmann(phi, cc, kc, kw, kh, muc, rhow, kq, muq, rhoh, kf, cs):
+def grad_kmd2sw_gassmann(phi, cc, kc, kw, kh, muc, rhow, kq, muq, rhoh, kf, cs):
     ks = rp.weighted_average(kc, kq, cc)
     mus = rp.weighted_average(muc, muq, cc)
     
@@ -185,7 +185,7 @@ def grad_kmr2sw_gassmann(phi, cc, kc, kw, kh, muc, rhow, kq, muq, rhoh, kf, cs):
     return gk_sw, gmu_sw, grho_sw
 
 
-def grad_kmr2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs):
+def grad_kmd2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs):
     ks = rp.weighted_average(kc, kq, cc)
     mus = rp.weighted_average(muc, muq, cc)
     
@@ -216,7 +216,7 @@ def grad_kmr2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs):
     return gk_c, gmu_c, grho_c
 
 
-def grad_kmr2phi_gassmann(phi, ks, mus, rhos, kf, rhof, cs):
+def grad_kmd2phi_gassmann(phi, ks, mus, rhos, kf, rhof, cs):
     gkd_phi = -ks * ((1 + cs) /(1 + cs * phi) ** 2)
     gmud_phi = -mus * ((1 + cs * 3/2) /(1 + cs * phi * 3/2) ** 2)
     
@@ -239,7 +239,7 @@ def grad_kmr2phi_gassmann(phi, ks, mus, rhos, kf, rhof, cs):
     return gk_phi, gmu_phi, grho_phi
 
     
-def grad_dv2kmr(gdv, vp, vs, rho):
+def grad_dv2kmd(gdv, vp, vs, rho):
     gvp = gdv['vp']
     gvs = gdv['vs']
     grho = gdv['rho']
@@ -257,9 +257,9 @@ def grad_dv2kmr(gdv, vp, vs, rho):
     gvp_rho = - vp / (2 * rho)
     gvs_rho = - vs / (2 * rho)
     grho_rho = 1
-    grho_kmr = gvp * gvp_rho + gvs * gvs_rho + grho * grho_rho
+    grho_kmd = gvp * gvp_rho + gvs * gvs_rho + grho * grho_rho
     
-    return gk, gmu, grho_kmr
+    return gk, gmu, grho_kmd
 
 
 def grad_dv2pcs_han(gdv, rock_properties, pcs_model):
