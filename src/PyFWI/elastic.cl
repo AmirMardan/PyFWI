@@ -301,7 +301,6 @@ __kernel void update_tauxz(int coeff,
       tauxz[center] += coeff * dt * (mu[center] *(DxmVz + DzpVx));
     }
     
-
 }
 
 
@@ -324,17 +323,13 @@ __kernel void Adj_injSrc(
   int i = get_global_id(0) ;
   int j = get_global_id(1);
 
-// if (i>Nz - npml - rec_top_left_var){return;}
-
     if(i%dxr==0 && j == rec_top_left_const && i/dxr<n_extera_rec){
     int ir = i/dxr;
-        // if (ir < n_extera_rec){
         Avx[(i+ rec_top_left_var)*Nx + j] += res_vx[ir];
         Avz[(i+ rec_top_left_var)*Nx + j] += res_vz[ir];
         Ataux[(i+ rec_top_left_var)*Nx + j] += res_taux[ir];
         Atauz[(i+ rec_top_left_var)*Nx + j] += res_tauz[ir];
         Atauxz[(i+ rec_top_left_var)*Nx + j] += res_tauxz[ir];
-        // }
 }
   if(j%dxr==0 && i == rec_surface_const){
     int ir =  j/dxr;
@@ -361,8 +356,8 @@ __kernel void Adj_injSrc(
       
 }
 
-
 }
+
 
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////
@@ -466,8 +461,6 @@ float DxmAtaux =  (c1*((lam[center]+2*mu[center])*Ataux[center] - (lam[left]+2*m
   Avx[center]+= -dt* ((2*dxpml[center] + dzpml[center]) * Avx[center] + (DxmAtaux + DxmAtauz + DzmAtauxz));
   Avz[center]+= -dt* ((dxpml[center] + 2*dzpml[center]) * Avz[center] + (DzpAtaux + DzpAtauz + DxpAtauxz));
 
-
-  
 }
 
 __kernel void Grad(__global float *vx, __global float *vz,
@@ -479,8 +472,6 @@ __kernel void Grad(__global float *vx, __global float *vz,
             __global float *Glam, __global float *Glam_precond,
             __global float *Grho, __global float *Grho_precond
             )
-
-
 {
   int i = get_global_id(0)+ npml + sdo ;
   int j = get_global_id(1)+ npml + sdo ;

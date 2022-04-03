@@ -2,7 +2,7 @@ from logging import exception
 import numpy as np
 
 
-def AcqParameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
+def acq_parameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
     """
     A function to define the acquisition based on user's demand
 
@@ -35,13 +35,13 @@ def AcqParameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
         n_surface_rec = 0
         n_well_rec = rec_loc.shape[0]
     elif acq_type == 1:
-        src_loc, rec_loc = SurfaceSeismic(ns, rec_dis, offsetx, depth,
+        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, depth,
                               dh, sdo)
 
         n_surface_rec = rec_loc.shape[0]
         n_well_rec = 0
     elif acq_type == 2:
-        src_loc, rec_loc = SurfaceSeismic(ns, rec_dis, offsetx, depth,
+        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, depth,
                                           dh, sdo)
         n_surface_rec = rec_loc.shape[0]
 
@@ -122,7 +122,7 @@ def crosswell(ns, rec_dis, offsetx, offsetz,
     return src_loc.astype(np.float32), rec_loc.astype(np.float32)
 
 
-def SurfaceSeismic(ns, rec_dis, offsetx, offsetz,
+def surface_seismic(ns, rec_dis, offsetx, offsetz,
                    dh, sdo):
     """
     A function to design a surface seismic acquisition

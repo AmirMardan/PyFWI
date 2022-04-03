@@ -1,9 +1,9 @@
 import os 
 import numpy as np
-import copy 
+import copy
 import logging
 import pyopencl as cl
-from numpy.core.arrayprint import dtype_is_implied 
+from numpy.core.arrayprint import dtype_is_implied
 from scipy.signal import butter, hilbert, freqz
 import numpy.fft as fft
 import matplotlib.pyplot as plt
@@ -12,14 +12,14 @@ from scipy.ndimage import gaussian_filter
 
 try:
     from PyFWI.seismic_io import load_mat
-    from PyFWI import rock_physics as rp 
+    from PyFWI import rock_physics as rp
     import PyFWI.processing as seis_process
 except:
     from seismic_io import load_mat
-    import rock_physics as rp 
+    import rock_physics as rp
     import processing as seis_process
-    
-    
+
+
 def derivative(nx, nz, dx, dz, order):
     """
     Compute spatial derivative operators for grid _cells_
@@ -27,12 +27,12 @@ def derivative(nx, nz, dx, dz, order):
     \tforward operator is (u_{i+1} - u_i)/dx\n
     \tcentered operator is (u_{i+1} - u_{i-1})/(2dx)\n
     \tbackward operator is (u_i - u_{i-1})/dx \n
-    
+
     For 2nd order: \n
     \tforward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2 \n
     \tcentered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2 \n
     \tbackward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2 \n
-    
+
     Parameters
     ----------
         nx : int
@@ -45,16 +45,16 @@ def derivative(nx, nz, dx, dz, order):
             Samplikng rate in Z-direction
         order : int
             Order of derivative
-    
+
     Returns
     -------
         Dx : Dispersed matrix
             Derivative matrix in X-direction
         Dz : Dispersed matrix
             Derivative matrix in Z-direction
-   
+
     """
-        
+
     if order == 1:
 
         # forward operator is (u_{i+1} - u_i)/dx
@@ -139,7 +139,7 @@ def derivative(nx, nz, dx, dz, order):
     return Dx, Dz
 
 
-class regularization:
+class Regularization:
     def __init__(self, nx, nz, dx, dz):
         self.idx = 1 / dx
         self.idz = 1 / dz
@@ -243,16 +243,16 @@ class regularization:
     def tikhonov(self, x0, alpha_z, alpha_x):
         """
         A method to implement Tikhonov regularization with order of 2
-        
+
         Parameters
         ----------
             x0 : 1D ndarray
                 Data
-            alpha_z : float 
+            alpha_z : float
                 coefficient of Dz
-            alpha_x : float 
+            alpha_x : float
                 coefficient of Dx
-        
+
         Returns
         -------
             rms : float
@@ -286,16 +286,16 @@ class regularization:
     def tikhonov_0(self, x0):
         """
         A method to implement Tikhonov regularization with order of 0
-        
+
         Parameters
         ----------
             x0 : 1D ndarray
                 Data
-            alpha_z : float 
+            alpha_z : float
                 coefficient of Dz
-            alpha_x : float 
+            alpha_x : float
                 coefficient of Dx
-        
+
         Returns
         -------
             rms : float
@@ -320,22 +320,22 @@ class regularization:
 
     def parameter_relation(self, m0, models, k0, kend, freq):
         """
-        parameter_relation considers regularization for the 
+        parameter_relation considers regularization for the
         relation between parameters.
-        
+
 
         Parameters
         ----------
         m0 : ndarray
             Vector of parameters
         models : dict
-            A dictionary containing couple of dictionaries which includes a numpy 
+            A dictionary containing couple of dictionaries which includes a numpy
             polyfit model and regularization parameter.
         k0 : int
             Index of the first parameter in m0
         kend : int
             Index of the last parameter in m0
-             
+
 
         Returns
         -------
@@ -346,33 +346,33 @@ class regularization:
         """
         rms = 0
         grad = np.zeros(m0.shape)
-        
+
         for param in models:
             par = [char for char in param]
             model = models[param]['model']
             lam = models[param]['lam']
-            
+
             desired_freq  = models[param]['freqs']
-        
-            if freq not in np.array(desired_freq).reshape(-1): 
+
+            if freq not in np.array(desired_freq).reshape(-1):
                 # has to be written like that to work eaither if freq is given as int or list
                 return 0.0, grad
-            
+
             par_int = np.int32(par)
             if par_int[1] in np.arange(k0+1, kend+1):
                 pre21 = model(m0[(par_int[0]-1) * self.n_elements:par_int[0] * self.n_elements])
-            
-                dm21 = m0[(par_int[1]-1)  * self.n_elements:par_int[1] * self.n_elements] - pre21  
-            
+
+                dm21 = m0[(par_int[1]-1)  * self.n_elements:par_int[1] * self.n_elements] - pre21
+
                 rms += 0.5 * lam * np.dot(dm21.T, dm21)
                 grad[(par_int[1]-1)  * self.n_elements: par_int[1] *self.n_elements] = gaussian_filter(lam * dm21 * 1, 1)
-                
+
         return rms, grad
-    
+
     def priori_regularization(self, m0, regularization_dict, k0, kend, freq):
         """
         priori_regularization consider the priori information regularization.
-        
+
 
         Parameters
         ----------
@@ -384,52 +384,52 @@ class regularization:
             Index of the first parameter in m0
         kend : int
             Index of the last parameter in m0
-             
+
         Returns
         -------
         rms : float
             rms of regularization
         grad: ndarray
             Vector of gradient od the regularization
-            
+
         References
         -----------
         Asnaashari et al., 2013, Regularized seismic full waveform inversion with prior model information, Geophysics, 78(2), R25-R36, eq. 5.
         """
         if regularization_dict is None:
             return 0.0, np.zeros(m0.shape, np.float64)
-        
+
         m0 = np.copy(m0[: kend * self.n_elements])
         mp = np.zeros(m0.shape)
         desired_freq  = regularization_dict['freqs']
-        
+
         if freq not in np.array(desired_freq).reshape(-1):
             return 0.0, np.zeros(m0.shape, np.float64)
-        
+
         lam = regularization_dict['lam']
-        
+
         mp_dict = regularization_dict['mp']
-        
+
         for i in range(kend - k0):
-            mp[i * self.n_elements: (i + 1) * self.n_elements] = mp_dict[[*mp_dict][i]].reshape(-1)
-                    
+            mp[i * self.n_elements: (i + 1) * self.n_elements] = mp_dict[[*mp_dict][k0 + i]].reshape(-1)
+
         ii = jj = np.arange((kend - k0) * self.n_elements)
         v = np.ones((ii.shape)) / np.var(mp)
-        
+
         W = sp.csr_matrix((v, (ii, jj)))
-        
-        diff = (m0 - mp).reshape(-1, 1) 
-                
+
+        diff = (m0 - mp).reshape(-1, 1)
+
         rms = lam * 0.5 * (diff.T @ W) @ diff
-        
+
         grad = lam * W.T @ diff
-        
+
         return rms.item(), grad.reshape(-1)
-        
-         
-        
-    
-class fdm(object):
+
+
+
+
+class Fdm(object):
     def __init__(self, order):
         """
         fdm is a class to implemenet the the finite difference method for wave modeling
@@ -440,7 +440,7 @@ class fdm(object):
             order (int, optional): [description]. Defaults to 4.
         """
         self._order = order
-        
+
         if order == 4:
             self._c1 = 9/8
             self._c2 = - 1 / 24
@@ -452,128 +452,128 @@ class fdm(object):
             self._c2 = -114 / 1434
             self._c3 = 14 / 1434
             self._c4 = -1 / 1434
-            
+
         else:
             raise AssertionError ("Order of the derivative has be either 4 or 8!")
 
         dh_n = { # Dablain, 1986, Bai et al., 2013
             '4': 4,
             '8': 3
-        } 
-        
+        }
+
         self.dh_n = dh_n[str(order)] # Pick the appropriate n for calculating dh
-        
+
     @property
     def order(self):
         return self._order
-    
+
     @order.setter
     def order(self, value):
         if value in [4, 8]:
             self._order = value
         else:
             raise AssertionError ("Order of the derivative has be either 4 or 8!")
-    
+
     @property
     def c1(self):
         return self._c1
-        
+
     @c1.setter
     def c1(self, value):
         raise AttributeError("Denied! You can't change the derivative's coefficients")
-    
+
     @property
     def c2(self):
         return self._c2
-        
+
     @c2.setter
     def c2(self, value):
         raise AttributeError("Denied! You can't change the derivative's coefficients")
-    
+
     @property
     def c3(self):
         return self._c3
-        
+
     @c3.setter
     def c3(self, value):
         raise AttributeError("Denied! You can't change the derivative's coefficients")
-    
+
     @property
     def c4(self):
         return self._c4
-        
+
     @c4.setter
     def c3(self, value):
         raise AttributeError("Denied! You can't change the derivative's coefficients")
-    
-    
+
+
     def dxp(self, x, dx):
          if self.order == 4:
              return self._dxp4(x, dx)
          else:
              return self._dxp8(x, dx)
-         
+
     def dxm(self, x, dx):
          if self.order == 4:
              return self._dxm4(x, dx)
          else:
              return self._dxm8(x, dx)
-         
+
     def dzp(self, x, dx):
          if self.order == 4:
              return self._dzp4(x, dx)
          else:
              return self._dzp8(x, dx)
-         
+
     def dzm(self, x, dx):
          if self.order == 4:
              return self._dzm4(x, dx)
          else:
              return self._dzm8(x, dx)
-         
+
     def _dxp4(self, x, dx):
         y = np.zeros(x.shape)
-        
+
         y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 3:-1] - x[2:-2, 2:-2]) +
                          self._c2 * (x[2:-2, 4:] - x[2:-2, 1:-3])) / dx
         return y
-    
-    def _dxp8(self, x, dx): 
+
+    def _dxp8(self, x, dx):
         y = np.zeros(x.shape)
-        
+
         y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 5:-3] - x[4:-4, 4:-4]) +
-                         self._c2 * (x[4:-4, 6:-2] - x[4:-4, 3:-5]) + 
-                         self._c3 * (x[4:-4, 7:-1] - x[4:-4, 2:-6]) + 
+                         self._c2 * (x[4:-4, 6:-2] - x[4:-4, 3:-5]) +
+                         self._c3 * (x[4:-4, 7:-1] - x[4:-4, 2:-6]) +
                          self._c4 * (x[4:-4, 8:  ] - x[4:-4, 1:-7])) / dx
         return y
 
 
-    def _dxm4(self, x, dx):        
+    def _dxm4(self, x, dx):
         y = np.zeros((x.shape))
-        
-        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) + 
+
+        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) +
                          self._c2 * (x[2:-2, 3:-1] - x[2:-2, :-4])) / dx
-        return y 
-    
+        return y
+
     def _dxm8(self, x, dx):
         y = np.zeros((x.shape))
-        
+
         y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 4:-4] - x[4:-4, 3:-5]) +
                          self._c2 * (x[4:-4, 5:-3] - x[4:-4, 2:-6]) +
                          self._c3 * (x[4:-4, 6:-2] - x[4:-4, 1:-7]) +
                          self._c4 * (x[4:-4, 7:-1] - x[4:-4, :-8]) ) / dx
-        return y 
+        return y
 
     def _dzp4(self, x, dx):
         y = np.zeros(x.shape)
-        
+
         y[2:-2, 2:-2] = (self.c1 * (x[3:-1, 2:-2] - x[2:-2, 2:-2]) +
                          self.c2 * (x[4:, 2:-2] - x[1:-3, 2:-2])) / dx
         return y
-    
+
     def _dzp8(self, x, dx):
         y = np.zeros(x.shape)
-        
+
         y[4:-4, 4:-4] = (self.c1 * (x[5:-3, 4:-4] - x[4:-4, 4:-4]) +
                          self.c2 * (x[6:-2, 4:-4] - x[3:-5, 4:-4]) +
                          self.c3 * (x[7:-1, 4:-4] - x[2:-6, 4:-4]) +
@@ -583,23 +583,23 @@ class fdm(object):
 
     def _dzm4(self, x, dx):
         y = np.zeros((x.shape))
-        
+
         y[2:-2, 2:-2] = (self.c1 * (x[2:-2, 2:-2] - x[1:-3, 2:-2]) +
                          self.c2 * (x[3:-1, 2:-2] - x[:-4, 2:-2])) / dx
-        return y 
-    
+        return y
+
     def _dzm8(self, x, dx):
         y = np.zeros((x.shape))
-        
+
         y[4:-4, 4:-4] = (self.c1 * (x[4:-4, 4:-4] - x[3:-5, 4:-4]) +
                          self.c2 * (x[5:-3, 4:-4] - x[2:-6, 4:-4]) +
                          self.c3 * (x[6:-2, 4:-4] - x[1:-7, 4:-4]) +
                          self.c4 * (x[7:-1, 4:-4] - x[ :-8, 4:-4])) / dx
-        return y 
+        return y
 
 
     def dot_product_test_derivatives(self):
-        
+
         x = np.random.rand(100, 100)
         x[:4, :] = x[-4:, :] = x[:, :4] = x[:, -4:] = 0
 
@@ -609,7 +609,7 @@ class fdm(object):
         error_x = np.sum(x * self.dxp(y, 1)) - np.sum(- self.dxm(x, 1) * y)
         error_z = np.sum(x * self.dzp(y, 1)) - np.sum(- self.dzm(x, 1) * y)
 
-        print("Errors for derivatives are \n {}, {}".format(error_x, error_z))    
+        print("Errors for derivatives are \n {}, {}".format(error_x, error_z))
 
     def dt_computation(self, vp_max, dx, dz=None):
         '''
@@ -617,23 +617,23 @@ class fdm(object):
         '''
         if dz is None:
             dz = dx
-        
+
         c_sum = np.abs(self._c1) + np.abs(self._c2) + \
             np.abs(self._c3) + np.abs(self._c4)
-        
+
         a = 1/dx/dx * c_sum + 1/dz/dz * c_sum
-        dt = 2 / vp_max / np.sqrt(a*(1 + 4.0)) 
-        
+        dt = 2 / vp_max / np.sqrt(a*(1 + 4.0))
+
         return dt
-        
-        
+
+
 def inpa_generator(vp, sdo, fn, **kwargs):
     D = seis_process.derivatives(order=sdo)
     dh = vp.min()/(D.dh_n * fn)
-    
+
     dt = D.dt_computation(vp.max(), dh)
-    
-    
+
+
     inpa = {
         "SeisCL": False,
         "seisout": 4,
@@ -660,7 +660,7 @@ def inpa_generator(vp, sdo, fn, **kwargs):
         # Dominant frequency for wavelet
         "fdom": 20,
         "f_inv": np.array([15, 25, 30], dtype=np.float32),
-        
+
         # Choosing the order of spatial derivative (Could be 2, 4, 8)
         "sdo": sdo,
 
@@ -691,7 +691,7 @@ def inpa_loading(path):
         path ([type]): [description]
 
     Returns:
-        inpa (dict): input of FWI program 
+        inpa (dict): input of FWI program
     """
 
     if os.path.isfile(path):
@@ -701,7 +701,7 @@ def inpa_loading(path):
         if path[-1] != "/":
             path += "/"
         inpa = load_mat(path + "INPA.mat")
-    
+
     inpa['nx'] = inpa['nx'].item()
     inpa['nz'] = inpa['nz'].item()
     inpa['Npml'] = inpa['Npml'].item()
@@ -769,7 +769,7 @@ def _acoustic_model_preparation(model, med_type):
         model['vp'] = rp.p_velocity().lam_mu_rho(model['lam'], model['vs'], model['rho'])
 
     return model
-            
+
 
 def _elastic_model_preparation(model0, med_type):
     model = model0.copy()
@@ -789,13 +789,13 @@ def _elastic_model_preparation(model0, med_type):
     if len_keys < 3:
         raise "For Elastic case (med_type=1), vp, vs, and density have to be provided."
 
-    
+
     return model
 
 
 def disperasion_stability(vp, sdo, fn):
     """
-    disperasion_stability returns the appropriate parameters for FD 
+    disperasion_stability returns the appropriate parameters for FD
     that prevent unstability and dispersion
 
 
@@ -812,14 +812,14 @@ def disperasion_stability(vp, sdo, fn):
     -------
     dh : float
         Spatial sampling rate
-    dt : float 
-        Temporal sampling rate 
+    dt : float
+        Temporal sampling rate
     """
     D = fdm(order=sdo)
-    
-    dh = vp.min() / (D.dh_n * fn)    
+
+    dh = vp.min() / (D.dh_n * fn)
     dt = D.dt_computation(vp.max(), dh)
-    
+
     return dh, dt
 
 
@@ -835,102 +835,22 @@ def modeling_model(model, med_type):
     return model
 
 
-def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
-    """
-    grad_lmr_to_vd switch the gradient.
-
-    This function witch the gradient from (lambda, mu, rho)
-    to (vp, vs, rho).
-
-    Args:
-        glam (ndarray): Gradient w.r.t. lambda
-        gmu (ndarray): Gradient w.r.t. mu
-        grho (ndarray): Gradient w.r.t. density
-        lam (ndarray): Gradient w.r.t. lambda
-        mu (ndarray): Gradient w.r.t. mu
-        rho (ndarray): Gradient w.r.t. density
-    
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
-    """
-    vp = np.sqrt((lam + 2 * mu) / rho)
-    vs = np.sqrt(mu / rho)
-    vs2 = vs ** 2
-    vpvs = vp ** 2 - 2 * vs ** 2
-    
-    glam_vp = glam * 2 * vp * rho
-    gmu_vp = gmu * 0
-    grho_vp = grho * 0
-    gvp = glam_vp + gmu_vp + grho_vp  
-
-    glam_vs = glam * (-4 * rho * vs)
-    gmu_vs = gmu * 2 * vs * rho
-    grho_vs = grho * 0
-    gvs = glam_vs + gmu_vs + grho_vs  # gvs
-
-    glam_rho = glam * vpvs
-    gmu_rho = gmu * vs2
-    grho_rho = grho
-    grho = glam_rho + gmu_rho + grho_rho
-
-    return gvp.astype(np.float32), gvs.astype(np.float32), grho.astype(np.float32)
-
-
-def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):
-    """
-    grad_vd_to_lmd [summary]
-
-    [extended_summary]
-
-    Args:
-        glam ([type]): [description]
-        gmu ([type]): [description]
-        grho ([type]): [description]
-        lam ([type]): [description]
-        mu ([type]): [description]
-        rho ([type]): [description]
-    
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
-    """
-    
-    gvp_lam = gvp / (2 * rho * vp)
-    gvs_lam = gvs * 0
-    grho_lam = grho * 0 
-    glam = gvp_lam + gvs_lam + grho_lam  # glam
-
-    gvp_mu = gvp / (rho * vp)
-    gvs_mu = gvs / (2 * rho * vs)
-    grho_mu = grho * 0
-    gmu = gvp_mu + gvs_mu + grho_mu  # gmu
-
-    gvp_rho = gvp * (- vp / 2 / rho)
-    gvs_rho = gvs * (- vs / 2 / rho)
-    grho_rho = grho
-    grho = gvp_rho + gvs_rho + grho_rho
-
-
-    return glam.astype(np.float32), gmu.astype(np.float32), grho.astype(np.float32) 
-
-
-class recorder:
+class Recorder:
     def __init__(self, nt, rec_loc, ns, dh):
-                
+
         self.rec_loc = np.int32(rec_loc/dh)
         self.nr = rec_loc.shape[0]
-            
+
         self.vx = np.zeros((nt, ns * self.nr), dtype=np.float32)
         self.vz = np.zeros((nt, ns * self.nr), dtype=np.float32)
         self.taux = np.zeros((nt, ns * self.nr), dtype=np.float32)
         self.tauz = np.zeros((nt, ns * self.nr), dtype=np.float32)
         self.tauxz = np.zeros((nt, ns * self.nr), dtype=np.float32)
-            
+
     def __call__(self, t, s, **kargs):
         for key, value in kargs.items():
             exec("self." + key + "[t, s*self.nr:(s+1)*self.nr] = value[self.rec_loc[:, 1], self.rec_loc[:, 0]]")
-            
+
     def acquire(self):
         data = {
             'vx': self.vx,
@@ -939,7 +859,7 @@ class recorder:
             'tauz': self.tauz,
             'tauxz': self.tauxz
         }
-        return data     
+        return data
 
 
 def residual(d_est, d_obs):
@@ -950,10 +870,10 @@ def residual(d_est, d_obs):
 
 
 def cost_function(d_est, d_obs):
-    
+
     res = [d_est[key] - d_obs[key] for key in d_obs]
-    res = np.array(res).reshape(-1, 1) 
-    
+    res = np.array(res).reshape(-1, 1)
+
     rms = 0.5 * np.dot(res.T, res)
     return np.squeeze(rms)
 
@@ -1123,7 +1043,7 @@ class CPML:
         self.psi_vzz = np.zeros((TNz, TNx))
         self.psi_vxz = np.zeros((TNz, TNx))
         self.psi_vzx = np.zeros((TNz, TNx))
-        
+
 
 def pml_counstruction(TNz, TNx, dh,
                       n_pml=10, pml_r=1e-5, pml_dir=3):
@@ -1251,18 +1171,18 @@ def pml_delta_calculation(dh, n_pml=10, pml_r=1e-5):
 def vel_dict2vec(m0):
     nz, nx = m0[[*m0][0]].shape
     m = np.zeros((3 * nz * nx))
-    
+
     m[:nz * nx] = m0['vp'].reshape(-1)
     m[nz * nx: 2 * nz * nx] = m0['vs'].reshape(-1)
     m[2 * nz * nx:] = m0['rho'].reshape(-1)
     return m
 
 
-def vec2vel_dict(m0, nz, nx):  
+def vec2vel_dict(m0, nz, nx):
     """
     vec2vel_dict converts a vector of DV to dictionary
 
-    This function converts a vector of DV to dictionary which is 
+    This function converts a vector of DV to dictionary which is
     used during the inversion.
 
     Args:
@@ -1286,7 +1206,7 @@ def pcs_dict2vec(m0):
     """
     pcs_dict2vec converts a dictionary of PCS to a vector
 
-    This function converts a dictionary of PCS to vector which is 
+    This function converts a dictionary of PCS to vector which is
     used during the inversion.
 
     Args:
@@ -1297,18 +1217,18 @@ def pcs_dict2vec(m0):
     """
     nz, nx = m0[[*m0][0]].shape
     m = np.zeros((3 * nz * nx))
-    
+
     m[:nz * nx] = m0['phi'].reshape(-1)
     m[nz * nx: 2 * nz * nx] = m0['cc'].reshape(-1)
     m[2 * nz * nx:] = m0['sw'].reshape(-1)
     return m
 
 
-def vec2pcs_dict(m0, nz, nx):  
+def vec2pcs_dict(m0, nz, nx):
     """
     vec2pcs_dict converts a vector of PCS to dictionary
 
-    This function converts a vector of PCS to dictionary which is 
+    This function converts a vector of PCS to dictionary which is
     used during the inversion.
 
     Args:
@@ -1318,7 +1238,7 @@ def vec2pcs_dict(m0, nz, nx):
 
     Returns:
         m (dictionary): A dictionary ccontaining 'phi', 'cc', 'sw'.
-    """      
+    """
     m = {
         'phi': m0[:nz * nx].reshape(nz, nx),
         'cc': m0[nz * nx:2*nz * nx].reshape(nz, nx),
@@ -1328,7 +1248,7 @@ def vec2pcs_dict(m0, nz, nx):
     return m
 
 def svd_reconstruction(m, begining_component, num_components):
-    U, s, V = np.linalg.svd(m) 
+    U, s, V = np.linalg.svd(m)
     reconst_img = np.matrix(U[:, begining_component:begining_component +num_components]) *\
         np.diag(s[begining_component:begining_component +num_components]) * \
             np.matrix(V[begining_component:begining_component +num_components, :])
@@ -1479,7 +1399,7 @@ def cost_seismic(d_pre0, d_obs0, fun,
     """
     cost_seismic calculates the cost between estimated and observed data.
 
-    This function calculates the cost between estimated and observed data by applying desired filters 
+    This function calculates the cost between estimated and observed data by applying desired filters
     and returns the cost and the adjoint of the residual.
 
     Args:
@@ -1532,7 +1452,7 @@ def cost_seismic(d_pre0, d_obs0, fun,
 
 class CostFunction:
     """
-     This class provides different cost functions. 
+     This class provides different cost functions.
 
     """
     def __init__(self, cost_function_type="l2"):
@@ -1544,7 +1464,7 @@ class CostFunction:
 
     @staticmethod
     def list2dict(x):
-        
+
         x_dict = {
             'vx': x[0, :, :],
             'vz': x[1, :, :],
@@ -1553,7 +1473,7 @@ class CostFunction:
             'tauxz': x[4, :, :]
         }
         return x_dict
-        
+
     def l1(self, dest, dobs):
         res = np.float32(dest - dobs)
         #TODO: adj_src is not right
@@ -1563,25 +1483,25 @@ class CostFunction:
         return rms, adj_src
 
     def l2(self, dest0, dobs0):
-        
+
         dest = copy.deepcopy(dest0)
         dobs = copy.deepcopy(dobs0)
-        
+
         if type(dest0).__name__ == 'ndarray':
             dest = self.list2dict(dest)
             dobs = self.list2dict(dobs)
-        
+
         rms = 0
         res = {}
         for param in dest:
             res[param] = np.float32(dest[param] - dobs[param])
             rms += 0.5 * (res[param].reshape(-1).T @ res[param].reshape(-1))
-        
+
         if type(dest0).__name__ == 'ndarray':
             adj_src = np.array(list(res.values()))
         else:
             adj_src = res
-            
+
         return rms, adj_src
 
     def l2_intensity(self, dest, dobs):
@@ -1701,7 +1621,7 @@ def dict_diff(dict1, dict2, positivity=False):
     """
     dict_diff subtracts the contents of two dictionaries
 
-    This function is used to subtract the parameters of a 
+    This function is used to subtract the parameters of a
     dictionary with the same parameter in another dictionary.
 
     Args:
@@ -1725,13 +1645,13 @@ def dict_summation(dict1, dict2, division=1.0):
     """
     dict_summation add the contents of two dictionaries
 
-    This function is used to add the parameters of a 
+    This function is used to add the parameters of a
     dictionary with the same parameter in another dictionary.
 
     Args:
         dict1 (dict): The first dictionary
         dict2 (dict): The second dictionary
-        division (float, optional): In cas if user wants to devide the summation to a number (e.g. averaging) 
+        division (float, optional): In cas if user wants to devide the summation to a number (e.g. averaging)
         of amplifying the result. Defaults to 1.0.
     Returns:
         dic: A dictionary containing the common parameters of ```dict1``` and ```dict2```, but their summation.
@@ -1742,6 +1662,51 @@ def dict_summation(dict1, dict2, division=1.0):
 
     return sum_val
 
+
+def parameter_relation(m1, m2, order, idx=20, idx_test=-20, show=False):
+
+    x = m1[:, idx]
+    y = m2[:, idx]
+
+    model = np.poly1d(np.polyfit(x, y, order))
+
+    if show:
+
+        x_test = m1[:, idx_test]
+        y_test = m2[:, idx_test]
+
+        y_test_pre = model(x_test)
+        y_train_pre = model(x)
+
+        fig = plt.figure(figsize=(8,4))
+        ax = fig.add_subplot(1, 2, 1)
+        ax.plot(x, y, '*', label='True')
+        ax.plot(x, y_train_pre, label='Predicted')
+        res = y - y_train_pre
+        l2 = np.linalg.norm(res, ord=2)
+        ax.set_title(f'Training data rms: {l2:1.3}')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.legend()
+        ax.grid()
+
+        ax = fig.add_subplot(1, 2, 2)
+        ax.plot(x_test, y_test, '*', label='True')
+        ax.plot(x_test, y_test_pre, 'o', label='Predicted')
+        ax.plot([x_test, x_test], [y_test, y_test_pre], 'r--')
+        res = y_test_pre - y_test
+        l2 = np.linalg.norm(res, ord=2)
+        ax.set_title(f'Test data rms: {l2:1.3}')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.legend()
+        ax.grid()
+        plt.subplots_adjust(wspace=0.15)
+        plt.show(block=False)
+
+    return model
+
+
 if __name__ == "__main__":
-    R = recorder(100, np.array([10]), 10, 1)
+    R = Recorder(100, np.array([10]), 10, 1)
     print(R.vx.shape)

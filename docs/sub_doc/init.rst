@@ -4,7 +4,7 @@ PyFWI can be installed using ```pip``` as
 
 .. code-block:: console
 
-    (.venv) $ pip install PyFWI 
+    (.venv) $ pip install PyFWI
 
 on OS or
 
@@ -17,5 +17,5 @@ on Windows.
 Example
 =======
 
-.. Note:: 
-     To be added
+.. Note::
+    https://gist.github.com/AmirMardan/7b8abbc0c0926381bf85153ea6078f7a

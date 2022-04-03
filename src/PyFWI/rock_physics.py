@@ -451,6 +451,132 @@ def vd2lmd(vp, vs, rho):
     rho = rho
     return lam, mu, rho
 
+ 
+def pcs2dv_vrh(pcs_model, rock_properties):
+    phi = pcs_model['phi']
+    cc = pcs_model['cc']
+    sw = pcs_model['sw']
+    
+    k_q = rock_properties['k_q']
+    k_c = rock_properties['k_c']
+    k_w = rock_properties['k_w']
+    k_h = rock_properties['k_h']
+    
+    mu_q = rock_properties['mu_q']
+    mu_c = rock_properties['mu_c']
+    
+    rho_q = rock_properties['rho_q']
+    rho_c = rock_properties['rho_c']
+    rho_w = rock_properties['rho_w']
+    rho_h = rock_properties['rho_h']
+    
+    kv = (1 - phi) * (k_c * cc + k_q * (1 - cc)) + phi * (k_w * sw + k_h * (1 - sw))
+    kr_1 = (1 - phi) * (cc/k_c + (1 - cc)/k_q) + phi * (sw/k_w + (1 - sw)/k_h)
+    kr = 1/kr_1
+    k = 0.5 * (kv + kr)
+    
+    muv = (1 - phi) * (mu_c * cc + mu_q * (1 - cc))
+    mur = 0
+    # mu is zero by Reuss
+    mu = 0.5 * (muv + mur)
+    
+    # Properties of the effective fluid
+    rho_f = weighted_average(rho_w, rho_h, sw)
+    
+    # Properties of the effective skeleton
+    rho_s = weighted_average(rho_c, rho_q, cc)
+    
+    
+    # Effective unrained properties
+    rho = weighted_average(rho_f, rho_s, phi)
+    
+    vp = np.sqrt((k + 0.75 * mu) / rho)
+    vs = np.sqrt(mu / rho)
+    
+    dv_model = {
+        'vp': (vp * 1).astype(np.float32),
+        'vs': (vs * 1).astype(np.float32),
+        'rho': rho.astype(np.float32)
+    }
+
+    return dv_model
+
+
+def pcs2dv_gassmann(pcs_model, rock_properties):
+    phi = pcs_model['phi']
+    cc = pcs_model['cc']
+    sw = pcs_model['sw']
+    
+    k_q = rock_properties['k_q']
+    k_c = rock_properties['k_c']
+    k_w = rock_properties['k_w']
+    k_h = rock_properties['k_h']
+    
+    mu_q = rock_properties['mu_q']
+    mu_c = rock_properties['mu_c']
+    
+    rho_q = rock_properties['rho_q']
+    rho_c = rock_properties['rho_c']
+    rho_w = rock_properties['rho_w']
+    rho_h = rock_properties['rho_h']
+    cs = rock_properties['cs']
+    
+    # Properties of the effective fluid
+    rho_f = weighted_average(rho_w, rho_h, sw)
+    k_f = weighted_average(k_w, k_h, sw)
+    
+    # Properties of the effective skeleton
+    k_s = weighted_average(k_c, k_q, cc)
+    mu_s = weighted_average(mu_c, mu_q, cc)
+    rho_s = weighted_average(rho_c, rho_q, cc)
+    
+    k_d, mu_d = drained_moduli(phi, k_s, mu_s, cs) 
+    
+    # Effective unrained properties
+    k_u, _, _ = biot_gassmann(phi, k_f, k_s, k_d)
+    rho = weighted_average(rho_f, rho_s, phi)
+    
+    vp = np.sqrt((k_u + 0.75 * mu_d) / rho)
+    vs = np.sqrt(mu_d / rho)
+    
+    dv_model = {
+        'vp': (vp * 1).astype(np.float32),
+        'vs': (vs * 1).astype(np.float32),
+        'rho': rho.astype(np.float32)  ## (np.ones(rho.shape) * 1).astype(np.float32)
+    }
+    
+    return dv_model
+
+
+def pcs2dv_han(pcs_model, rock_properties):
+    phi = pcs_model['phi']
+    cc = pcs_model['cc']
+    sw = pcs_model['sw']
+    
+    rho_q = rock_properties['rho_q']
+    rho_c = rock_properties['rho_c']
+    rho_w = rock_properties['rho_w']
+    rho_h = rock_properties['rho_h']
+    
+    # Properties of the effective fluid
+    rho_f = weighted_average(rho_w, rho_h, sw)
+    rho_s = weighted_average(rho_c, rho_q, cc)
+    
+    rho = weighted_average(rho_f, rho_s, phi)
+    
+    vp, vs = Han(phi, cc) 
+    
+    
+    dv_model = {
+        'vp': (vp * 1).astype(np.float32),
+        'vs': (vs * 1).astype(np.float32),
+        'rho': rho.astype(np.float32)  ## (np.ones(rho.shape) * 1).astype(np.float32)
+    }
+    return dv_model
+
+
+
+
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -475,3 +601,4 @@ if __name__ == "__main__":
 
     print("phi: {}, cc: {}".format(phi1, cc1))
     
+   

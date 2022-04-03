@@ -43,7 +43,6 @@ __kernel void Adj_injSrc(
 
 if(i%dxr==0 && j == rec_top_right_const){
     int ir =  i/dxr;
-    // if (ir < n_main_rec){
     Avx[(i+rec_top_right_var)*Nx + j] += res_vx[ir];
     Avz[(i+rec_top_right_var)*Nx + j] += res_vz[ir];
     Ataux[(i+rec_top_right_var)*Nx + j] += res_taux[ir];

@@ -1,7 +1,7 @@
 import copy
 import logging
 import numpy as np
-from PyFWI.wave_propagation import wave_propagator as Wave
+from PyFWI.wave_propagation import WavePropagator as Wave
 import PyFWI.fwi_tools as tools
 from scipy.optimize.optimize import MemoizeJac
 import matplotlib.pyplot as plt
@@ -150,7 +150,7 @@ class FWI(Wave):
         
         i = 0
         while i < iter[0]:
-            print(f"Iteration === {i:1d}")
+            print("Iteration === {}".format(i))
             i += 1
             
             rms_hist.append(rms)

@@ -1,16 +1,11 @@
-from PyFWI.wave_propagation import wave_propagator as Wave
+from PyFWI.wave_propagation import WavePropagator as Wave
 from scipy.optimize.optimize import MemoizeJac
 import PyFWI.optimization as opt
 import PyFWI.fwi_tools as tools
 import PyFWI.acquisition as acq
 import numpy as np
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import axes_grid, make_axes_locatable
-from scipy.optimize import line_search
-import copy
-import PyFWI.seiplot as splt
-from PyFWI.fwi_tools import regularization
+from PyFWI.fwi_tools import Regularization
 
 class FWI(Wave):
     def __init__(self, d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr, components, param_functions=None):
@@ -40,18 +35,18 @@ class FWI(Wave):
             List of functions required in case of inversion with different parameterization than dv, by default None
         """
         super().__init__(inpa, src, rec_loc, model_shape, n_well_rec, chpr, components)
-        self.regularization = regularization(self.nx, self.nz, self.dh, self.dh)
+        self.regularization = Regularization(self.nx, self.nz, self.dh, self.dh)
         
         if param_functions is None:
             self.dict2vec = tools.vel_dict2vec
             self.vec2dict = tools.vec2vel_dict
-            self.to_dv = lambda a, param_functions_args: a
+            self.grad_to_dv = lambda a, param_functions_args: a
             self.grad_from_dv = lambda a, param_functions_args, b: a
             self.param_functions_args = []
         else:
             self.dict2vec = param_functions['dict2vec']
             self.vec2dict = param_functions['vec2dict']
-            self.to_dv = param_functions['to_dv']
+            self.grad_to_dv = param_functions['grad_to_dv']
             self.grad_from_dv = param_functions['grad_from_dv']
             try:
                 self.param_functions_args = param_functions['args']
@@ -156,8 +151,10 @@ class FWI(Wave):
         method = 'self.'
         if user_method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
+            # TODO Add option
         elif user_method in [1, 'GD', 'gd']:
             raise ("Gradient descent is not provided yet.")
+            # TODO Add option
         elif user_method in [2, 'lbfgs']:
             method += 'lbfgs'
 
@@ -174,7 +171,7 @@ class FWI(Wave):
         jac = fun.derivative
         
         for k in np.arange(k0, k_end, n_params):
-            print(f'Parameter number {k + 1: } to {k + n_params: }')
+            print('Parameter number {} to {}'.format(k + 1, k + n_params))
 
             m_1 = mtotal[:k * n_element]
             m_opt = mtotal[k * n_element: (k + n_params) * n_element]
@@ -195,7 +192,7 @@ class FWI(Wave):
 
         mtotal = np.copy(m0)
         m_old = self.vec2dict(mtotal, self.nz, self.nx)
-        m_new = self.to_dv(m_old, self.param_functions_args)
+        m_new = self.grad_to_dv(m_old, self.param_functions_args)
 
         d_est = self.forward_modeling(m_new, show=False)
         d_est = acq.prepare_residual(d_est, self.sd)

@@ -20,8 +20,8 @@ __kernel void injSrc(__global float *vx,__global float *vz,
   if (i==sourcez && j==sourcex){
     taux[center] += srcx;
     tauz[center] += srcz;
-
   }
+
   if(j%dxr==0 && i == rec_surface_const){
     int ir =  j/dxr;
         seismogram_vxi[ir]  =  vx[i*Nx+ (j + rec_surface_var)];
@@ -30,7 +30,6 @@ __kernel void injSrc(__global float *vx,__global float *vz,
         seismogram_tauzi[ir]  =  tauz[i*Nx+ (j + rec_surface_var)];
         seismogram_tauxzi[ir]  =  tauxz[i*Nx+ (j + rec_surface_var)];
   }
-
 
 }
 
@@ -60,5 +59,5 @@ __kernel void Adj_injSrc(
         Atauz[i*Nx + (j+rec_surface_var)] += res_tauz[ir];
         Atauxz[i*Nx + (j+rec_surface_var)] += res_tauxz[ir];
   }
-  
+
 }

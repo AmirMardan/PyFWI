@@ -53,7 +53,7 @@ class Circular():
                
         return model
     
-    def yang(self, vintage, smoothing):
+    def yang(self, vintage=1, smoothing=0):
         """
         Yang et al., 2018 for Truncated Newton method.
 
@@ -83,9 +83,9 @@ class Circular():
                
         return model
 
-    def Hu_circles(self, vintage=1, smoothing=0):
+    def hu_circles(self, vintage, smoothing):
         """
-        Hu_circles a model including porosity, clay content, and saturation.
+        hu_circles a model including porosity, clay content, and saturation.
 
         This method creates a model including porosity, clay content, and saturation.
         It is used in a paper published in 2021 in Geophysics by Qi Qu and his collegues. 
@@ -118,7 +118,7 @@ class Circular():
         return model
     
     
-    def perturbation_dv(self, vintage=1, smoothing=0):
+    def perturbation_dv(self, vintage, smoothing):
         """
         perturbation_dv creates perturbation model in different locations
 
@@ -154,16 +154,18 @@ class Laminar():
     def __init__(self,name) -> None:
         self.name = name
         
-    def Hu_laminar(self, vintage=1, smoothing=0):
+    def hu_laminar(self, vintage=1, smoothing=0):
+        
         # Based on Hu et al., 2020, Direct rock physics inversion 
         
-        model = background((100, 100), {'phi':0.3, 'cc':0.1, 'sw':0.2})
-        model = add_layer(model, {'phi':0.2, 'cc':0.3, 'sw':0.5}, [0, 37], [0, 65])
-        model = add_layer(model, {'phi':0.1, 'cc':0.5, 'sw':0.8}, [0, 65], [0, 100])
+        model = background((100, 100), {'phi':0.3, 'cc':0.05, 'sw':0.2})
+        model = add_layer(model, {'phi':0.2, 'cc':0.1, 'sw':0.5}, [0, 37], [0, 65])
+        model = add_layer(model, {'phi':0.1, 'cc':0.15, 'sw':0.8}, [0, 65], [0, 100])
             
         if vintage == 2:
-            model = add_layer(model, {'sw':0.2}, [22, 17], [22, 25], rt=[28, 17])
-        
+            mask = semicircle_mask(cx=50, cz=37, r=8, shape=model['cc'].shape)
+            model['sw'][mask] += 0.25 * model['sw'][mask]
+                
         if smoothing:
             model = model_smoother(model, smoothing)
         return model
@@ -248,7 +250,7 @@ class ModelGenerator(Circular, Laminar):
         ax.imshow(self.model[property[0]])
         
     
-    def marmousi(self, vintage=1, smoothing=0):
+    def marmousi(self, vintage, smoothing):
         """
         marmousi method generates the Maemousi-2 model.
 
@@ -437,12 +439,12 @@ def add_layer (model, property, lt, lb, rt=None, rb=None):
             lb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most left part
             rt (array, int): Sample number ([x ,z]) of the top of the layer in the most right part
             rb (array, int): Sample number ([x ,z]) of the bottom of the layer in the most right part 
-            
-            #TODO: to develop for dipping layers
 
         Returns:
             model(dict): Return the model.
         """
+        #TODO: to develop for dipping layers
+        
         nx = model[[*model][0]].shape[1]
         rt = (rt, [nx])[rt is None]
 
@@ -622,6 +624,38 @@ def model_resizing(model0,  bx=None, ex=None, bz=None, ez=None, ssr=(1, 1)):
     return model
 
 
+def semicircle_mask(cx, cz, r, shape):
+    """
+    semicircle_mask creates a semi-circle mask to mimic the injection is 
+    a laminar reservoir.
+
+    Parameters
+    ----------
+    cx : float
+        x-location of the center
+    cz : float
+        z-location of the center
+    r : float
+        Radius
+    shape : tuple
+        Sape of the model
+
+    Returns
+    -------
+    bool
+        A mask which is True in a semi-circle
+    """
+    mask = np.zeros(shape, bool)
+        
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            if (i - cz)**2 + (j - cx)**2 < r**2:
+                mask[i, j] = 1
+                        
+    mask[:cz, :] = 0
+    return mask
+        
+        
 if __name__ == "__main__":
     import PyFWI.seiplot as splt
     Model = ModelGenerator('Hu_circles')
@@ -638,3 +672,4 @@ if __name__ == "__main__":
     model_pc = {'phi': phi, 'cc':cc}
     splt.earth_model(model_pc, cmap='coolwarm')
     plt.show()
+
