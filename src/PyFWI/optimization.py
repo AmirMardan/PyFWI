@@ -150,7 +150,7 @@ class FWI(Wave):
         
         i = 0
         while i < iter[0]:
-            print(f"Iteration === {i:1d}")
+            print("Iteration === {}".format(i))
             i += 1
             
             rms_hist.append(rms)

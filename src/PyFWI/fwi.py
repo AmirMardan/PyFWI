@@ -171,7 +171,7 @@ class FWI(Wave):
         jac = fun.derivative
         
         for k in np.arange(k0, k_end, n_params):
-            print(f'Parameter number {k + 1: } to {k + n_params: }')
+            print('Parameter number {} to {}'.format(k + 1, k + n_params))
 
             m_1 = mtotal[:k * n_element]
             m_opt = mtotal[k * n_element: (k + n_params) * n_element]

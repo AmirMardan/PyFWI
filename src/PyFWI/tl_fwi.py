@@ -55,7 +55,7 @@ class TimeLapse(Wave):
         
         c = 0
         for k in np.arange(k0-1, k_end-1, n_params):
-            print(f'Parameter number {k + 1: } to {k + n_params: }')
+            print('Parameter number {} to {}'.format(k + 1, k + n_params))
                             
             m_opt = np.hstack((
                 x0[k * n_elements: (k + n_params) * n_elements],
