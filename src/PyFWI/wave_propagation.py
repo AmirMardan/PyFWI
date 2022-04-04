@@ -1,6 +1,5 @@
 import numpy as np
 import sys
-# sys.path.append('/Users/amir/repos/seismic/src/')
 from numpy.core.shape_base import block
 import pyopencl as cl
 import os
@@ -155,10 +154,10 @@ class WavePreparation:
         else:
             device = 0
             print("Device {} is chosen.".format(device))
-
-        os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
-        os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
-
+        
+        if len(devices) > 1:
+            os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
+            os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
 
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
