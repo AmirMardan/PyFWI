@@ -4,11 +4,8 @@ from mpl_toolkits import axes_grid1
 from numpy.core.shape_base import block
 import numpy as np
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from PyFWI.model_dataset import ModelGenerator
 
-try:
-    from PyFWI.model_dataset import ModelGenerator
-except:
-    from model_dataset import ModelGenerator
 
 def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     """
@@ -138,7 +135,7 @@ def inversion_video(m_video, pause=0.2, **kwargs):
     for i in range(m_video.shape[2]):
         im = ax.imshow(m_video[20:-20, 20:-20, i], **kwargs)
         cb = fig.colorbar(im, cax=cax)
-        ax.set_title(f"Iteration {i+1}")
+        ax.set_title("Iteration {}".format(i + 1))
         plt.pause(pause)
         
         

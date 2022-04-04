@@ -48,7 +48,7 @@ setup(name='PyFWI',
                   ],
         },
       zip_safe=False,
-      python_requires=">=3."
+      python_requires=">=3.7"
       
       )
      

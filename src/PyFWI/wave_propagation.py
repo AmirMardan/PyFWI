@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+# sys.path.append('/Users/amir/repos/seismic/src/')
 from numpy.core.shape_base import block
 import pyopencl as cl
 import os
@@ -8,21 +9,11 @@ import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
 
-try:
-    import PyFWI.processing as seis_process
-    import PyFWI.fwi_tools as tools
-    from PyFWI.fwi_tools import recorder, expand_model, CPML
-    import PyFWI.acquisition as acq
-    import PyFWI.acquisition as acq
-    from PyFWI.grad_swithcher import grad_lmd_to_vd
-
-except:
-    import processing as seis_process
-    import fwi_tools as tools
-    from fwi_tools import recorder, expand_model, CPML
-    import acquisition as acq
-    import acquisition as acq
-    from grad_swithcher import grad_lmd_to_vd
+import PyFWI.processing as seis_process
+import PyFWI.fwi_tools as tools
+from PyFWI.fwi_tools import Recorder, expand_model, CPML
+import PyFWI.acquisition as acq
+from PyFWI.grad_swithcher import grad_lmd_to_vd
 
 
 class WavePreparation:

@@ -10,13 +10,9 @@ import shutil
 import segyio
 import copy
 
-try:
-  import PyFWI.rock_physics as rp
-  import PyFWI.seismic_io as io
+import PyFWI.rock_physics as rp
+import PyFWI.seismic_io as io
 
-except:
-  import rock_physics as rp
-  import seismic_io as io
 
 class Circular():
     def __init__(self, name):

@@ -1,13 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.core.shape_base import block
 
-try:
-    from PyFWI.seiplot import seismic_section
-    import PyFWI.seismic_io as io
-except:
-    from seiplot import seismic_section
-    import seismic_io as io
+from PyFWI.seiplot import seismic_section
+import PyFWI.seismic_io as io
+
 
 class Gain():
 
@@ -102,11 +98,11 @@ class GainFunction(Gain):
         gain = self.gain_function.reshape(-1,1)
         
         if type(data).__name__ == 'list':
-            self.gain_2d = gain @ np.ones((1, data[0].shape[1]), np.float32)
+            self.gain_2d = np.dot(gain, np.ones((1, data[0].shape[1]), np.float32))
             self.gained_data = [self.gain_2d * comp_i for comp_i in data]
             
         elif type(data).__name__ == 'ndarray':
-            self.gain_2d = gain @ np.ones((1, data.shape[1]), np.float32)
+            self.gain_2d = np.dot(gain, np.ones((1, data.shape[1]), np.float32))
             self.gained_data = self.gain_2d *  data
 
         
