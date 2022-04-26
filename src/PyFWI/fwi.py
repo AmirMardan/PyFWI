@@ -40,13 +40,13 @@ class FWI(Wave):
         if param_functions is None:
             self.dict2vec = tools.vel_dict2vec
             self.vec2dict = tools.vec2vel_dict
-            self.grad_to_dv = lambda a, param_functions_args: a
+            self.model_to_dv = lambda a, param_functions_args: a
             self.grad_from_dv = lambda a, param_functions_args, b: a
             self.param_functions_args = []
         else:
             self.dict2vec = param_functions['dict2vec']
             self.vec2dict = param_functions['vec2dict']
-            self.grad_to_dv = param_functions['grad_to_dv']
+            self.model_to_dv = param_functions['model_to_dv']
             self.grad_from_dv = param_functions['grad_from_dv']
             try:
                 self.param_functions_args = param_functions['args']
@@ -192,7 +192,7 @@ class FWI(Wave):
 
         mtotal = np.copy(m0)
         m_old = self.vec2dict(mtotal, self.nz, self.nx)
-        m_new = self.grad_to_dv(m_old, self.param_functions_args)
+        m_new = self.model_to_dv(m_old, self.param_functions_args)
 
         d_est = self.forward_modeling(m_new, show=False)
         d_est = acq.prepare_residual(d_est, self.sd)

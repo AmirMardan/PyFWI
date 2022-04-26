@@ -427,7 +427,7 @@ class Regularization:
 class Fdm(object):
     def __init__(self, order):
         """
-        fdm is a class to implemenet the the finite difference method for wave modeling
+        Fdm is a class to implemenet the the finite difference method for wave modeling
 
         The coeeficients are based on Lavendar, 1988 and Hasym et al., 2014.
 
@@ -810,7 +810,7 @@ def disperasion_stability(vp, sdo, fn):
     dt : float
         Temporal sampling rate
     """
-    D = fdm(order=sdo)
+    D = Fdm(order=sdo)
 
     dh = vp.min() / (D.dh_n * fn)
     dt = D.dt_computation(vp.max(), dh)

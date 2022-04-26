@@ -300,7 +300,7 @@ def discretized_acquisition_plan(data_guide, dh, npml=0):
 
 def seismic_section(seismo, components=0):
     seis_plan = {
-        '1': ['tax'],
+        '1': ['taux'],
         '2': ['vx', 'vz'],
         '3': ['taux', 'tauz', 'tauxz'],
         '4': ['vx', 'vz', 'taux', 'tauz', 'tauxz']
