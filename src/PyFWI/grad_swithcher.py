@@ -2,19 +2,21 @@ import PyFWI.rock_physics as rp
 import numpy as np
 
 class PcsParameterization:
-    def __init__(self, rp_model='gassmann'):
-        if rp_model == 'gassmann':
-            self.grad_dv2pcs = grad_dv2pcs_gassmann
-            self.pcs2dv = rp.pcs2dv_gassmann
-            
-        elif rp_model == 'han':
-            self.grad_dv2pcs = grad_dv2pcs_han
-            self.pcs2dv = rp.pcs2dv_han
+    def __init__(self, rp_model='gassmann', grad_args={}, model_args={}):
         
-        elif rp_model == 'vrh':
-            self.grad_dv2pcs = grad_dv2pcs_vrh
-            self.pcs2dv = rp.pcs2dv_vrh
-            
+        self.grad_args = grad_args
+        self.model_args = model_args
+        self.rp_model = rp_model
+
+    def grad_dv2pcs(self, *args, **kargs):
+            # TODO: Add for vrh and 
+            return grad_dv2pcs_gassmann(*args, **kargs, **self.grad_args)
+        
+        
+    def pcs2dv(self, *args, **kargs):
+            return rp.pcs2dv_gassmann(*args, **kargs, **self.model_args)
+        
+        
 
 def grad_dv2pcs_vrh(gdv, rock_properties, pcs_model):
     dv_model = rp.pcs2dv_gassmann(pcs_model, rock_properties)
@@ -108,8 +110,8 @@ def grad_kmd2phi_vrh(kr, kc, kq, kw, kh, muc, muq, cc, sw, rhos, rhof):
     return gk_phi, gmu_phi, grho_phi
 
 #%% Gassmann 
-def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model):
-    dv_model = rp.pcs2dv_gassmann(pcs_model, rock_properties)
+def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model, method):
+    dv_model = rp.pcs2dv_gassmann(pcs_model, rock_properties, method)
     
     vp = dv_model['vp']
     vs = dv_model['vs']
@@ -133,8 +135,8 @@ def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model):
     rho_h = rock_properties['rho_h']
     cs = rock_properties['cs']
     
-    k_s = rp.weighted_average(k_c, k_q, cc)
-    mu_s = rp.weighted_average(mu_c, mu_q, cc)
+    k_s = rp.vrh(k_c, k_q, cc, method)
+    mu_s = rp.vrh(mu_c, mu_q, cc, method)
     rho_s = rp.weighted_average(rho_c, rho_q, cc)
     
     rho_f = rp.weighted_average(rho_w, rho_h, sw)
@@ -145,16 +147,16 @@ def grad_dv2pcs_gassmann(gdv, rock_properties, pcs_model):
     gk_phi, gmu_phi, grho_phi = grad_kmd2phi_gassmann(phi, k_s, mu_s, rho_s, k_f, rho_f, cs)
     g_phi = gk * gk_phi + gmu * gmu_phi + grho_kmd * grho_phi
     
-    gk_c, gmu_c, grho_c = grad_kmd2cc_gassmann(phi, cc, k_c, mu_c, rho_c, k_q, mu_q, rho_q, k_f, cs)
+    gk_c, gmu_c, grho_c = grad_kmd2cc_gassmann(phi, cc, k_c, mu_c, rho_c, k_q, mu_q, rho_q, k_f, cs, method)
     g_cc = gk * gk_c + gmu * gmu_c + grho_kmd * grho_c
     
     gk_sw, gmu_sw, grho_sw = grad_kmd2sw_gassmann(phi, cc, k_c, k_w, k_h, mu_c, rho_w, k_q, mu_q, rho_h, k_f, cs)
     g_sw = gk * gk_sw + gmu * gmu_sw + grho_kmd * grho_sw
       
     grad= {
-        'phi': g_phi,#/1000,
-        'cc': g_cc,#/1000,
-        'sw': g_sw,#/1000
+        'phi': g_phi,
+        'cc': g_cc,
+        'sw': g_sw,
     }
     return grad
 
@@ -185,12 +187,14 @@ def grad_kmd2sw_gassmann(phi, cc, kc, kw, kh, muc, rhow, kq, muq, rhoh, kf, cs):
     return gk_sw, gmu_sw, grho_sw
 
 
-def grad_kmd2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs):
-    ks = rp.weighted_average(kc, kq, cc)
-    mus = rp.weighted_average(muc, muq, cc)
+def grad_kmd2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs, method):
     
-    gks_c = kc - kq
-    gmus_c = muc - muq
+    ks = rp.vrh(kc, kq, cc, method)
+    mus = rp.vrh(muc, muq, cc, method)
+        
+    gks_c = grad_vrh(kc, kq, cc, method)
+    gmus_c = grad_vrh(muc, muq, cc, method)
+    grhos_c = (rhoc - rhoq) 
     
     gkd_c = gks_c * (1 - phi) / (1 + cs * phi)
     gmud_c = gmus_c * (1 - phi) / (1 + cs * phi * 3 / 2)
@@ -212,7 +216,7 @@ def grad_kmd2cc_gassmann(phi, cc, kc, muc, rhoc, kq, muq, rhoq, kf, cs):
     
     gmu_c = gmud_c
     
-    grho_c = (1 - phi) * (rhoc - rhoq)
+    grho_c = (1 - phi) * grhos_c
     return gk_c, gmu_c, grho_c
 
 
@@ -364,6 +368,23 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     grho = glam_rho + gmu_rho + grho_rho
 
     return gvp.astype(np.float32), gvs.astype(np.float32), grho.astype(np.float32)
+
+
+def grad_vrh(prop1, prop2, volume1, method):
+        volume2 = 1 - volume1
+        
+        gkv_c = (prop1 - prop2)
+        gkr_c = ((1/prop2 - 1/prop1) / (volume1/prop1 + volume2/prop2) **2)
+        gk_c = 0.5 * (gkv_c + gkr_c)
+        
+        if method == 'Voigt':
+            return gkv_c
+        
+        elif method =='Reuss':
+            return gkr_c
+        
+        elif method == 'VRH':
+            return gk_c
 
 
 def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):

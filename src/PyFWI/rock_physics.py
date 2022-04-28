@@ -387,7 +387,7 @@ def weighted_average(prop1, prop2, volume1):
         return mixed
     
     
-def vrh(prop1, prop2, volume1):
+def vrh(prop1, prop2, volume1, method):
     """
     vrh performs Voigt-Reuss-Hill boundary
 
@@ -409,8 +409,20 @@ def vrh(prop1, prop2, volume1):
     """
     
     volume2 = 1 - volume1
-    mixed = 0.5 * ((volume1 * prop1 + volume2 * prop2) + (1 / ((volume1/prop1) + (volume2/prop2))))
-    return mixed 
+    prop_voigt = (volume1 * prop1 + volume2 * prop2)
+    prop_reuss = (1 / ((volume1/prop1) + (volume2/prop2)))
+    
+    mixed = 0.5 * (prop_voigt + prop_reuss)
+    
+    if method == 'Voigt':
+        return prop_voigt
+    
+    elif method =='Reuss':
+        return prop_reuss
+    
+    elif method == 'VRH':
+        return mixed
+        
     
 def lmd2vd(lam, mu, rho):
     """
@@ -451,7 +463,6 @@ def vd2lmd(vp, vs, rho):
     rho = rho
     return lam, mu, rho
 
- 
 def pcs2dv_vrh(pcs_model, rock_properties):
     phi = pcs_model['phi']
     cc = pcs_model['cc']
@@ -498,11 +509,10 @@ def pcs2dv_vrh(pcs_model, rock_properties):
         'vs': (vs * 1).astype(np.float32),
         'rho': rho.astype(np.float32)
     }
-
     return dv_model
 
 
-def pcs2dv_gassmann(pcs_model, rock_properties):
+def pcs2dv_gassmann(pcs_model, rock_properties, method):
     phi = pcs_model['phi']
     cc = pcs_model['cc']
     sw = pcs_model['sw']
@@ -526,10 +536,10 @@ def pcs2dv_gassmann(pcs_model, rock_properties):
     k_f = weighted_average(k_w, k_h, sw)
     
     # Properties of the effective skeleton
-    k_s = weighted_average(k_c, k_q, cc)
-    mu_s = weighted_average(mu_c, mu_q, cc)
+    k_s = vrh(k_c, k_q, cc, method)
+    mu_s = vrh(mu_c, mu_q, cc, method)
     rho_s = weighted_average(rho_c, rho_q, cc)
-    
+
     k_d, mu_d = drained_moduli(phi, k_s, mu_s, cs) 
     
     # Effective unrained properties
@@ -573,8 +583,6 @@ def pcs2dv_han(pcs_model, rock_properties):
         'rho': rho.astype(np.float32)  ## (np.ones(rho.shape) * 1).astype(np.float32)
     }
     return dv_model
-
-
 
 
 

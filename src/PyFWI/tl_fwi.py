@@ -1,4 +1,4 @@
-from PyFWI.wave_propagation import wave_propagator as Wave
+from PyFWI.wave_propagation import WavePropagator as Wave
 from scipy.optimize.optimize import MemoizeJac
 import PyFWI.fwi_tools as tools
 import numpy as np
