@@ -12,6 +12,32 @@ import timeit
 
 
 class TimeLapse(Wave):
+    """
+    TimeLapse is a class to perform time-lapse FWI.
+
+    Parameters
+    ----------
+    b_dobs : dict
+        Observed data from baseline
+    m_dobs : dict
+        Observed data from monitor vintage
+    inpa : dict
+        Dictionary of required parameters for FWI
+    src : obj
+        Source function
+    rec_loc : ndarray
+        Location of receivers
+    model_size : tuple
+        Shape pf model
+    n_well_rec : int
+        Number  of receivers on the surface
+    chpr : int
+        Checkpoint percentage
+    components : int
+        Code for components to be recorded
+    param_functions : dict, optional
+        Required functions to switch the gradient
+        """
     def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
         super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
         
@@ -20,15 +46,44 @@ class TimeLapse(Wave):
         self.b_dobs = copy.deepcopy(b_dobs)
         self.m_dobs = copy.deepcopy(m_dobs)
         
-        # self.nz, self.nx = model_size
         self.n_elements = self.nz * self.nx
         
         self.CF = self.inv_obj.CF
         self.fn = self.inv_obj.fn
             
     def __call__ (self, b_m0, iter, freqs, tl_method, n_params, k_0, k_end):
-        b_m0 = self.inv_obj.dict2vec(b_m0)
+        """
+        Calling this class will run time-lapse FWI and return the result of FWI and TL-FWI 
+
+        Parameters
+        ----------
+        b_m0 : dict
+            Initial model in form of dictionary
+        iter : list
+            List of iteration for each frequency
+        freqs : list
+            Frequencies for multiscale inversion
+        tl_method : str
+            Name of time-lapse method ('cc': Cascaded, 'sim': Simultaneous, 'wa': Weighted average,
+                                        'cj': Cascaded joint, 'cd': Central difference, 'cu': Cross updating)
+        n_params : int
+            Number of parameters to invert
+        k_0 : int
+            Index of th first parameter to invert (considering a b_m0 with three parameters (vp, vs, rho), 
+            if we can set k_0 as 2 to start the inversion for vs.)
+        k_end : int
+            Index of th first parameter to invert (considering a b_m0 with three parameters (vp, vs, rho), 
+            if we can set k_end as 2 to doesn't invert rho.)
+
+        Returns
+        -------
+        m : dict
+            A dictionary containing the result of FWI and TL-FWI
+        rms : adarray
+            rms error
+        """
                 
+        # b_m0 must remain a dict    
         if tl_method == 'cc':
             m, rms = self.cascaded_inversion(b_m0, freqs, iter, n_params=n_params, k_0=k_0, k_end=k_end)
         elif tl_method == 'sim':
@@ -98,8 +153,8 @@ class TimeLapse(Wave):
         b_model0_pcs = self.inv_obj.vec2dict(x1[:3*self.n_elements], self.nz, self.nx)
         m_model0_pcs = self.inv_obj.vec2dict(x1[3*self.n_elements:], self.nz, self.nx)
 
-        b_model0 = self.inv_obj.to_dv(b_model0_pcs, [])
-        m_model0 = self.inv_obj.to_dv(m_model0_pcs, [])
+        b_model0 = self.inv_obj.model_to_dv(b_model0_pcs, self.inv_obj.param_functions_args)
+        m_model0 = self.inv_obj.model_to_dv(m_model0_pcs, self.inv_obj.param_functions_args)
         
         dpre = self.forward_modeling(b_model0, show=False)
         dpre = acq.prepare_residual(dpre, self.inv_obj.sd)
@@ -122,7 +177,7 @@ class TimeLapse(Wave):
         grad_diff_m = m - b
         
         b_grad_dv = self.gradient(adj_src1)
-        b_grad = self.inv_obj.grad_from_dv(b_grad_dv, [], b_model0_pcs)
+        b_grad = self.inv_obj.grad_from_dv(b_grad_dv, self.inv_obj.param_functions_args, b_model0_pcs)
         
         dpre = self.forward_modeling(m_model0, show=False)
         dpre = acq.prepare_residual(dpre, self.inv_obj.sd)
@@ -134,7 +189,7 @@ class TimeLapse(Wave):
                                            )
 
         m_grad_dv = self.gradient(adj_src)
-        m_grad = self.inv_obj.grad_from_dv(m_grad_dv, [],m_model0_pcs)
+        m_grad = self.inv_obj.grad_from_dv(m_grad_dv, self.inv_obj.param_functions_args,m_model0_pcs)
         
         rms_data = b_rms_data + m_rms_data
         
@@ -249,7 +304,11 @@ class TimeLapse(Wave):
             "dm4": tools.dict_diff(model_m1, model_m1b),
             "dm34": tools.dict_summation(tools.dict_diff(model_b1m, model_b1),
                                  tools.dict_diff(model_m1, model_m1b),
-                                division=2)
+                                division=2),
+            "b1": model_b1,
+            "m1": model_m1,
+            "m2": model_b1m,
+            "b2": model_m1b
         }
         print("central_inversion")
         return inverted, _
