@@ -8,4 +8,11 @@ Full-waveform inversion
 ========================
 
 .. autoclass:: PyFWI.fwi.FWI
-    :special-members: __init__, __call__
+    :special-members: __call__
+
+
+Time-lapse full-waveform inversion
+==================================
+
+.. autoclass:: PyFWI.tl_fwi.TimeLapse
+    :special-members: __call__
