@@ -8,32 +8,32 @@ from scipy.optimize.lbfgsb import fmin_l_bfgs_b
 from PyFWI.fwi_tools import Regularization
 
 class FWI(Wave):
+    """
+    FWI perform full-waveform inversion
+
+
+    Parameters
+    ----------
+    d_obs : dict
+        Observed data
+    inpa : dict
+        Input parameters
+    src : Class
+        Source object
+    rec_loc : float
+        Receiver location
+    model_size : tuple
+        Shape of the model
+    n_well_rec : int
+        Number of receivers in the well
+    chpr : flaot (percentage)
+        Percentage for check point 
+    components : int
+        Type of output
+    param_functions : dict, optional
+        List of functions required in case of inversion with different parameterization than dv, by default None
+        """
     def __init__(self, d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr, components, param_functions=None):
-        """
-        FWI perform full-waveform inversion
-
-
-        Parameters
-        ----------
-        d_obs : dict
-            Observed data
-        inpa : dict
-            Input parameters
-        src : Class
-            Source object
-        rec_loc : float
-            Receiver location
-        model_size : tuple
-            Shape of the model
-        n_well_rec : int
-            Number of receivers in the well
-        chpr : flaot (percentage)
-            Percentage for check point 
-        components : int
-            Type of output
-        param_functions : list of function, optional
-            List of functions required in case of inversion with different parameterization than dv, by default None
-        """
         super().__init__(inpa, src, rec_loc, model_shape, n_well_rec, chpr, components)
         self.regularization = Regularization(self.nx, self.nz, self.dh, self.dh)
         
