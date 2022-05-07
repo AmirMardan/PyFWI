@@ -48,7 +48,7 @@ class WavePreparation:
         self.dh = inpa['dh']
         
         if 'sdo' in keys:
-            self.sdo = np.int(inpa['sdo'] / 2)
+            self.sdo = np.int32(inpa['sdo'] / 2)
         else:
             self.sdo = 2
             
@@ -151,7 +151,7 @@ class WavePreparation:
                 raise Exception("Bad chosen device. There are {} available device(s).".format(len(devices)))
         else:
             device = 0
-            print("Device {} is chosen.".format(device))
+            # print("Device {} is chosen.".format(device))
 
         os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
         os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
