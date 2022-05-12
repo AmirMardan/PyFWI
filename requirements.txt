@@ -6,6 +6,7 @@ hdf5storage
 requests
 segyio
 datetime
+pyopencl==2021.2.10
 sphinx>=1.4
 ipykernel
 nbsphinx
