@@ -163,7 +163,7 @@ class Laminar():
             model['sw'][mask] += 0.25 * model['sw'][mask]
                 
         if smoothing:
-            model = model_smoother(model, smoothing)
+            model = background((100, 100), {'phi':0.3, 'cc':0.05, 'sw':0.2})
         return model
 
 
