@@ -420,10 +420,50 @@ def vrh(prop1, prop2, volume1, method):
     elif method =='Reuss':
         return prop_reuss
     
-    elif method == 'VRH':
+    elif method in ['VRH', 'vrh']:
         return mixed
         
-    
+
+def kmd2vd(k, mu, rho):
+    """
+    kmd2vd switches bulk and shear moduli and density to vp, vs, density
+
+    [extended_summary]
+
+    Args:
+        k ([type]): [description]
+        mu ([type]): [description]
+        rho ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    vp = np.sqrt((k + 4/3 * mu)/ rho)
+    vs = np.sqrt(mu / rho)
+    rho = rho
+    return vp, vs, rho
+
+
+def vd2kmd(vp, vs, rho):
+    """
+    vd2kmd switches vp, vs, density to bulk and shear moduli and density to 
+
+    [extended_summary]
+
+    Args:
+        vp ([type]): [description]
+        vs ([type]): [description]
+        rho ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    lam = rho * (vp ** 2 - 4/3 * vs ** 2)
+    mu = rho * vs ** 2
+    rho = rho
+    return lam, mu, rho
+
+   
 def lmd2vd(lam, mu, rho):
     """
     lmd2vd switches Lama modulus and density to vp, vs, density
@@ -439,7 +479,7 @@ def lmd2vd(lam, mu, rho):
         [type]: [description]
     """
     vp = np.sqrt((lam + 2 * mu)/ rho)
-    vs = np.sqrt((lam + 2 * mu)/ rho)
+    vs = np.sqrt(mu / rho)
     rho = rho
     return vp, vs, rho
 
