@@ -7,6 +7,7 @@ from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
+sys.path.append('/Users/amir/repos/seismic/src/')
 
 import PyFWI.processing as seis_process
 import PyFWI.fwi_tools as tools
@@ -146,22 +147,22 @@ class WavePreparation:
             platform = 0
 
         # Choose th device (pick 0 if not provided)
-        devices = get_test_platforms_and_devices()[0][1]
+        devices = get_test_platforms_and_devices()[0][1] # (platforms, devices)
         if "device" in keys:
             device = inpa["device"]
             if device >= len(devices):
                 raise Exception("Bad chosen device. There are {} available device(s).".format(len(devices)))
         else:
             device = 0
-            # print("Device {} is chosen.".format(device))
+            print("Device {} is chosen.".format(device))
 
         os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
         os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
-
-
+        print(str(platform) + ':' + str(device))
+        
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
-
+        
         kernel, kernel_crosswell, kernel_surface = self.kernel_caller()
 
         self.prg_cw = cl.Program(self.ctx, kernel_crosswell).build()
@@ -924,7 +925,7 @@ if __name__ == "__main__":
     inpa['npml'] = 20
     inpa['pmlR'] = 1e-5
     inpa['pml_dir'] = 2
-    inpa['device'] = 1
+    # inpa['device'] = 0
     inpa['energy_balancing'] = False
     inpa['seisout'] = 0
 
