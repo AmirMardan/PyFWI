@@ -7,7 +7,6 @@ from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
 import copy
 from scipy.ndimage import gaussian_filter
-sys.path.append('/Users/amir/repos/seismic/src/')
 
 import PyFWI.processing as seis_process
 import PyFWI.fwi_tools as tools
@@ -18,7 +17,7 @@ from PyFWI.grad_swithcher import grad_lmd_to_vd
 
 class WavePreparation:
 
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0):
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0, set_env_variable=True):
         '''
         A class to prepare the variable and basic functions for wave propagation.
 
@@ -26,6 +25,8 @@ class WavePreparation:
         #TODO: work on how ypu specify the acq_type, getting n_well_rec, using that again fpr two .cl files
         keys = [*inpa]
 
+        self.set_env_variable = set_env_variable
+        
         self.t = inpa['t']
         self.dt = inpa['dt']
         self.nt = int(1 + self.t // self.dt)
@@ -156,9 +157,9 @@ class WavePreparation:
             device = 0
             print("Device {} is chosen.".format(device))
 
-        os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
-        os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
-        print(str(platform) + ':' + str(device))
+        if set_env_variable:
+            os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
+            os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
         
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
@@ -600,8 +601,9 @@ class WavePropagator(WavePreparation):
     component:
         Seismic output
     """
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0):
-        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=components)
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0, set_env_variable=True):
+        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr,
+                                 components=components, set_env_variable=set_env_variable)
 
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
