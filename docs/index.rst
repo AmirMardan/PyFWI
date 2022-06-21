@@ -7,7 +7,7 @@ Welcome to PyFWI's documentation!
 =================================
 
 **PyFWI** is an open source Python package to perform seismic modeling and full-waveform inversion (FWI) in elastic media. 
-This packages is implemented in time domain and coded using GPU programming (PyOpenCL) to accelerate the computation.
+This package is implemented in time domain and coded using GPU programming (PyOpenCL) to accelerate the computation.
 
 .. toctree::
    :maxdepth: 1

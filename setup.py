@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
               
 setup(name='PyFWI',
-      version='0.1.6',
+      version='0.1.7',
       packages=['PyFWI'],
       description='The initial package for seismic FWI', 
       long_description=long_description,

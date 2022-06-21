@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Mardan"
+  given-names: "Amir"
+  orcid: "https://orcid.org/0000-0002-0417-1259"
+- family-names: "Giroux"
+  given-names: "Bernard"
+  orcid: "https://orcid.org/0000-0002-2042-2759"
+- family-names: "Fabien-Ouellet"
+  given-names: "Gabriel"
+  orcid: "https://orcid.org/0000-0002-1849-3718"
+title: "PyFWI: Python package for Full-Waveform Inversion (FWI)"
+doi: 10.5281/zenodo.5813637
+url: https://github.com/AmirMardan/PyFWI
+license: GPL-3.0 license
