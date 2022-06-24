@@ -4,6 +4,7 @@ import PyFWI.optimization as opt
 import PyFWI.fwi_tools as tools
 import PyFWI.acquisition as acq
 import numpy as np
+from scipy.optimize import fmin_cg
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
 from PyFWI.fwi_tools import Regularization
 
@@ -152,14 +153,41 @@ class FWI(Wave):
         if user_method in [0, 'SD', 'sd']:
             raise ("Steepest descent is not provided yet.")
             # TODO Add option
-        elif user_method in [1, 'GD', 'gd']:
-            raise ("Gradient descent is not provided yet.")
-            # TODO Add option
+        elif user_method in [1, 'CG', 'cg']:
+            method += 'cg'
+            
         elif user_method in [2, 'lbfgs']:
             method += 'lbfgs'
 
         return method
 
+    def cg(self, m0, ITER, freq, n_params=1, k0=1, k_end=2):
+        
+        n_element = self.nz * self.nx
+        mtotal = np.copy(m0)
+
+        rms_hist = []
+
+        fun = MemoizeJac(self.fprime_single)
+        jac = fun.derivative
+        
+        for k in np.arange(k0, k_end, n_params):
+            print('Parameter number {} to {}'.format(k + 1, k + n_params))
+
+            m_1 = mtotal[:k * n_element]
+            m_opt = mtotal[k * n_element: (k + n_params) * n_element]
+            m1 = mtotal[(k + n_params) * n_element:]
+            
+            m_opt, hist, _, _, _ = fmin_cg(fun, m_opt, jac, args=[m_1, m1, freq],
+                                           gtol=1e-8, maxiter=ITER,
+                                           full_output = True, disp=None)
+
+            # print(m_opt.max(), m_opt.min())
+            rms_hist.append(hist)
+
+            mtotal = np.hstack((m_1, m_opt, m1))
+        return mtotal, rms_hist
+    
     def lbfgs(self, m0, ITER, freq, n_params=1, k0=1, k_end=2):
         
         n_element = self.nz * self.nx
