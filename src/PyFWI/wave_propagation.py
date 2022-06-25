@@ -1,11 +1,9 @@
 import os
-# import sys
 import numpy as np
 # from numpy.core.shape_base import block
 import pyopencl as cl
 from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
-# import copy
 from scipy.ndimage import gaussian_filter
 
 import PyFWI.fwi_tools as tools

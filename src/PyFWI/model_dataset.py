@@ -6,7 +6,6 @@ import copy
 import numpy as np
 from numpy.core.defchararray import add
 import matplotlib.pyplot as plt
-import hdf5storage as hdf5
 from scipy.ndimage.filters import gaussian_filter
 from scipy import interpolate as intp
 import PyFWI.rock_physics as rp
