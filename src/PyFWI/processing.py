@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from PyFWI.seiplot import seismic_section
-import PyFWI.seismic_io as io
-
 
 class Gain():
 
@@ -43,6 +41,28 @@ class Gain():
         if show_gain:
             # If asked to show the data
             self._show_gain(G.gain_function)
+        
+    def constant(self, res, s=None):
+        """
+        Apply a constant gain.
+
+        Parameters
+        ----------
+        res : dict
+            Raw data
+        s : ndarray
+            Gain value
+
+        Returns
+        -------
+        dict
+            Reformatted seismic section 
+        """
+        if s is None:
+            self.gain_function = np.array([self.dt])
+        else:
+            self.gain_function = np.array([s])
+            
         
     @property
     def test(self):
@@ -118,7 +138,38 @@ class GainFunction(Gain):
 
         return self.gained_data
     
+    
+def prepare_residual(res, s):
+    """
+    prepare_residual prepares the seismic data as the desire format of FWI class.
+
+    Parameters
+    ----------
+    res : dict
+        Seismic section
+    s : ndarray
+        Parqameter to create the square matirix of W as the weight of seismic data in cost function.
+
+    Returns
+    -------
+    dict
+        Reformatted seismic section 
+    """
+    
+    data = {}
+    shape = res[[*res][0]].shape
+    all_comps = ['vx', 'vz', 'taux', 'tauz', 'tauxz']
+    
+    for param in all_comps:
+        if param in res:
+            data[param] = s * res[param]
+        else:
+            data[param] = np.zeros(shape, np.float32)
+    return data
+
 if __name__ == "__main__":
+    import PyFWI.seismic_io as io
+
     data = io.load_mat('/Users/amir/repos/seismic/src/PyFWI/data/test/bl_data.mat')
     data = data['bl']
     G = GainFunction(t=0.45, dt=0.00061, nt=data.shape[0])

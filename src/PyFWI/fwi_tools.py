@@ -1,18 +1,17 @@
 import os 
-import numpy as np
 import copy
 import logging
 import pyopencl as cl
+import numpy as np
 from numpy.core.arrayprint import dtype_is_implied
-from scipy.signal import butter, hilbert, freqz
 import numpy.fft as fft
 import matplotlib.pyplot as plt
+
+from scipy.signal import butter, hilbert, freqz
 import scipy.sparse as sp
 from scipy.ndimage import gaussian_filter
 
-from PyFWI.seismic_io import load_mat
 from PyFWI import rock_physics as rp
-import PyFWI.processing as seis_process
 
 
 def derivative(nx, nz, dx, dz, order):
@@ -620,131 +619,6 @@ class Fdm(object):
         dt = 2 / vp_max / np.sqrt(a*(1 + 4.0))
 
         return dt
-
-
-def inpa_generator(vp, sdo, fn, **kwargs):
-    D = seis_process.derivatives(order=sdo)
-    dh = vp.min()/(D.dh_n * fn)
-
-    dt = D.dt_computation(vp.max(), dh)
-
-
-    inpa = {
-        "SeisCL": False,
-        "seisout": 4,
-        "no_use_GPUs": np.array([-1]),
-        "cost_function_type": "l2",
-        "cost_function_intensity": "l2_intensity",
-        "device": 0,
-        "medium": 1,
-        "ns": 1,
-        "npml": 20,
-        "pmlR": 1e-5,
-        "gain": 0,
-        # PML in 0:z-, 1:x-, 2: z- and x-direction, 3: free surface
-        "pml_dir": 2,
-
-        # 0: vp, vs, rho; 1: lambda, mu, rho; 2: PCS
-        "param_type": 0,
-
-        # Number of check points relative to all time samples based on percentage
-        "chpR": 15,
-
-        "ITER_intensity": 0,
-        "iteration": np.array([40, 40, 40], dtype=np.int),
-        # Dominant frequency for wavelet
-        "fdom": 20,
-        "f_inv": np.array([15, 25, 30], dtype=np.float32),
-
-        # Choosing the order of spatial derivative (Could be 2, 4, 8)
-        "sdo": sdo,
-
-        # Specify the acquisition type (0: crosswell, 1: surface, 2: both)
-        "acq_type": 2,
-        "energy_balancing": True,
-        "gradient_smoothing": 0,
-
-        "offset_weighting": False,
-
-        "vel_unit": "m/s",
-        "dh": dh,
-        "dt": dt
-    }
-
-    for key, value in kwargs.items():
-        inpa[key] = value
-
-    return inpa
-
-def inpa_loading(path):
-    """
-    inpa_loading lad the INPA file
-
-    [extended_summary]
-
-    Args:
-        path ([type]): [description]
-
-    Returns:
-        inpa (dict): input of FWI program
-    """
-
-    if os.path.isfile(path):
-        inpa = load_mat(path)
-
-    elif os.path.isdir(path):
-        if path[-1] != "/":
-            path += "/"
-        inpa = load_mat(path + "INPA.mat")
-
-    inpa['nx'] = inpa['nx'].item()
-    inpa['nz'] = inpa['nz'].item()
-    inpa['Npml'] = inpa['Npml'].item()
-    inpa["gradient_smoothing"] = inpa["gradient_smoothing"].item()
-    inpa['pmlR'] = inpa['pmlR'].item()
-    inpa['pml_dir'] = inpa['pml_dir'].item()
-    inpa["param_type"] = inpa["param_type"].item()
-    inpa['chpR'] = inpa['chpR'].item()
-    inpa['dh'] = inpa['dh'].item()
-    inpa['dt'] = inpa['dt'].item()
-    inpa['nt'] = inpa['nt'].item()
-    inpa['fdom'] = inpa['fdom'].item()
-    inpa["cost_function_type"] = inpa["cost_function_type"].item()
-    inpa["sdo"] = inpa["sdo"].item()
-    inpa["ns"] = inpa["ns"].item()
-    inpa['offsetx'] = inpa['offsetx'].item()
-    inpa['offsetz'] = inpa['offsetz'].item()
-    inpa['f_inv'] = inpa['f_inv'].reshape(-1)
-    inpa['iteration'] = inpa['iteration'].item()
-    inpa['TL_inversion_method'] = inpa['TL_inversion_method'].item()
-
-    inpa['regularization'] = {
-    'tv': {
-        'az': inpa['regularization'][0][0][0][0][0][0].item(),
-        'ax': inpa['regularization'][0][0][0][0][0][1].item(),
-        'lambda_weight':  inpa['regularization'][0][0][0][0][0][2].item(),
-        'iteration_number': inpa['regularization'][0][0][0][0][0][3].item(),
-        'az_tl': inpa['regularization'][0][0][0][0][0][4].item(),
-        'ax_tl': inpa['regularization'][0][0][0][0][0][5].item(),
-        'lambda_weight_tl': inpa['regularization'][0][0][0][0][0][6].item(),
-        'iteration_number_tl': inpa['regularization'][0][0][0][0][0][7].item(),
-
-    },
-    'tikhonov': {
-        'az': inpa['regularization'][0][0][1][0][0][0].item(),
-        'ax': inpa['regularization'][0][0][1][0][0][1].item(),
-        'lambda_weight': inpa['regularization'][0][0][1][0][0][2].item(),
-        'iteration_number': inpa['regularization'][0][0][1][0][0][3].item(),
-        'az_tl': inpa['regularization'][0][0][1][0][0][4].item(),
-        'ax_tl': inpa['regularization'][0][0][1][0][0][5].item(),
-        'lambda_weight_tl': inpa['regularization'][0][0][1][0][0][6].item(),
-    },
-    'tikhonov0': {
-        'lambda_weight': inpa['regularization'][0][0][2][0][0][0].item()
-    }
-}
-
-    return inpa
 
 
 def _acoustic_model_preparation(model, med_type):
