@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib as mlp
 from mpl_toolkits import axes_grid1
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from numpy.core.shape_base import block
 import numpy as np
-from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from PyFWI.model_dataset import ModelGenerator
 
 

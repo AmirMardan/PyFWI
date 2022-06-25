@@ -1,12 +1,13 @@
 import copy
 import logging
 import numpy as np
-from PyFWI.wave_propagation import WavePropagator as Wave
-import PyFWI.fwi_tools as tools
 from scipy.optimize.optimize import MemoizeJac
 import matplotlib.pyplot as plt
+
+from PyFWI.wave_propagation import WavePropagator as Wave
+import PyFWI.fwi_tools as tools
 import PyFWI.seiplot as splt
-import PyFWI.acquisition as acq
+from PyFWI.processing import prepare_residual
 
 
 def linesearch(fun, fprime, xk, pk, gk=None, fval_old=None, f_max=50, alpha0=None, show=False, min=1e-8, bond=[-np.inf, np.inf], args=()):
@@ -167,7 +168,7 @@ class FWI(Wave):
         m = tools.vec2vel_dict(mtotal, self.nz, self.nx)
         
         d_est = self.forward_modeling(m, show=False)
-        d_est = acq.prepare_residual(d_est, self.sd)
+        d_est = prepare_residual(d_est, self.sd)
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1
                                                )

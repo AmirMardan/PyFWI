@@ -1,12 +1,12 @@
-from PyFWI.wave_propagation import WavePropagator as Wave
 from scipy.optimize.optimize import MemoizeJac
-import PyFWI.optimization as opt
-import PyFWI.fwi_tools as tools
-import PyFWI.acquisition as acq
 import numpy as np
 from scipy.optimize import fmin_cg
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
+
+from PyFWI.wave_propagation import WavePropagator as Wave
 from PyFWI.fwi_tools import Regularization
+import PyFWI.fwi_tools as tools
+from PyFWI.processing import prepare_residual
 
 class FWI(Wave):
     """
@@ -82,7 +82,7 @@ class FWI(Wave):
         else:
             self.tikhonov_properties = None
             
-        self.d_obs = acq.prepare_residual(d_obs, 1)
+        self.d_obs = prepare_residual(d_obs, 1)
         
         self.fn = inpa['fn']
 
@@ -223,7 +223,7 @@ class FWI(Wave):
         m_new = self.model_to_dv(m_old, self.param_functions_args)
 
         d_est = self.forward_modeling(m_new, show=False)
-        d_est = acq.prepare_residual(d_est, self.sd)
+        d_est = prepare_residual(d_est, self.sd)
 
         rms_data, adj_src = tools.cost_seismic(d_est, self.d_obs, fun=self.CF,
                                                fn=self.fn, freq=freq, order=3, axis=1

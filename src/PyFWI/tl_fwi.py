@@ -1,14 +1,15 @@
-from PyFWI.wave_propagation import WavePropagator as Wave
 from scipy.optimize.optimize import MemoizeJac
-import PyFWI.fwi_tools as tools
-import numpy as np
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
+import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import line_search
 import copy
-from PyFWI.fwi import FWI
-import PyFWI.acquisition as acq
 import timeit
+import PyFWI.fwi_tools as tools
+from PyFWI.fwi import FWI
+from PyFWI.processing import prepare_residual
+from PyFWI.wave_propagation import WavePropagator as Wave
+
 
 
 class TimeLapse(Wave):
@@ -157,7 +158,7 @@ class TimeLapse(Wave):
         m_model0 = self.inv_obj.model_to_dv(m_model0_pcs, self.inv_obj.param_functions_args)
         
         dpre = self.forward_modeling(b_model0, show=False)
-        dpre = acq.prepare_residual(dpre, self.inv_obj.sd)
+        dpre = prepare_residual(dpre, self.inv_obj.sd)
         
         b_rms_data, adj_src1 = tools.cost_seismic(d_pre0=dpre, d_obs0=self.b_dobs, fun=self.CF,
                                          fn=self.fn, freq=freq, order=3, axis=1,
@@ -180,7 +181,7 @@ class TimeLapse(Wave):
         b_grad = self.inv_obj.grad_from_dv(b_grad_dv, self.inv_obj.param_functions_args, b_model0_pcs)
         
         dpre = self.forward_modeling(m_model0, show=False)
-        dpre = acq.prepare_residual(dpre, self.inv_obj.sd)
+        dpre = prepare_residual(dpre, self.inv_obj.sd)
         
         m_rms_data, adj_src = tools.cost_seismic(d_pre0=dpre, d_obs0=self.m_dobs, fun=self.CF,
                                            fn=self.fn, freq=freq, order=3, axis=1,

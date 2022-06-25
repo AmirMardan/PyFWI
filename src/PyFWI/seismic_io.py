@@ -1,11 +1,10 @@
 import numpy as np
 from numpy.lib.function_base import kaiser
 import segyio
-import gzip
 import os
 from urllib.request import urlretrieve
-import shutil
-import requests
+# import shutil
+# import requests
 import scipy.io as sio
 import datetime
 import pickle
