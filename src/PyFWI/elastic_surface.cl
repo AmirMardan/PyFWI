@@ -10,7 +10,8 @@ __kernel void injSrc(__global float *vx,__global float *vz,
                      __global float *seismogram_tauxi, __global float *seismogram_tauzi, __global float *seismogram_tauxzi,
                      int dxr,
                      int sourcex, int sourcez,
-                     float srcx, float srcz)
+                     float vsrcx, float vsrcz,
+                     float tsrcx, float tsrcz)
 
 
 {
@@ -18,8 +19,10 @@ __kernel void injSrc(__global float *vx,__global float *vz,
   int j = get_global_id(1) ;
 
   if (i==sourcez && j==sourcex){
-    taux[center] += srcx;
-    tauz[center] += srcz;
+    vx[center] += vsrcx;
+    vz[center] += vsrcz;
+    taux[center] += tsrcx;
+    tauz[center] += tsrcz;
   }
 
   if(j%dxr==0 && i == rec_surface_const){

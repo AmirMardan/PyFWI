@@ -1,17 +1,17 @@
-import numpy as np
-import sys
-from numpy.core.shape_base import block
-import pyopencl as cl
 import os
+# import sys
+import numpy as np
+# from numpy.core.shape_base import block
+import pyopencl as cl
 from pyopencl.tools import get_test_platforms_and_devices
 import matplotlib.pyplot as plt
-import copy
+# import copy
 from scipy.ndimage import gaussian_filter
 
-import PyFWI.processing as seis_process
 import PyFWI.fwi_tools as tools
-from PyFWI.fwi_tools import Recorder, expand_model, CPML
+from PyFWI.fwi_tools import expand_model
 import PyFWI.acquisition as acq
+from PyFWI.processing import prepare_residual
 from PyFWI.grad_swithcher import grad_lmd_to_vd
 
 
@@ -138,7 +138,6 @@ class WavePreparation:
         self.D = tools.Fdm(order=self.sdo * 2)
 
         self.components = components
-        self.R = Recorder(self.nt, self.rec_loc, self.ns, self.dh)
 
         # To call openCl
         # Select the platform (if not provided, pick 0)
@@ -645,6 +644,7 @@ class WavePropagator(WavePreparation):
                             self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
                             self.dxr,
                             self.srcx[s], self.srcz[s],
+                            src_kv_x, src_kv_z,
                             src_kt_x, src_kt_z)
 
             self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
@@ -881,7 +881,7 @@ class WavePropagator(WavePreparation):
             for par in self.seismogram:
                 self.seismogram[par][:, :self.n_well_rec] = np.flip(self.seismogram[par][:, :self.n_well_rec], axis=1)
 
-        res = acq.prepare_residual(res, 1)
+        res = prepare_residual(res, 1)
         if show:
             self.initial_wavefield_plot({'vp':self.vp}, plot_type="Backward")
 
@@ -911,7 +911,8 @@ if __name__ == "__main__":
     import PyFWI.model_dataset as md
     import PyFWI.acquisition as acq
     import PyFWI.seiplot as splt
-
+    import PyFWI.fwi as fwi
+    
     GRADIENT = 1
     INVERSION = 0
 
@@ -961,7 +962,7 @@ if __name__ == "__main__":
 
     W = WavePropagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=0, components=inpa['seisout'])
     d_obs = W.forward_modeling(model, False)
-    d_obs = acq.prepare_residual(d_obs, 1)
+    d_obs = prepare_residual(d_obs, 1)
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -972,7 +973,7 @@ if __name__ == "__main__":
     if GRADIENT:
         Lam = WavePropagator(inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=inpa['seisout'])
         d_est = Lam.forward_modeling(m0, show=False)
-        d_est = acq.prepare_residual(d_est, 1)
+        d_est = prepare_residual(d_est, 1)
 
         CF = tools.CostFunction('l2')
         rms, res = CF(d_est, d_obs)
@@ -986,7 +987,6 @@ if __name__ == "__main__":
         a=1
 
     elif INVERSION:
-        import PyFWI.fwi as fwi
 
         FWI = fwi.FWI(d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr, components=4, param_functions=None)
         inverted_model, rms = FWI(m0, method=2, iter=[3], freqs=[25], n_params=1, k_0=1, k_end=2)
