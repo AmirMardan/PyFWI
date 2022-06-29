@@ -18,6 +18,11 @@ py -m pip install PyFWI
 ```
 on Windows.
 
+The structure and requirements of PyFWI can be shown as
+<center>
+<img alt="PyFWI_structure" src='docs/PyFWI.png' style="width: 400px;">
+</center>
+
 ## Citing PyFWI
 ```
 @software{PyFWI,
