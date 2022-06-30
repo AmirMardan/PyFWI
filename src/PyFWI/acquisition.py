@@ -35,14 +35,12 @@ def acq_parameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
         n_surface_rec = 0
         n_well_rec = rec_loc.shape[0]
     elif acq_type == 1:
-        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, depth,
-                              dh, sdo)
+        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, dh, sdo)
 
         n_surface_rec = rec_loc.shape[0]
         n_well_rec = 0
     elif acq_type == 2:
-        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, depth,
-                                          dh, sdo)
+        src_loc, rec_loc = surface_seismic(ns, rec_dis, offsetx, dh, sdo)
         n_surface_rec = rec_loc.shape[0]
 
         _, rec_loc2 = crosswell(ns, rec_dis, offsetx, depth,
@@ -57,7 +55,7 @@ def acq_parameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
     return src_loc, rec_loc, n_surface_rec, n_well_rec
 
 
-def crosswell(ns, rec_dis, offsetx, offsetz,
+def crosswell(ns, rec_dis, offsetx, depth,
               dh, sdo):
     """
     A function to design a crosswell acquisition
@@ -73,7 +71,7 @@ def crosswell(ns, rec_dis, offsetx, offsetz,
         offsetx : flloat32
             Length of survey in x-direction
 
-        offsetz : float32
+        depth : float32
             Depth of survey
 
         dh : float32
@@ -91,7 +89,7 @@ def crosswell(ns, rec_dis, offsetx, offsetz,
             Location of receivers
     """
     # Distribution of receivers
-    rec_locZ = np.arange(2*rec_dis, offsetz-(2*rec_dis),
+    rec_locZ = np.arange(2*rec_dis, depth-(2*rec_dis),
                          rec_dis).reshape(-1, 1)
 
     # Number of receivers
@@ -107,14 +105,14 @@ def crosswell(ns, rec_dis, offsetx, offsetz,
         src_loc[:, 0] = (sdo/2+2)*dh  # offsetx/2 #
 
         # Specify the depth of source in the center of maximum depth
-        src_loc[:, 1] = offsetz/2
+        src_loc[:, 1] = depth/2
 
     else:
         # Choosing the least possible x
         src_loc[:, 0] = (sdo/2+2)*dh
 
         # Distribut the depth of source
-        src_loc[:, 1] = np.linspace(4*dh, offsetz-9*dh, ns)
+        src_loc[:, 1] = np.linspace(4*dh, depth-9*dh, ns)
         # src_loc[:,1]=np.linspace(4*dh, offset-9*dh, ns)
 
     rec_loc = np.hstack((np.ones((nr, 1))*offsetx-(sdo/2+2)*dh, rec_locZ))
@@ -122,8 +120,7 @@ def crosswell(ns, rec_dis, offsetx, offsetz,
     return src_loc.astype(np.float32), rec_loc.astype(np.float32)
 
 
-def surface_seismic(ns, rec_dis, offsetx, offsetz,
-                   dh, sdo):
+def surface_seismic(ns, rec_dis, offsetx, dh, sdo):
     """
     A function to design a surface seismic acquisition
 
@@ -138,7 +135,7 @@ def surface_seismic(ns, rec_dis, offsetx, offsetz,
         offsetx : flloat32
             Length of survey in x-direction
 
-        offsetz : float32
+        depth : float32
             Depth of survey
 
         dh : float32
@@ -168,7 +165,7 @@ def surface_seismic(ns, rec_dis, offsetx, offsetz,
 
     if ns == 1:
         # Choosing the least possible z
-        src_loc[:, 1] = (sdo/2+2)*dh  # offsetz/2 #
+        src_loc[:, 1] = (sdo/2+2)*dh  # depth/2 #
 
         # Specify the depth of source in the center of length in x-direction
         src_loc[:, 0] = offsetx/2
