@@ -195,16 +195,27 @@ class Source:
            
         dt: float
             Temporal sampling rate
+        src_type : int, optional
+            Source type: 0: explosive 
+                         1: directional x
+                         2: directional z
     """
-    def __init__(self, src_loc, dh, dt):
+    def __init__(self, src_loc, dh, dt, src_type=0):
         self.dh = dh
         self.i = np.int32(src_loc[:, 0]/self.dh)
         self.j = np.int32(src_loc[:, 1]/self.dh)
         self.dt = dt
  
         self.component = np.zeros(5, dtype=np.float32)
-        
-        self.component[2:4] = np.float32(dt)
+        if src_type == 0:
+            self.component[2:4] = np.float32(dt)
+        elif src_type == 1:
+            self.component[0] = np.float32(dt)
+        elif src_type == 2:
+            self.component[1] = np.float32(dt)
+        else: 
+            raise ('Please choose the right source type,\
+                  either explosive (src_type = 0) or directional (src_type in [0, 1]')
                        
     def __call__(self, ind=None):
         
@@ -297,6 +308,7 @@ def discretized_acquisition_plan(data_guide, dh, npml=0):
 
 def seismic_section(seismo, components=0):
     seis_plan = {
+        # 0 for (taux + tauz) / 2
         '1': ['taux'],
         '2': ['vx', 'vz'],
         '3': ['taux', 'tauz', 'tauxz'],

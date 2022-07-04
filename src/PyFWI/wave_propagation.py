@@ -37,31 +37,50 @@ class WavePreparation:
         else:
             self.g_smooth = 0
 
-
         if 'npml' in keys:
             self.npml = inpa['npml']
+            self.pmlR = inpa['pmlR']
+            self.pml_dir = inpa['pml_dir']
         else:
             self.npml = 0
-
-        # Number of samples in x- and z- direction by considering pml
-        self.tnx = np.int32(self.nx + 2 * self.npml)
-        self.tnz = np.int32(self.nz + 2 * self.npml)
-
-        self.dh = inpa['dh']
-
+            self.pmlR = 0
+            self.pml_dir = 2
+            
         if 'sdo' in keys:
             self.sdo = np.int32(inpa['sdo'] / 2)
         else:
             self.sdo = 2
 
-        self.srcx = np.int32(src.i + inpa['npml'])
-        self.srcz = np.int32(src.j + inpa['npml'])
+        if 'rec_dis' in keys:
+            rec_dis = inpa['rec_dis']
+        else:
+            rec_dis = (rec_loc[1,:] - rec_loc[0,:]).max()
+        
+        if 'acq_type' in keys:
+            self.acq_type = inpa['acq_type']
+        else:
+            self.acq_type = 1
+            
+        if 'energy_balancing' in keys:
+            self.energy_balancing = inpa['energy_balancing']
+        else:
+            self.energy_balancing = False
+            
+            
+        # Number of samples in x- and z- direction by considering pml
+        self.tnx = np.int32(self.nx + 2 * self.npml)
+        self.tnz = np.int32(self.nz + 2 * self.npml)
+
+        self.dh = np.float32(inpa['dh'])
+
+        self.srcx = np.int32(src.i + self.npml)
+        self.srcz = np.int32(src.j + self.npml)
         src_loc = np.vstack((self.srcx, self.srcz)).T
 
         self.src = src
         self.ns = np.int32(src.i.size)
-
-        self.dxr = np.int32(inpa['rec_dis'] / self.dh)
+        
+        self.dxr = np.int32(rec_dis / self.dh)
 
         self.chpr = chpr
         chp = int(chpr * self.nt / 100)
@@ -77,14 +96,13 @@ class WavePreparation:
         self.n_well_rec = n_well_rec
         self.n_surface_rec = self.nr - 2 * n_well_rec
 
-        self.acq_type = inpa["acq_type"]
         if n_well_rec ==0 and self.acq_type == 2:
             raise Exception(" Number of geophons in the wells is not defined")
 
         # The matrix containg the geometry of acquisittion (Never used really)
         data_guide = acq.acquisition_plan(self.ns, self.nr, src_loc, self.rec_loc, self.acq_type, n_well_rec, self.dh)
 
-        self.data_guide_sampling = acq.discretized_acquisition_plan(data_guide, self.dh, inpa['npml'])
+        self.data_guide_sampling = acq.discretized_acquisition_plan(data_guide, self.dh, self.npml)
 
         self.rec_top_left_const = np.int32(0)
         self.rec_top_left_var = np.int32(0)
@@ -93,37 +111,32 @@ class WavePreparation:
         self.rec_surface_const = np.int32(0)
         self.rec_surface_var = np.int32(0)
 
-        if inpa["acq_type"] == 0:
-            self.rec_top_right_const = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
-            self.rec_top_right_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
+        if self.acq_type == 0:
+            self.rec_top_right_const = np.int32(rec_loc[0, 0] / self.dh + self.npml)
+            self.rec_top_right_var = np.int32(rec_loc[:, 1] / self.dh + self.npml)[0]
             self.src_cts = src.i[0]
 
-        elif inpa["acq_type"] == 1:
-            self.rec_surface_const = np.int32(rec_loc[0, 1] / self.dh + inpa['npml'])
-            self.rec_surface_var = np.int32(rec_loc[:, 0] / self.dh + inpa['npml'])[0]
+        elif self.acq_type == 1:
+            self.rec_surface_const = np.int32(rec_loc[0, 1] / self.dh + self.npml)
+            self.rec_surface_var = np.int32(rec_loc[:, 0] / self.dh + self.npml)[0]
             self.src_cts = src.j[0]
 
-        elif inpa["acq_type"] == 2:
-            a = np.int32(rec_loc[-self.n_well_rec, :]/ self.dh + inpa['npml'])
+        elif self.acq_type == 2:
+            a = np.int32(rec_loc[-self.n_well_rec, :]/ self.dh + self.npml)
             self.rec_top_right_const = np.copy(a[0])
             self.rec_top_right_var = np.copy(a[1])
 
-            a = np.int32(rec_loc[self.n_well_rec, :]/ self.dh + inpa['npml'])
+            a = np.int32(rec_loc[self.n_well_rec, :]/ self.dh + self.npml)
             self.rec_surface_const = np.copy(a[1])
             self.rec_surface_var = np.copy(a[0])
 
-            self.rec_top_left_const = np.int32(rec_loc[0, 0] / self.dh + inpa['npml'])
-            self.rec_top_left_var = np.int32(rec_loc[:, 1] / self.dh + inpa['npml'])[0]
+            self.rec_top_left_const = np.int32(rec_loc[0, 0] / self.dh + self.npml)
+            self.rec_top_left_var = np.int32(rec_loc[:, 1] / self.dh + self.npml)[0]
             self.src_cts = src.j[0]
 
         # ======== Parameters Boundary condition ======
         self.dx_pml, self.dz_pml = tools.pml_counstruction(self.tnz, self.tnx, self.dh, self.npml,
-                                                     inpa['pmlR'], inpa['pml_dir'])
-
-        if 'energy_balancing' in keys:
-            self.energy_balancing = inpa['energy_balancing']
-        else:
-            self.energy_balancing = False
+                                                     self.pmlR, self.pml_dir)
 
         self.W = {
             'vx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
@@ -167,10 +180,10 @@ class WavePreparation:
         self.prg = cl.Program(self.ctx, kernel).build()
         self.prg_surf = cl.Program(self.ctx, kernel_surface).build()
 
-        if inpa["acq_type"] == 0:
+        if self.acq_type == 0:
             self.prg.injSrc = self.prg_cw.injSrc
             self.prg.Adj_injSrc = self.prg_cw.Adj_injSrc
-        elif inpa["acq_type"] == 1:
+        elif self.acq_type == 1:
             self.prg.injSrc = self.prg_surf.injSrc
             self.prg.Adj_injSrc = self.prg_surf.Adj_injSrc
 
@@ -221,11 +234,11 @@ class WavePreparation:
 
         # Make a list for seismograms
         self.seismogram = {
-            'vx': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
-            'vz': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
-            'taux': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
-            'tauz': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
-            'tauxz': np.zeros((self.nt, self.nr * self.ns)).astype(np.float32, order='C'),
+            'vx': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
+            'vz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
+            'taux': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
+            'tauz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
+            'tauxz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
         }
 
     def adjoint_buffer_preparing(self):
@@ -333,19 +346,19 @@ class WavePreparation:
             cl.enqueue_copy(self.queue, seismogram_id, buffer)
             return np.copy(seismogram_id)
 
-        self.seismogram['vx'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+        self.seismogram['vx'][np.int32(t - 1), :, s] = \
             get_from_opencl(self.seismogramid_vx_b)
 
-        self.seismogram['vz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+        self.seismogram['vz'][np.int32(t - 1), :, s] = \
             get_from_opencl(self.seismogramid_vz_b)
 
-        self.seismogram['taux'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+        self.seismogram['taux'][np.int32(t - 1), :, s] = \
             get_from_opencl(self.seismogramid_taux_b)
 
-        self.seismogram['tauz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+        self.seismogram['tauz'][np.int32(t - 1), :, s] = \
             get_from_opencl(self.seismogramid_tauz_b)
 
-        self.seismogram['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr] = \
+        self.seismogram['tauxz'][np.int32(t - 1), :, s] = \
             get_from_opencl(self.seismogramid_tauxz_b)
 
     def make_residual(self, res, s, t):
