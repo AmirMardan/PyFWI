@@ -208,11 +208,11 @@ class Source:
  
         self.component = np.zeros(5, dtype=np.float32)
         if src_type == 0:
-            self.component[2:4] = np.float32(dt)
+            self.component[2:4] = np.float32(1)
         elif src_type == 1:
-            self.component[0] = np.float32(dt)
+            self.component[0] = np.float32(1)
         elif src_type == 2:
-            self.component[1] = np.float32(dt)
+            self.component[1] = np.float32(1)
         else: 
             raise ('Please choose the right source type,\
                   either explosive (src_type = 0) or directional (src_type in [0, 1]')
@@ -306,7 +306,7 @@ def discretized_acquisition_plan(data_guide, dh, npml=0):
     
     return data_guide_sampling
 
-def seismic_section(seismo, components=0):
+def seismic_section(seismo, components=0, shape='3d'):
     seis_plan = {
         # 0 for (taux + tauz) / 2
         '1': ['taux'],
@@ -322,4 +322,8 @@ def seismic_section(seismo, components=0):
     else:
         data['taux'] = (seismo['taux'] + seismo['tauz']) / 2
         data['tauz'] = (seismo['taux'] + seismo['tauz']) / 2
+    if shape == '2d':
+        (nt, nx, ns) = data[[*data][0]].shape
+        for par in data:
+            data[par] = np.reshape(data[par], (nt, nx * ns), 'F')
     return data

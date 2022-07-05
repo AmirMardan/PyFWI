@@ -863,7 +863,7 @@ class WavePropagator(WavePreparation):
         self.pml_preparation(model['vp'].max())
         self.elastic_buffers(model)
         seismo = self.forward_propagator(model)
-        data = acq.seismic_section(seismo, self.components)
+        data = acq.seismic_section(seismo, self.components, shape='2d')
         return data
 
     def gradient(self, res, show=False, parameterization='dv'):
