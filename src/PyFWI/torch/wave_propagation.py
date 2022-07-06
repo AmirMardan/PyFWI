@@ -2,25 +2,15 @@ import os
 import numpy as np
 import torch 
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
 import PyFWI.fwi_tools as tools
 import PyFWI.acquisition as acq
 from PyFWI.processing import prepare_residual
 from PyFWI.grad_swithcher import grad_lmd_to_vd
 
-class Fdm(object):
-    def __init__(self, order, tensor='torch', device='cpu'):
-        """
-        Fdm is a class to implemenet the the finite difference method for wave modeling
-
-        The coeeficients are based on Lavendar, 1988 and Hasym et al., 2014.
-
-        Args:
-            order (int, optional): [description]. Defaults to 4.
-        """
-        self._order = order
-        self.__device = device 
-        
+class Fdm:
+    def __init__(self, order):
         if order == 4:
             self._c1 = 9/8
             self._c2 = - 1 / 24
@@ -34,157 +24,50 @@ class Fdm(object):
             self._c4 = -1 / 1434
         else:
             raise AssertionError ("Order of the derivative has be either 4 or 8!")
-            
-        if tensor == 'torch':
-            self._c1 = torch.tensor(self._c1, device=self.__device)
-            self._c2 = torch.tensor(self._c2, device=self.__device)
-            self._c3 = torch.tensor(self._c3, device=self.__device)
-            self._c4 = torch.tensor(self._c4, device=self.__device)
-        
-        dh_n = { # Dablain, 1986, Bai et al., 2013
-            '4': 4,
-            '8': 3
-        }
-
-        self.dh_n = dh_n[str(order)] # Pick the appropriate n for calculating dh
-
-    @property
-    def order(self):
-        return self._order
-
-    @order.setter
-    def order(self, value):
-        if value in [4, 8]:
-            self._order = value
-        else:
-            raise AssertionError ("Order of the derivative has be either 4 or 8!")
-
-    @property
-    def c1(self):
-        return self._c1
-
-    @c1.setter
-    def c1(self, value):
-        raise AttributeError("Denied! You can't change the derivative's coefficients")
-
-    @property
-    def c2(self):
-        return self._c2
-
-    @c2.setter
-    def c2(self, value):
-        raise AttributeError("Denied! You can't change the derivative's coefficients")
-
-    @property
-    def c3(self):
-        return self._c3
-
-    @c3.setter
-    def c3(self, value):
-        raise AttributeError("Denied! You can't change the derivative's coefficients")
-
-    @property
-    def c4(self):
-        return self._c4
-
-    @c4.setter
-    def c3(self, value):
-        raise AttributeError("Denied! You can't change the derivative's coefficients")
-
-    def dxp(self, x, dx):
-         if self.order == 4:
-             return self._dxp4(x, dx)
-         else:
-             return self._dxp8(x, dx)
-
-    def dxm(self, x, dx):
-         if self.order == 4:
-             return self._dxm4(x, dx)
-         else:
-             return self._dxm8(x, dx)
-
-    def dzp(self, x, dx):
-         if self.order == 4:
-             return self._dzp4(x, dx)
-         else:
-             return self._dzp8(x, dx)
-
-    def dzm(self, x, dx):
-         if self.order == 4:
-             return self._dzm4(x, dx)
-         else:
-             return self._dzm8(x, dx)
-
-    def _dxp4(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 3:-1] - x[2:-2, 2:-2]) +
-                         self._c2 * (x[2:-2, 4:] - x[2:-2, 1:-3])) / dx
-        return y
-
-    def _dxp8(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 5:-3] - x[4:-4, 4:-4]) +
-                         self._c2 * (x[4:-4, 6:-2] - x[4:-4, 3:-5]) +
-                         self._c3 * (x[4:-4, 7:-1] - x[4:-4, 2:-6]) +
-                         self._c4 * (x[4:-4, 8:  ] - x[4:-4, 1:-7])) / dx
-        return y
-
-
-    def _dxm4(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[2:-2, 2:-2] = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) +
+    
+    def dzp(self, *args):
+        return self.dzp4(*args)
+    
+    def dzm(self, *args):
+        return self.dzm4(*args)
+    
+    def dxp(self, *args):
+        return self.dxp4(*args)
+    
+    def dxm(self, *args):
+        return self.dxm4(*args)
+    
+    def dxm4(self, x, dx):
+        y = (self._c1 * (x[2:-2, 2:-2] - x[2:-2, 1:-3]) +
                          self._c2 * (x[2:-2, 3:-1] - x[2:-2, :-4])) / dx
+        y = F.pad(input=y, pad=(2, 2, 2, 2), mode='constant', value=0)
         return y
+    
+    def dxp4(self, x, dx):
 
-    def _dxm8(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[4:-4, 4:-4] = (self._c1 * (x[4:-4, 4:-4] - x[4:-4, 3:-5]) +
-                         self._c2 * (x[4:-4, 5:-3] - x[4:-4, 2:-6]) +
-                         self._c3 * (x[4:-4, 6:-2] - x[4:-4, 1:-7]) +
-                         self._c4 * (x[4:-4, 7:-1] - x[4:-4, :-8]) ) / dx
+        y = (self._c1 * (x[2:-2, 3:-1] - x[2:-2, 2:-2]) +
+                         self._c2 * (x[2:-2, 4:] - x[2:-2, 1:-3])) / dx
+        y = F.pad(input=y, pad=(2, 2, 2, 2), mode='constant', value=0)
         return y
+    
+    def dzm4(self, x, dx):
 
-    def _dzp4(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
+        y = (self._c1 * (x[2:-2, 2:-2] - x[1:-3, 2:-2]) +
+                         self._c2 * (x[3:-1, 2:-2] - x[:-4, 2:-2])) / dx
+        y = F.pad(input=y, pad=(2, 2, 2, 2), mode='constant', value=0)
+        return y 
+    
+    def dzp4(self, x, dx):
 
-        y[2:-2, 2:-2] = (self.c1 * (x[3:-1, 2:-2] - x[2:-2, 2:-2]) +
-                         self.c2 * (x[4:, 2:-2] - x[1:-3, 2:-2])) / dx
-        return y
-
-    def _dzp8(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[4:-4, 4:-4] = (self.c1 * (x[5:-3, 4:-4] - x[4:-4, 4:-4]) +
-                         self.c2 * (x[6:-2, 4:-4] - x[3:-5, 4:-4]) +
-                         self.c3 * (x[7:-1, 4:-4] - x[2:-6, 4:-4]) +
-                         self.c4 * (x[8: , 4:-4] - x[1:-7, 4:-4])) / dx
-        return y
-
-
-    def _dzm4(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[2:-2, 2:-2] = (self.c1 * (x[2:-2, 2:-2] - x[1:-3, 2:-2]) +
-                         self.c2 * (x[3:-1, 2:-2] - x[:-4, 2:-2])) / dx
-        return y
-
-    def _dzm8(self, x, dx):
-        y = torch.zeros(x.shape, device=self.__device)
-
-        y[4:-4, 4:-4] = (self.c1 * (x[4:-4, 4:-4] - x[3:-5, 4:-4]) +
-                         self.c2 * (x[5:-3, 4:-4] - x[2:-6, 4:-4]) +
-                         self.c3 * (x[6:-2, 4:-4] - x[1:-7, 4:-4]) +
-                         self.c4 * (x[7:-1, 4:-4] - x[ :-8, 4:-4])) / dx
+        y = (self._c1 * (x[3:-1, 2:-2] - x[2:-2, 2:-2]) +
+                         self._c2 * (x[4:, 2:-2] - x[1:-3, 2:-2])) / dx
+        y = F.pad(input=y, pad=(2, 2, 2, 2), mode='constant', value=0)
         return y
 
 
 class WavePreparation:
 
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0, set_env_variable=True):
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0, device='cpu'):
         '''
         A class to prepare the variable and basic functions for wave propagation.
 
@@ -192,7 +75,7 @@ class WavePreparation:
         #TODO: work on how ypu specify the acq_type, getting n_well_rec, using that again fpr two .cl files
         keys = [*inpa]
 
-        self.set_env_variable = set_env_variable
+        self.device = device
         
         self.t = inpa['t']
         self.dt = inpa['dt']
@@ -251,13 +134,6 @@ class WavePreparation:
         
         self.dxr = np.int32(rec_dis / self.dh)
 
-        self.chpr = chpr
-        chp = int(chpr * self.nt / 100)
-        self.chp = np.linspace(0, self.nt-1, chp, dtype=np.int32)
-        if (len(self.chp) < 2): #& (chpr != 0)
-            self.chp = np.array([1, self.nt-1])
-
-        self.nchp = len(self.chp)
         # Take chpr into account
 
         self.rec_loc = rec_loc
@@ -316,8 +192,6 @@ class WavePreparation:
         #     self.injSrc = self.injSrc
 
 
-        v = np.zeros((self.tnz, self.tnx)).astype(np.float32, order='C')
-
         # Buffer for forward modelling
         self.initiate_wave()
 
@@ -333,11 +207,11 @@ class WavePreparation:
         
     def initiate_wave(self):
         # Buffer for forward modelling
-        self.vx_b = torch.zeros((self.tnz, self.tnx))
-        self.vz_b = torch.zeros((self.tnz, self.tnx))
-        self.taux_b = torch.zeros((self.tnz, self.tnx))
-        self.tauz_b = torch.zeros((self.tnz, self.tnx))
-        self.tauxz_b = torch.zeros((self.tnz, self.tnx))
+        self.vx_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        self.vz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        self.taux_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        self.tauz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        self.tauxz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
 
     def elastic_update_v(self):
         self.vx_b += - self.dt * self.vdx_pml_b * self.vx_b + \
@@ -373,10 +247,7 @@ class WavePreparation:
                 Current time step.
         """
         rec_loc = np.int32(self.rec_loc / self.dh)
-        b = self.taux_b.clone().detach()
         def get_from_gpu(buffer):
-            # a = buffer.clone().detach()
-
             return buffer[rec_loc[:, 1], rec_loc[:, 0]]
 
         self.seismogram['vx'][np.int32(t - 1), :, s] = \
@@ -396,10 +267,9 @@ class WavePreparation:
 
     def pml_preparation(self, v_max):
 
-        self.vdx_pml_b = torch.tensor(self.dx_pml) * v_max
-        self.vdz_pml_b = torch.tensor(self.dz_pml) * v_max
+        self.vdx_pml_b = torch.tensor(self.dx_pml, device=self.device) * v_max
+        self.vdz_pml_b = torch.tensor(self.dz_pml, device=self.device) * v_max
 
-   
     def initial_wavefield_plot(self, model, plot_type="Forward"):
         """
         A function to initialize the the plot for wave
@@ -495,12 +365,11 @@ class WavePropagator(WavePreparation, Fdm):
     component:
         Seismic output
     """
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0, set_env_variable=True):
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0, device='cpu'):
         WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr,
-                                 components=components, set_env_variable=set_env_variable)
+                                 components=components, device=device)
         
-        self.device = 'cpu'  # TODO: Change
-        Fdm.__init__(self, 2 * self.sdo, tensor='torch', device=self.device)
+        Fdm.__init__(self, 2 * self.sdo)
         
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
