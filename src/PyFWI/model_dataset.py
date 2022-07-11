@@ -77,7 +77,7 @@ class Circular():
                
         return model
 
-    def hu_circles(self, vintage, smoothing):
+    def hu_circles(self, vintage=1, smoothing=0):
         """
         hu_circles a model including porosity, clay content, and saturation.
 
@@ -112,7 +112,7 @@ class Circular():
         return model
     
     
-    def perturbation_dv(self, vintage, smoothing):
+    def perturbation_dv(self, vintage=1, smoothing=0):
         """
         perturbation_dv creates perturbation model in different locations
 
@@ -244,7 +244,7 @@ class ModelGenerator(Circular, Laminar):
         ax.imshow(self.model[property[0]])
         
     
-    def marmousi(self, vintage, smoothing):
+    def marmousi(self, vintage=1, smoothing=0):
         """
         marmousi method generates the Maemousi-2 model.
 
@@ -613,8 +613,7 @@ def model_resizing(model0,  bx=None, ex=None, bz=None, ez=None, ssr=(1, 1)):
         model[param] = interpolator(xi, zi)
         model[param] = model[param].astype(np.float32, order='C')
 
-        if bx is not None:
-            model[param] = model[param][bz:ez, bx:ex]
+        model[param] = model[param][bz:ez, bx:ex]
     return model
 
 
