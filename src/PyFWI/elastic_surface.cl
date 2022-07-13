@@ -25,13 +25,15 @@ __kernel void injSrc(__global float *vx,__global float *vz,
     tauz[center] += tsrcz;
   }
 
-  if(j%dxr==0 && i == rec_surface_const){
-    int ir =  j/dxr;
+  if(j % dxr == 0 && i == rec_surface_const){
+      int ir =  j/dxr;
+      if (ir < n_main_rec){
         seismogram_vxi[ir]  =  vx[i*Nx+ (j + rec_surface_var)];
         seismogram_vzi[ir]  =  vz[i*Nx+ (j + rec_surface_var)];
         seismogram_tauxi[ir]  =  taux[i*Nx+ (j + rec_surface_var)];
         seismogram_tauzi[ir]  =  tauz[i*Nx+ (j + rec_surface_var)];
-        seismogram_tauxzi[ir]  =  tauxz[i*Nx+ (j + rec_surface_var)];
+        seismogram_tauxzi[ir]  =  tauxz[i*Nx+ (j + rec_surface_var)];    
+  }
   }
 
 }
@@ -56,11 +58,13 @@ __kernel void Adj_injSrc(
 
   if(j%dxr==0 && i == rec_surface_const){
     int ir =  j/dxr;
+    if (ir < n_main_rec){
         Avx[i*Nx + (j+rec_surface_var)] += res_vx[ir];
         Avz[i*Nx + (j+rec_surface_var)] += res_vz[ir];
         Ataux[i*Nx + (j+rec_surface_var)] += res_taux[ir];
         Atauz[i*Nx + (j+rec_surface_var)] += res_tauz[ir];
         Atauxz[i*Nx + (j+rec_surface_var)] += res_tauxz[ir];
+  }
   }
 
 }
