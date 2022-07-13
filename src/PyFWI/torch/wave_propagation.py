@@ -91,34 +91,13 @@ class WavePreparation:
 
         if 'npml' in keys:
             self.npml = inpa['npml']
-            self.pmlR = inpa['pmlR']
-            self.pml_dir = inpa['pml_dir']
+            pmlR = inpa['pmlR']
+            pml_dir = inpa['pml_dir']
         else:
             self.npml = 0
-            self.pmlR = 0
-            self.pml_dir = 2
-            
-        if 'sdo' in keys:
-            self.sdo = np.int32(inpa['sdo'] / 2)
-        else:
-            self.sdo = 2
-
-        if 'rec_dis' in keys:
-            rec_dis = inpa['rec_dis']
-        else:
-            rec_dis = (rec_loc[1,:] - rec_loc[0,:]).max()
-        
-        if 'acq_type' in keys:
-            self.acq_type = inpa['acq_type']
-        else:
-            self.acq_type = 1
-            
-        if 'energy_balancing' in keys:
-            self.energy_balancing = inpa['energy_balancing']
-        else:
-            self.energy_balancing = False
-            
-            
+            pmlR = 0
+            pml_dir = 2
+                
         # Number of samples in x- and z- direction by considering pml
         self.tnx = np.int32(self.nx + 2 * self.npml)
         self.tnz = np.int32(self.nz + 2 * self.npml)
@@ -132,107 +111,39 @@ class WavePreparation:
         self.src = src
         self.ns = np.int32(src.i.size)
         
-        self.dxr = np.int32(rec_dis / self.dh)
-
-        # Take chpr into account
-
         self.rec_loc = rec_loc
         self.nr = rec_loc.shape[0]
-        self.n_well_rec = n_well_rec
-        self.n_surface_rec = self.nr - 2 * n_well_rec
-
-        if n_well_rec ==0 and self.acq_type == 2:
-            raise Exception(" Number of geophons in the wells is not defined")
-
-        # The matrix containg the geometry of acquisittion (Never used really)
-        data_guide = acq.acquisition_plan(self.ns, self.nr, src_loc, self.rec_loc, self.acq_type, n_well_rec, self.dh)
-
-        self.data_guide_sampling = acq.discretized_acquisition_plan(data_guide, self.dh, self.npml)
-
-        self.rec_top_left_const = np.int32(0)
-        self.rec_top_left_var = np.int32(0)
-        self.rec_top_right_const = np.int32(0)
-        self.rec_top_right_var = np.int32(0)
-        self.rec_surface_const = np.int32(0)
-        self.rec_surface_var = np.int32(0)
-
-        if self.acq_type == 0:
-            self.rec_top_right_const = np.int32(rec_loc[0, 0] / self.dh + self.npml)
-            self.rec_top_right_var = np.int32(rec_loc[:, 1] / self.dh + self.npml)[0]
-            self.src_cts = src.i[0]
-
-        elif self.acq_type == 1:
-            self.rec_surface_const = np.int32(rec_loc[0, 1] / self.dh + self.npml)
-            self.rec_surface_var = np.int32(rec_loc[:, 0] / self.dh + self.npml)[0]
-            self.src_cts = src.j[0]
-
-        elif self.acq_type == 2:
-            a = np.int32(rec_loc[-self.n_well_rec, :]/ self.dh + self.npml)
-            self.rec_top_right_const = np.copy(a[0])
-            self.rec_top_right_var = np.copy(a[1])
-
-            a = np.int32(rec_loc[self.n_well_rec, :]/ self.dh + self.npml)
-            self.rec_surface_const = np.copy(a[1])
-            self.rec_surface_var = np.copy(a[0])
-
-            self.rec_top_left_const = np.int32(rec_loc[0, 0] / self.dh + self.npml)
-            self.rec_top_left_var = np.int32(rec_loc[:, 1] / self.dh + self.npml)[0]
-            self.src_cts = src.j[0]
-
+    
         # ======== Parameters Boundary condition ======
         self.dx_pml, self.dz_pml = tools.pml_counstruction(self.tnz, self.tnx, self.dh, self.npml,
-                                                     self.pmlR, self.pml_dir)
+                                                     pmlR, pml_dir)
 
         self.components = components
-
-        # TODO: Check sources
-        # if self.acq_type == 0:
-        #     self.injSrc = self.injSrc
-        # elif self.acq_type == 1:
-        #     self.injSrc = self.injSrc
-
-
-        # Buffer for forward modelling
-        self.initiate_wave()
 
         # TODO: Can be just for pressure
         # Make a list for seismograms
         self.seismogram = {
             'vx': torch.zeros((self.nt, self.nr, self.ns)),
             'vz': torch.zeros((self.nt, self.nr, self.ns)),
-            'taux': torch.zeros((self.nt, self.nr, self.ns)),
-            'tauz': torch.zeros((self.nt, self.nr, self.ns)),
-            'tauxz': torch.zeros((self.nt, self.nr, self.ns))
+            'p': torch.zeros((self.nt, self.nr, self.ns)),
         }
         
-    def initiate_wave(self):
-        # Buffer for forward modelling
-        self.vx_b = torch.zeros((self.tnz, self.tnx), device=self.device)
-        self.vz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
-        self.taux_b = torch.zeros((self.tnz, self.tnx), device=self.device)
-        self.tauz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
-        self.tauxz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        #TODO TO CHANGE to acoustic
+    def acoustc_update_v(self, vx_b, vz_b, px_b, pz_b):
+        vx_b += - self.dt * self.vdx_pml_b * vx_b + \
+            self.dt * (self.dxp(px_b, self.dh) + self.dxp(pz_b, self.dh))
+        vz_b += - self.dt * self.vdz_pml_b * vz_b + \
+            self.dt * (self.dzp(px_b, self.dh) + self.dzp(pz_b, self.dh))
 
-    def elastic_update_v(self):
-        self.vx_b += - self.dt * self.vdx_pml_b * self.vx_b + \
-            self.dt * (1/self.rho_b) * (self.dxm(self.taux_b, self.dh) + self.dzm(self.tauxz_b, self.dh))
-        self.vz_b += - self.dt * self.vdz_pml_b * self.vz_b + \
-            self.dt * (1/self.rho_b) * (self.dxp(self.tauxz_b, self.dh) + self.dzp(self.tauz_b, self.dh))
+    def acoustic_update_tau(self, vx_b, vz_b, px_b, pz_b):            
+        px_b += - self.dt * self.vdx_pml_b * px_b + \
+                self.dt * self.vp ** 2 * self.dxm(vx_b, self.dh) 
 
-    def elastic_update_tau(self):
-        lmu = (self.lam_b + 2 * self.mu_b)
-            
-        self.taux_b += - self.dt * self.vdx_pml_b * self.taux_b + \
-                self.dt * lmu * self.dxp(self.vx_b, self.dh) + self.dt * self.lam_b * self.dzm(self.vz_b, self.dh)
-
-        self.tauz_b += - self.dt * self.vdz_pml_b * self.tauz_b + \
-                self.dt * self.lam_b * self.dxp(self.vx_b, self.dh) + self.dt * lmu * self.dzm(self.vz_b, self.dh)
-
-        self.tauxz_b += - self.dt * (self.vdx_pml_b + self.vdz_pml_b) * self.tauxz_b + \
-                self.dt * self.mu_b * (self.dxm(self.vz_b, self.dh) + self.dzp(self.vx_b, self.dh))
+        pz_b += - self.dt * self.vdz_pml_b * pz_b + \
+                self.dt * self.vp ** 2 * self.dzm(vz_b, self.dh)
 
 
-    def make_seismogram(self, s, t):
+    def make_seismogram(self, vx, vz, px, pz, s, t):
         """
         This function read the seismogram buffer and put its value in the
         right place in main seismogram matrix based on source and the
@@ -251,19 +162,13 @@ class WavePreparation:
             return buffer[rec_loc[:, 1], rec_loc[:, 0]]
 
         self.seismogram['vx'][np.int32(t - 1), :, s] = \
-            get_from_gpu(self.vx_b)
+            get_from_gpu(vx)
 
         self.seismogram['vz'][np.int32(t - 1), :, s] = \
-            get_from_gpu(self.vz_b)
+            get_from_gpu(vz)
 
-        self.seismogram['taux'][np.int32(t - 1), :, s] = \
-            get_from_gpu(self.taux_b)
-
-        self.seismogram['tauz'][np.int32(t - 1), :, s] = \
-            get_from_gpu(self.tauz_b)
-
-        self.seismogram['tauxz'][np.int32(t - 1), :, s] = \
-            get_from_gpu(self.tauxz_b)
+        self.seismogram['p'][np.int32(t - 1), :, s] = \
+            (get_from_gpu(px) + get_from_gpu(pz)) / 2
 
     def pml_preparation(self, v_max):
 
@@ -333,13 +238,7 @@ class WavePreparation:
         '''
         Model hast contain vp, vs, and rho
         '''
-        
-        self.mu_b = model['rho'] * (model['vs'] ** 2)
-
-        self.lam_b = model['rho'] * (model['vp'] ** 2) - 2 * self.mu_b
-
-        self.rho_b = model['rho']
-
+        self.vp = model['vp']
 
 
 class WavePropagator(WavePreparation, Fdm):
@@ -365,11 +264,16 @@ class WavePropagator(WavePreparation, Fdm):
     component:
         Seismic output
     """
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0, device='cpu'):
+    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=0, components=0, device='cpu'):
         WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr,
                                  components=components, device=device)
         
-        Fdm.__init__(self, 2 * self.sdo)
+        if 'sdo' in inpa:
+            sdo = np.int32(inpa['sdo'] / 2)
+        else:
+            sdo = 4
+            
+        Fdm.__init__(self, 2 * sdo)
         
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
@@ -385,35 +289,36 @@ class WavePropagator(WavePreparation, Fdm):
             self.initial_wavefield_plot(model)
 
         for s in range(self.ns):
-            self.initiate_wave()
 
             self.__kernel(s)
 
-        if self.acq_type == 2:
-            for par in self.seismogram:
-                self.seismogram[par][:, :self.n_well_rec] = np.flip(self.seismogram[par][:, :self.n_well_rec], axis=1)
         return self.seismogram
 
     def __kernel(self, s):
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
+        
+        vx_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        vz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        taux_b = torch.zeros((self.tnz, self.tnx), device=self.device)
+        tauz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
 
+        
         for t in range(self.nt):
             src_v_x, src_v_z, src_t_x, src_t_z, src_t_xz = np.float32(self.src(t))
 
-            inj_src(self.vx_b, self.vz_b, self.taux_b, self.tauz_b,self.tauxz_b,
+            inj_src(vx_b, vz_b, taux_b, tauz_b,
                    self.srcx[s], self.srcz[s],
-                   src_v_x, src_v_z,src_t_x, src_t_z,src_t_xz)
+                   src_v_x, src_v_z,src_t_x, src_t_z)
 
-            self.elastic_update_v()
+            self.acoustc_update_v(vx_b, vz_b, taux_b, tauz_b)
 
-            self.elastic_update_tau()
+            self.acoustic_update_tau(vx_b, vz_b, taux_b, tauz_b)
             
-            self.make_seismogram(s, t)
+            self.make_seismogram(vx_b, vz_b, taux_b, tauz_b, s, t)
 
             if self.forward_show and np.remainder(t, 20) == 0:
-                showpurose = np.copy(self.taux_b.detach().numpy())
+                showpurose = np.copy(taux_b.detach().numpy())
                 self.plot_propagation(showpurose, t)
-
 
     def forward_modeling(self, model0, show=False):
         """
@@ -442,8 +347,9 @@ class WavePropagator(WavePreparation, Fdm):
         self.pml_preparation(model['vp'].max().item())
         self.elastic_buffers(model)
         seismo = self.forward_propagator(model)
-        data = acq.seismic_section(seismo, self.components, shape='3d')
-        return data
+        
+        # data = acq.seismic_section(seismo, self.components, shape='3d')
+        return {'p': seismo['p']}
 
 
 def expand_model(parameter, TNz, TNx, n_pml=10, tensor='torch'):
@@ -482,15 +388,14 @@ def expand_model(parameter, TNz, TNx, n_pml=10, tensor='torch'):
     return nu
 
 
-def inj_src(vx_b, vz_b, taux_b, tauz_b,tauxz_b,
+def inj_src(vx_b, vz_b, taux_b, tauz_b,
            srcx, srcz,
-           src_v_x, src_v_z, src_t_x, src_t_z,src_t_xz):
+           src_v_x, src_v_z, src_t_x, src_t_z):
         
     vx_b[srcz, srcx] += torch.tensor(src_v_x)
     vz_b[srcz, srcx] += torch.tensor(src_v_z)
     taux_b[srcz, srcx] += torch.tensor(src_t_x)
     tauz_b[srcz, srcx] += torch.tensor(src_t_z)
-    tauxz_b[srcz, srcx] += torch.tensor(src_t_xz)
 
 
 
