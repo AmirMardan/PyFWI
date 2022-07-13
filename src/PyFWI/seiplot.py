@@ -4,8 +4,6 @@ from mpl_toolkits import axes_grid1
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from numpy.core.shape_base import block
 import numpy as np
-from PyFWI.model_dataset import ModelGenerator
-
 
 def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     """
@@ -143,6 +141,7 @@ def inversion_video(m_video, pause=0.2, **kwargs):
 if __name__ == "__main__":
     # import PyFWI.model_dataset as md
     import PyFWI.rock_physics as rp
+    from PyFWI.model_dataset import ModelGenerator
 
     [nz, nx] = [100, 100]
     Model = ModelGenerator(nx, nz, 1, 1)

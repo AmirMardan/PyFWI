@@ -34,8 +34,8 @@ class FWI(Wave):
     param_functions : dict, optional
         List of functions required in case of inversion with different parameterization than dv, by default None
         """
-    def __init__(self, d_obs, inpa, src, rec_loc, model_shape, n_well_rec, chpr, components, param_functions=None):
-        super().__init__(inpa, src, rec_loc, model_shape, n_well_rec, chpr, components)
+    def __init__(self, d_obs, inpa, src, rec_loc, model_shape, components, chpr, n_well_rec=0, param_functions=None):
+        super().__init__(inpa, src, rec_loc, model_shape, n_well_rec=n_well_rec, chpr=chpr, components=components)
         self.regularization = Regularization(self.nx, self.nz, self.dh, self.dh)
         
         if param_functions is None:
@@ -242,7 +242,7 @@ class FWI(Wave):
         return rms, grad
     
     def fprime_single(self, m0, m_1, m1, freq):
-        mtotal = np.hstack((m_1, m0, m1))
+        mtotal = np.float32(np.hstack((m_1, m0, m1)))
         shape_1 = np.shape(m_1)[0]
         shape0 = np.shape(m0)[0]
         

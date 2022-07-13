@@ -15,7 +15,7 @@ from PyFWI.grad_swithcher import grad_lmd_to_vd
 
 class WavePreparation:
 
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=0, chpr=10, components=0, set_env_variable=True):
+    def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=10, set_env_variable=True):
         '''
         A class to prepare the variable and basic functions for wave propagation.
 
@@ -39,12 +39,12 @@ class WavePreparation:
 
         if 'npml' in keys:
             self.npml = inpa['npml']
-            self.pmlR = inpa['pmlR']
-            self.pml_dir = inpa['pml_dir']
+            pmlR = inpa['pmlR']
+            pml_dir = inpa['pml_dir']
         else:
             self.npml = 0
-            self.pmlR = 0
-            self.pml_dir = 2
+            pmlR = 0
+            pml_dir = 2
             
         if 'sdo' in keys:
             self.sdo = np.int32(inpa['sdo'] / 2)
@@ -82,7 +82,6 @@ class WavePreparation:
         
         self.dxr = np.int32(rec_dis / self.dh)
 
-        self.chpr = chpr
         chp = int(chpr * self.nt / 100)
         self.chp = np.linspace(0, self.nt-1, chp, dtype=np.int32)
         if (len(self.chp) < 2): #& (chpr != 0)
@@ -113,12 +112,12 @@ class WavePreparation:
 
         if self.acq_type == 0:
             self.rec_top_right_const = np.int32(rec_loc[0, 0] / self.dh + self.npml)
-            self.rec_top_right_var = np.int32(rec_loc[:, 1] / self.dh + self.npml)[0]
+            self.rec_top_right_var = np.int32(rec_loc[0, 1] / self.dh + self.npml)
             self.src_cts = src.i[0]
 
         elif self.acq_type == 1:
             self.rec_surface_const = np.int32(rec_loc[0, 1] / self.dh + self.npml)
-            self.rec_surface_var = np.int32(rec_loc[:, 0] / self.dh + self.npml)[0]
+            self.rec_surface_var = np.int32(rec_loc[0, 0] / self.dh + self.npml)
             self.src_cts = src.j[0]
 
         elif self.acq_type == 2:
@@ -136,7 +135,7 @@ class WavePreparation:
 
         # ======== Parameters Boundary condition ======
         self.dx_pml, self.dz_pml = tools.pml_counstruction(self.tnz, self.tnx, self.dh, self.npml,
-                                                     self.pmlR, self.pml_dir)
+                                                     pmlR, pml_dir)
 
         self.W = {
             'vx': np.zeros((self.tnz, self.tnx, self.ns, self.nchp), dtype=np.float32),
@@ -393,7 +392,6 @@ class WavePreparation:
         res_src_tauxz = (res['tauxz'][np.int32(t - 1), s * self.nr:(s + 1) * self.nr]).astype(np.float32, order='C')
         cl.enqueue_copy(self.queue, self.res_tauxz_b, res_src_tauxz)
 
-
     def pml_preparation(self, v_max):
 
         vdx_pml = self.dx_pml * v_max
@@ -402,7 +400,6 @@ class WavePreparation:
                                    self.mf.COPY_HOST_PTR, hostbuf=vdx_pml)
         self.vdz_pml_b = cl.Buffer(self.ctx, self.mf.READ_WRITE |
                                    self.mf.COPY_HOST_PTR, hostbuf=vdz_pml)
-
 
     def kernel_caller(self):
         '''
@@ -611,9 +608,10 @@ class WavePropagator(WavePreparation):
     component:
         Seismic output
     """
-    def __init__(self, inpa, src, rec_loc, model_shape, n_well_rec=None, chpr=10, components=0, set_env_variable=True):
-        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, n_well_rec, chpr=chpr,
-                                 components=components, set_env_variable=set_env_variable)
+    def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=0, set_env_variable=True):
+        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, components=components, 
+                                 n_well_rec=n_well_rec, chpr=chpr,
+                                 set_env_variable=set_env_variable)
 
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case

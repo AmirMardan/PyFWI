@@ -39,10 +39,10 @@ class TimeLapse(Wave):
     param_functions : dict, optional
         Required functions to switch the gradient
         """
-    def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions=None):
-        super().__init__(inpa, src, rec_loc, model_size, n_well_rec, chpr, components)
+    def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_size, components, chpr, n_well_rec=0, param_functions=None):
+        super().__init__(inpa, src, rec_loc, model_size, n_well_rec=n_well_rec, chpr=chpr, components=components)
         
-        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, model_size, n_well_rec, chpr, components, param_functions)
+        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, model_size, n_well_rec=n_well_rec, chpr=chpr, components=components, param_functions=param_functions)
 
         self.b_dobs = copy.deepcopy(b_dobs)
         self.m_dobs = copy.deepcopy(m_dobs)
