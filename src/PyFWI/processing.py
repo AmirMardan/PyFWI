@@ -139,7 +139,7 @@ class GainFunction(Gain):
         return self.gained_data
     
     
-def prepare_residual(res, s):
+def prepare_residual(res, s=1.):
     """
     prepare_residual prepares the seismic data as the desire format of FWI class.
 
