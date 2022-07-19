@@ -81,13 +81,8 @@ class WavePreparation:
         self.dt = inpa['dt']
         self.nt = int(1 + self.t // self.dt)
 
-        self.nx = np.int32(model_shape[1])
-        self.nz = np.int32(model_shape[0])
-
-        if 'g_smooth' in keys:
-            self.g_smooth = inpa['g_smooth']
-        else:
-            self.g_smooth = 0
+        nx = np.int32(model_shape[1])
+        nz = np.int32(model_shape[0])
 
         if 'npml' in keys:
             self.npml = inpa['npml']
@@ -99,8 +94,8 @@ class WavePreparation:
             pml_dir = 2
                 
         # Number of samples in x- and z- direction by considering pml
-        self.tnx = np.int32(self.nx + 2 * self.npml)
-        self.tnz = np.int32(self.nz + 2 * self.npml)
+        self.tnx = np.int32(nx + 2 * self.npml)
+        self.tnz = np.int32(nz + 2 * self.npml)
 
         self.dh = np.float32(inpa['dh'])
 
@@ -123,24 +118,22 @@ class WavePreparation:
         # TODO: Can be just for pressure
         # Make a list for seismograms
         self.seismogram = {
-            'vx': torch.zeros((self.nt, self.nr, self.ns)),
-            'vz': torch.zeros((self.nt, self.nr, self.ns)),
             'p': torch.zeros((self.nt, self.nr, self.ns)),
         }
         
         #TODO TO CHANGE to acoustic
-    def acoustc_update_v(self, vx_b, vz_b, px_b, pz_b):
-        vx_b += - self.dt * self.vdx_pml_b * vx_b + \
+    def acoustc_update_v(self, vx_b, vz_b, px_b, pz_b, vdx_pml, vdz_pml):
+        vx_b += - self.dt * vdx_pml * vx_b + \
             self.dt * (self.dxp(px_b, self.dh) + self.dxp(pz_b, self.dh))
-        vz_b += - self.dt * self.vdz_pml_b * vz_b + \
+        vz_b += - self.dt * vdz_pml * vz_b + \
             self.dt * (self.dzp(px_b, self.dh) + self.dzp(pz_b, self.dh))
 
-    def acoustic_update_tau(self, vx_b, vz_b, px_b, pz_b):            
-        px_b += - self.dt * self.vdx_pml_b * px_b + \
-                self.dt * self.vp ** 2 * self.dxm(vx_b, self.dh) 
+    def acoustic_update_tau(self, vp, vx_b, vz_b, px_b, pz_b, vdx_pml, vdz_pml):            
+        px_b += - self.dt * vdx_pml * px_b + \
+                self.dt * vp ** 2 * self.dxm(vx_b, self.dh) 
 
-        pz_b += - self.dt * self.vdz_pml_b * pz_b + \
-                self.dt * self.vp ** 2 * self.dzm(vz_b, self.dh)
+        pz_b += - self.dt * vdz_pml * pz_b + \
+                self.dt * vp ** 2 * self.dzm(vz_b, self.dh)
 
 
     def make_seismogram(self, vx, vz, px, pz, s, t):
@@ -161,20 +154,16 @@ class WavePreparation:
         def get_from_gpu(buffer):
             return buffer[rec_loc[:, 1], rec_loc[:, 0]]
 
-        self.seismogram['vx'][np.int32(t - 1), :, s] = \
-            get_from_gpu(vx)
-
-        self.seismogram['vz'][np.int32(t - 1), :, s] = \
-            get_from_gpu(vz)
-
         self.seismogram['p'][np.int32(t - 1), :, s] = \
             (get_from_gpu(px) + get_from_gpu(pz)) / 2
 
     def pml_preparation(self, v_max):
 
-        self.vdx_pml_b = torch.tensor(self.dx_pml, device=self.device) * v_max
-        self.vdz_pml_b = torch.tensor(self.dz_pml, device=self.device) * v_max
+        vdx_pml_b = torch.tensor(self.dx_pml, device=self.device) * v_max
+        vdz_pml_b = torch.tensor(self.dz_pml, device=self.device) * v_max
 
+        return vdx_pml_b, vdz_pml_b
+    
     def initial_wavefield_plot(self, model, plot_type="Forward"):
         """
         A function to initialize the the plot for wave
@@ -234,13 +223,6 @@ class WavePreparation:
         plt.pause(0.1)
 
 
-    def elastic_buffers(self, model):
-        '''
-        Model hast contain vp, vs, and rho
-        '''
-        self.vp = model['vp']
-
-
 class WavePropagator(WavePreparation, Fdm):
     """
     wave_propagator is a class to handle the forward modeling and gradient calculation.
@@ -290,13 +272,12 @@ class WavePropagator(WavePreparation, Fdm):
 
         for s in range(self.ns):
 
-            self.__kernel(s)
+            self.__kernel(s, model['vp'])
 
         return self.seismogram
 
-    def __kernel(self, s):
-        showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
-        
+    def __kernel(self, s, vp):
+        vdx_pml, vdz_pml = self.pml_preparation(vp.max().item())
         vx_b = torch.zeros((self.tnz, self.tnx), device=self.device)
         vz_b = torch.zeros((self.tnz, self.tnx), device=self.device)
         taux_b = torch.zeros((self.tnz, self.tnx), device=self.device)
@@ -310,15 +291,12 @@ class WavePropagator(WavePreparation, Fdm):
                    self.srcx[s], self.srcz[s],
                    src_v_x, src_v_z,src_t_x, src_t_z)
 
-            self.acoustc_update_v(vx_b, vz_b, taux_b, tauz_b)
+            self.acoustc_update_v(vx_b, vz_b, taux_b, tauz_b, vdx_pml, vdz_pml)
 
-            self.acoustic_update_tau(vx_b, vz_b, taux_b, tauz_b)
+            self.acoustic_update_tau(vp, vx_b, vz_b, taux_b, tauz_b, vdx_pml, vdz_pml)
             
             self.make_seismogram(vx_b, vz_b, taux_b, tauz_b, s, t)
 
-            if self.forward_show and np.remainder(t, 20) == 0:
-                showpurose = np.copy(taux_b.detach().numpy())
-                self.plot_propagation(showpurose, t)
 
     def forward_modeling(self, model0, show=False):
         """
@@ -344,8 +322,6 @@ class WavePropagator(WavePreparation, Fdm):
             # model[params] = model[params]  # To avoid sticking BC. to the original model
             model[params] = expand_model(model[params], self.tnz, self.tnx, self.npml)
 
-        self.pml_preparation(model['vp'].max().item())
-        self.elastic_buffers(model)
         seismo = self.forward_propagator(model)
         
         # data = acq.seismic_section(seismo, self.components, shape='3d')
@@ -391,9 +367,7 @@ def expand_model(parameter, TNz, TNx, n_pml=10, tensor='torch'):
 def inj_src(vx_b, vz_b, taux_b, tauz_b,
            srcx, srcz,
            src_v_x, src_v_z, src_t_x, src_t_z):
-        
-    vx_b[srcz, srcx] += torch.tensor(src_v_x)
-    vz_b[srcz, srcx] += torch.tensor(src_v_z)
+    
     taux_b[srcz, srcx] += torch.tensor(src_t_x)
     tauz_b[srcz, srcx] += torch.tensor(src_t_z)
 
