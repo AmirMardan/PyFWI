@@ -84,9 +84,13 @@ class TimeLapse(Wave):
             rms error
         """
                 
-        # b_m0 must remain a dict    
-        if tl_method == 'cc':
+        # b_m0 must remain a dict
+        if tl_method == 'pa':
+            m, rms = self.parallel_inversion(b_m0, freqs, iter, n_params=n_params, k_0=k_0, k_end=k_end)    
+        elif tl_method == 'cc':
             m, rms = self.cascaded_inversion(b_m0, freqs, iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        elif tl_method == 'dd':
+            m, rms = self.double_difference_inversion(b_m0, freqs, iter, n_params, k_0, k_end)
         elif tl_method == 'sim':
             m, rms = self.sim_inversion(b_m0, freqs, iter, data_to_invert=self.b_dobs, n_params=n_params, k_0=k_0, k_end=k_end)
         elif tl_method == 'wa':
@@ -281,7 +285,7 @@ class TimeLapse(Wave):
         
         m0 = copy.deepcopy(b_m0)
             # ============ Central difference for parallel ==============
-
+        tic = timeit.default_timer()        
         print("*** Central time lapse *** ")
         self.inv_obj.d_obs = self.b_dobs
         model_b1, rms1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
@@ -297,6 +301,8 @@ class TimeLapse(Wave):
         print("*** Fourth INVERSION ***")
         self.inv_obj.d_obs = self.b_dobs
         model_m1b, _ = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        
+        process_time = timeit.default_timer() - tic
 
         inverted = {
             "dm0": tools.dict_diff(model_m1,  model_b1),
@@ -309,7 +315,8 @@ class TimeLapse(Wave):
             "b1": model_b1,
             "m1": model_m1,
             "m2": model_b1m,
-            "b2": model_m1b
+            "b2": model_m1b,
+            'pt': process_time
         }
         print("central_inversion")
         return inverted, _
@@ -350,21 +357,84 @@ class TimeLapse(Wave):
         print("joint_cascaded")
         return inverted, (rms1 + rms2) / 2
     
-    def cascaded_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
-
+    def parallel_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
+        
+        tic = timeit.default_timer()
         self.inv_obj.d_obs = self.b_dobs
         model_b1, rms1 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
-        initial = model_b1.copy()
+
+        print('===== Inversion of baseline is done ======')
+        
+        self.inv_obj.d_obs = self.m_dobs
+        model_m1, rms2 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        process_time = timeit.default_timer() - tic
+        
+        inverted = {
+            "b1": model_b1,
+            "m1": model_m1,
+            "dm":  tools.dict_diff(model_m1, model_b1, positivity=False),
+            "pt": process_time
+        }
+        print("Parallel")
+
+        hist = rms1 + rms2
+
+        return inverted, np.array(hist)
+    
+    def double_difference_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
+        """
+            Based on Asnaashari et al., 2011, Sensitivity analysis of time-lapse images obtained
+            # by differential waveform inversion with respect to reference model
+        """
+        tic = timeit.default_timer()
+        
+        self.inv_obj.d_obs = self.b_dobs
+        model_b1, rms1 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        print(model_b1['vp'].min(), model_b1['vp'].mean(), model_b1['vp'].max())
+
+        print('===== Inversion of baseline is done ======')
+        d_ref = self.forward_modeling(model_b1, show=False)
+        d_ref = prepare_residual(d_ref, s=self.inv_obj.sd)
+        
+        d_composit = tools.dict_summation(tools.dict_diff(self.m_dobs, self.b_dobs), d_ref)
+
+        self.inv_obj.d_obs = d_composit
+
+        model_ref1 = b_m0.copy()
+        model_composite, hist = self.inv_obj(model_ref1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        print(model_b1['vp'].min(), model_b1['vp'].mean(), model_b1['vp'].max())
+
+        model_dm = tools.dict_diff(model_composite, model_b1, positivity=False)
+        process_time = timeit.default_timer() - tic
+        
+        inverted = {
+            "b1": model_b1,
+            "m1": model_composite,
+            "dm": model_dm,
+            "pt": process_time
+        }
+        
+        print("double_difference_inversion")
+        return inverted, hist
+    
+    def cascaded_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
+
+        tic = timeit.default_timer()
+        self.inv_obj.d_obs = self.b_dobs
+        model_b1, rms1 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        initial = model_b1.copy() #TODO: WHY?
 
         print('===== Inversion of baseline is done ======')
         
         self.inv_obj.d_obs = self.m_dobs
         model_m1, rms2 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
+        process_time = timeit.default_timer() - tic
         inverted = {
             "b1": model_b1,
             "m1": model_m1,
-            "dm":  tools.dict_diff(model_m1, initial, positivity=False)
+            "dm":  tools.dict_diff(model_m1, initial, positivity=False),
+            "pt": process_time
         }
         print("Cascaded")
 
@@ -375,7 +445,7 @@ class TimeLapse(Wave):
     def sim_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end, data_to_invert=None):
 
         hist = []  
-
+        tic = timeit.default_timer()
         if data_to_invert is not None:
             self.dobs = data_to_invert
             model_ref0, _ = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
@@ -405,10 +475,12 @@ class TimeLapse(Wave):
             c += 1
         
         models = self.ins_TL_output(x0, False)
+        process_time = timeit.default_timer() - tic
         inverted = {
             "dm": self.ins_TL_output(x0, True),
             "b1": models["model_b"],
-            "m1": models["model_m"]
+            "m1": models["model_m"],
+            "pt": process_time
         }
 
         return inverted, np.array(hist/max(hist))
