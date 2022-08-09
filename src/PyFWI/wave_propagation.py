@@ -33,9 +33,9 @@ class WavePreparation:
         self.nz = np.int32(model_shape[0])
 
         if 'seimogram_shape' in keys:
-            self.seimo_shape  = inpa['seimogram_shape']
-        else:
-            self.seimo_shape = '3d'
+            self.seismo_shape  = inpa['seimogram_shape']
+        else: # if is not defined, make seismogram as [nt, nr * ns]
+            self.seismo_shape = '2d'
             
         if 'g_smooth' in keys:
             self.g_smooth = inpa['g_smooth']
@@ -614,7 +614,7 @@ class WavePropagator(WavePreparation):
         Seismic output
     """
     def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=0, set_env_variable=True):
-        WavePreparation.__init__(self, inpa, src, rec_loc, model_shape, components=components, 
+        WavePreparation.__init__(self, inpa=inpa, src=src, rec_loc=rec_loc, model_shape=model_shape, components=components, 
                                  n_well_rec=n_well_rec, chpr=chpr,
                                  set_env_variable=set_env_variable)
 
@@ -866,7 +866,7 @@ class WavePropagator(WavePreparation):
         self.pml_preparation(model['vp'].max())
         self.elastic_buffers(model)
         seismo = self.forward_propagator(model)
-        data = acq.seismic_section(seismo, self.components, shape=self.seimo_shape)
+        data = acq.seismic_section(seismo, self.components, shape=self.seismo_shape)
         return data
 
     def gradient(self, res, show=False, parameterization='dv'):

@@ -39,10 +39,11 @@ class TimeLapse(Wave):
     param_functions : dict, optional
         Required functions to switch the gradient
         """
-    def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_size, components, chpr, n_well_rec=0, param_functions=None):
-        super().__init__(inpa, src, rec_loc, model_size, n_well_rec=n_well_rec, chpr=chpr, components=components)
+    def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_shape, components, chpr, n_well_rec=0, param_functions=None):
+        super().__init__(inpa, src, rec_loc, model_shape, n_well_rec=n_well_rec, chpr=chpr, components=components)
         
-        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, model_size, n_well_rec=n_well_rec, chpr=chpr, components=components, param_functions=param_functions)
+        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, model_shape=model_shape,
+                           n_well_rec=n_well_rec, chpr=chpr, components=components, param_functions=param_functions)
 
         self.b_dobs = copy.deepcopy(b_dobs)
         self.m_dobs = copy.deepcopy(m_dobs)
@@ -219,15 +220,15 @@ class TimeLapse(Wave):
         
         print("*** First inversion ***")
         self.inv_obj.d_obs = self.b_dobs
-        model_b1, rms1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b1, rms_b1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Second inversion ***")
         self.inv_obj.d_obs = self.m_dobs
-        model_m1, rms2 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m1, rms_m1 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Third inversion ***")
         self.inv_obj.d_obs = self.b_dobs
-        model_b2, rms3 = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b2, rms_b2 = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         
         inverted = {
             "dm11": tools.dict_diff(model_m1, model_b1),
@@ -236,8 +237,15 @@ class TimeLapse(Wave):
             "b1": model_b1,
             "b2": model_b2,
         }
-        print("improved_cascaded")
-        return inverted, np.array(rms1 + rms2 + rms3) / 3
+        print("Weighted average")
+        
+        hist = {
+            "b1": rms_b1,
+            "m1": rms_m1,
+            "b2": rms_b2
+        }
+        
+        return inverted, hist
     
     def cross_updating(self, b_m0, freqs, iter, n_params, k_0, k_end):
         """
@@ -247,21 +255,21 @@ class TimeLapse(Wave):
         print("*** First inversion ***")
         tic = timeit.default_timer()
         self.inv_obj.d_obs = self.b_dobs
-        model_b1, rms1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b1, rms_b1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Second inversion ***")
         self.inv_obj.d_obs = self.m_dobs
-        model_m1, rms2 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m1, rms_m1 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         process_time_cc = timeit.default_timer() - tic
         
         print("*** Third inversion ***")
         self.inv_obj.d_obs = self.b_dobs
-        model_b2, rms3 = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b2, rms_b2 = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         process_time_wa = timeit.default_timer() - tic
         
         print("*** Fourth inversion ***")
         self.inv_obj.d_obs = self.m_dobs
-        model_m2, rms4 = self.inv_obj(model_b2, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m2, rms_m2 = self.inv_obj(model_b2, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         process_time_cu = timeit.default_timer() - tic
 
         inverted = {
@@ -278,7 +286,15 @@ class TimeLapse(Wave):
             "pt_cu": process_time_cu
         }
         print("cross_updating")
-        return inverted, np.array(rms1 + rms2 + rms3 + rms4) / 4
+        
+        hist = {
+            "b1": rms_b1,
+            "m1": rms_m1,
+            "b2": rms_b2,
+            "m2": rms_m2
+        }
+        
+        return inverted, hist
     
     
     def central_difference(self, b_m0, freqs, iter, n_params, k_0, k_end):
@@ -288,19 +304,19 @@ class TimeLapse(Wave):
         tic = timeit.default_timer()        
         print("*** Central time lapse *** ")
         self.inv_obj.d_obs = self.b_dobs
-        model_b1, rms1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b1, rms_b1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Second INVERSION ***")
         self.inv_obj.d_obs = self.m_dobs
-        model_b1m, _ = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b1m, rms_b1m = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Third INVERSION ***")
         self.inv_obj.d_obs = self.m_dobs
-        model_m1, _ = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m1, rms_m1 = self.inv_obj(m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
         print("*** Fourth INVERSION ***")
         self.inv_obj.d_obs = self.b_dobs
-        model_m1b, _ = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m1b, rms_m1b = self.inv_obj(model_m1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         
         process_time = timeit.default_timer() - tic
 
@@ -318,13 +334,22 @@ class TimeLapse(Wave):
             "b2": model_m1b,
             'pt': process_time
         }
-        print("central_inversion")
-        return inverted, _
+        print("central difference")
+        
+        hist = {
+            "b1": rms_b1,
+            "m1": rms_m1,
+            "m2": rms_b1m,
+            "b2": rms_m1b
+        }
+        
+        return inverted, hist
         
     def cascaded_joint(self, m0, freqs, iter, n_params, k_0, k_end):
         """
             
         """
+        tic = timeit.default_timer()
         # ============ Central difference for sim ==============
         print("*** FIRST INVERSION ***")
         model1, rms1 = self.sim_inversion(m0, freqs, iter=iter,n_params=n_params,
@@ -339,7 +364,9 @@ class TimeLapse(Wave):
                                        k_0=k_0, k_end=k_end, data_to_invert=None)
         model_b1b = model_b1x["b1"]
         model_b1m = model_b1x["m1"]
-
+        
+        process_time = timeit.default_timer() - tic
+        
         inverted = {
             "dm0": tools.dict_diff(model_m1,  model_b1),
             "dm7": tools.dict_diff(model_b1m, model_b1b),
@@ -347,15 +374,23 @@ class TimeLapse(Wave):
             "dm3": tools.dict_diff(model_b1m, model_b1),
             "dm6": tools.dict_diff(model_m1, model_b1b),
 
-            "model_b1": model_b1,
-            "model_m1": model_m1,
+            "b1": model_b1,
+            "m1": model_m1,
 
-            "model_b2": model_b1b,
-            "model_m2": model_b1m,
+            "b2": model_b1b,
+            "m2": model_b1m,
+            
+            "pt": process_time
         }
-
+        
         print("joint_cascaded")
-        return inverted, (rms1 + rms2) / 2
+        
+        hist = {
+            "sim1": rms1,
+            "sim2": rms2
+        }
+        
+        return inverted, hist
     
     def parallel_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
         
@@ -375,11 +410,15 @@ class TimeLapse(Wave):
             "dm":  tools.dict_diff(model_m1, model_b1, positivity=False),
             "pt": process_time
         }
+        
         print("Parallel")
 
-        hist = rms1 + rms2
+        hist = {
+            "b1": rms1,
+            "m1": rms2
+        }
 
-        return inverted, np.array(hist)
+        return inverted, hist
     
     def double_difference_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
         """
@@ -401,7 +440,7 @@ class TimeLapse(Wave):
         self.inv_obj.d_obs = d_composit
 
         model_ref1 = b_m0.copy()
-        model_composite, hist = self.inv_obj(model_ref1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_composite, rms2 = self.inv_obj(model_ref1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
         print(model_b1['vp'].min(), model_b1['vp'].mean(), model_b1['vp'].max())
 
         model_dm = tools.dict_diff(model_composite, model_b1, positivity=False)
@@ -415,6 +454,11 @@ class TimeLapse(Wave):
         }
         
         print("double_difference_inversion")
+        
+        hist = {
+            "b1": rms1,
+            "m1": rms2
+        }
         return inverted, hist
     
     def cascaded_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end):
@@ -438,20 +482,25 @@ class TimeLapse(Wave):
         }
         print("Cascaded")
 
-        hist = rms1 + rms2
-
-        return inverted, np.array(hist)
+        hist = {
+            "b1": rms1,
+            "m1": rms2
+        }
+        
+        return inverted, hist
     
     def sim_inversion(self, b_m0, freqs, iter, n_params, k_0, k_end, data_to_invert=None):
 
-        hist = []  
+        rms2 = []  
         tic = timeit.default_timer()
+        hist = {}
         if data_to_invert is not None:
             self.dobs = data_to_invert
-            model_ref0, _ = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+            model_ref0, rms1 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
 
             b_model0 = copy.deepcopy(model_ref0)
             m_model0 = copy.deepcopy(model_ref0)
+            hist["b1"] = rms1
 
         else:
             b_model0 = copy.deepcopy(b_m0)
@@ -464,14 +513,13 @@ class TimeLapse(Wave):
 
         # method = self.optimization_method(operation="time-lapse")
 
-        iter_num = 0
         c = 0
         for freq in freqs:
             self.restForTest = x0
 
             x0, hist1 = self.tl_lbfgs(x0, iter[c], freq, n_params, k_0, k_end)
 
-            hist.append(hist1[0])
+            rms2.append(hist1[0])
             c += 1
         
         models = self.ins_TL_output(x0, False)
@@ -482,8 +530,12 @@ class TimeLapse(Wave):
             "m1": models["model_m"],
             "pt": process_time
         }
+        
+        hist = {
+            "sim": rms2
+        }
 
-        return inverted, np.array(hist/max(hist))
+        return inverted, hist
     
     
     def ins_TL_output(self, xk, diff=True):
