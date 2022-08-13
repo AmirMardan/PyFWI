@@ -12,7 +12,7 @@ To install this package, run
 ```
 python3 -m pip install PyFWI
 ```
-on OS or 
+on macOS or 
 ```
 py -m pip install PyFWI
 ```
@@ -29,7 +29,7 @@ The structure and requirements of PyFWI can be shown as
   author       = {Mardan Amir and
                   Bernard Giroux and
                   Gabriel Fabien-Ouellet},
-  title        = {{PyFWI}: {Python} Python package for Full-Waveform Inversion (FWI)},
+  title        = {{PyFWI}: {Python} A Python package for Full-Waveform Inversion (FWI)},
   month        = Jan,
   year         = 2022,
   publisher    = {Zenodo},

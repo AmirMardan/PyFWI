@@ -6,13 +6,13 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
               
 setup(name='PyFWI',
-      version='0.1.7',
+      version='0.1.8',
       packages=['PyFWI'],
       description='The initial package for seismic FWI', 
       long_description=long_description,
       long_description_content_type="text/markdown",
       author='Amir Mardan',
-      author_email='mardan.ah69@gmail.com',
+      author_email='mardan.amir.h@gmail.com',
       url = 'https://github.com/AmirMardan/PyFWI',
       project_urls={
         "Bug Tracker": "https://github.com/AmirMardan/PyFWI/issues",
@@ -37,7 +37,6 @@ setup(name='PyFWI',
           "scipy",
           "hdf5storage",
           "requests",
-          "segyio",
           "datetime"
       ],
       package_data={
