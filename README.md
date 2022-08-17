@@ -4,6 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/pyfwi/badge/?version=latest)](https://pyfwi.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/402170735.svg)](https://zenodo.org/badge/latestdoi/402170735)
 [![Downloads](https://static.pepy.tech/personalized-badge/pyfwi?period=total&units=none&left_color=grey&right_color=green&left_text=Downloads)](https://pepy.tech/project/pyfwi)
+<img src="https://visitor-badge.laobi.icu/badge?page_id=pyfwi_unique12.pyfwi_unique12"/>
 
 This repository contains Python package for elastic seismic full-waveform inversion (FWI).
 

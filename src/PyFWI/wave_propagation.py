@@ -593,8 +593,9 @@ class WavePreparation:
 class WavePropagator(WavePreparation):
     """
     wave_propagator is a class to handle the forward modeling and gradient calculation.
-
-    [extended_summary]
+    
+    This class is the core of PyFWI which performs forward modeling and 
+    adjoint state method to estimate the gradient. 
 
     Parameters
     ----------
@@ -606,12 +607,14 @@ class WavePropagator(WavePreparation):
         Location of the receivers
     model_shape : tuple
         Shape of the model
+    component:
+        Seismic output
     n_well_rec: int
         Number of receivers in the well
     chpr : percentage
         Checkpoint ratio in percentage
-    component:
-        Seismic output
+    set_env_variable: bool
+        If it's required to set the variable for OpenCL.
     """
     def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=0, set_env_variable=True):
         WavePreparation.__init__(self, inpa=inpa, src=src, rec_loc=rec_loc, model_shape=model_shape, components=components, 

@@ -24,6 +24,10 @@ def acq_parameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
             Location of sources
         rec-loc: float32
             Location of receivers
+        n_surface_rec: int
+            Number of receivers at the surface
+        n_well_rec: int
+            Number of receivers in wells at each side of the model
     """
     if rec_dis < dh:
         raise Exception("Receiver distance should be larger than spatial sampling")
