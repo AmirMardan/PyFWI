@@ -24,10 +24,13 @@ class WavePreparation:
         keys = [*inpa]
 
         self.set_env_variable = set_env_variable
-        
+        self.dt_scale = np.ceil(inpa['dt']/0.0006)
         self.t = inpa['t']
-        self.dt = inpa['dt']
+        self.dt_ext = inpa['dt']
+        self.dt = inpa['dt'] / self.dt_scale
+
         self.nt = int(1 + self.t // self.dt)
+        self.nt_ext = int(1 + self.t // self.dt_ext)
 
         self.nx = np.int32(model_shape[1])
         self.nz = np.int32(model_shape[0])
@@ -223,7 +226,7 @@ class WavePreparation:
                                  self.mf.COPY_HOST_PTR, hostbuf=v)
 
         # Buffer for seismograms
-        seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
+        seismogram_id = np.zeros((self.nt_ext, self.nr)).astype(np.float32, order='C')
 
         self.seismogramid_vx_b = cl.Buffer(
             self.ctx, self.mf.READ_WRITE | self.mf.COPY_HOST_PTR, hostbuf=seismogram_id)
@@ -238,11 +241,11 @@ class WavePreparation:
 
         # Make a list for seismograms
         self.seismogram = {
-            'vx': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
-            'vz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
-            'taux': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
-            'tauz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
-            'tauxz': np.zeros((self.nt, self.nr, self.ns)).astype(np.float32, order='C'),
+            'vx': np.zeros((self.nt_ext, self.nr, self.ns)).astype(np.float32, order='C'),
+            'vz': np.zeros((self.nt_ext, self.nr, self.ns)).astype(np.float32, order='C'),
+            'taux': np.zeros((self.nt_ext, self.nr, self.ns)).astype(np.float32, order='C'),
+            'tauz': np.zeros((self.nt_ext, self.nr, self.ns)).astype(np.float32, order='C'),
+            'tauxz': np.zeros((self.nt_ext, self.nr, self.ns)).astype(np.float32, order='C'),
         }
 
     def adjoint_buffer_preparing(self):
@@ -346,23 +349,23 @@ class WavePreparation:
                 Current time step.
         """
         def get_from_opencl(buffer):
-            seismogram_id = np.zeros((1, self.nr)).astype(np.float32, order='C')
+            seismogram_id = np.zeros((self.nt_ext, self.nr)).astype(np.float32, order='C')
             cl.enqueue_copy(self.queue, seismogram_id, buffer)
             return np.copy(seismogram_id)
 
-        self.seismogram['vx'][np.int32(t - 1), :, s] = \
+        self.seismogram['vx'][:, :, s] = \
             get_from_opencl(self.seismogramid_vx_b)
 
-        self.seismogram['vz'][np.int32(t - 1), :, s] = \
+        self.seismogram['vz'][:, :, s] = \
             get_from_opencl(self.seismogramid_vz_b)
 
-        self.seismogram['taux'][np.int32(t - 1), :, s] = \
+        self.seismogram['taux'][:, :, s] = \
             get_from_opencl(self.seismogramid_taux_b)
 
-        self.seismogram['tauz'][np.int32(t - 1), :, s] = \
+        self.seismogram['tauz'][:, :, s] = \
             get_from_opencl(self.seismogramid_tauz_b)
 
-        self.seismogram['tauxz'][np.int32(t - 1), :, s] = \
+        self.seismogram['tauxz'][:, :, s] = \
             get_from_opencl(self.seismogramid_tauxz_b)
 
     def make_residual(self, res, s, t):
@@ -435,6 +438,7 @@ class WavePreparation:
             #define Nz	   %d
             #define Nx     %d
             #define Ns     %d
+            #define Nr     %d
             #define dt     %f
             #define dx     %f
             #define dz     %f
@@ -481,7 +485,7 @@ class WavePreparation:
 
                 //float Diff_Forward(float , float , float , float , int );
                 //float Diff_Backward(float , float , float , float , int );
-        """ % (self.tnz, self.tnx, self.ns, self.dt, self.dh, self.dh, self.npml,
+        """ % (self.tnz, self.tnx, self.ns, self.nr, self.dt, self.dh, self.dh, self.npml,
                self.n_surface_rec, self.n_well_rec, self.sdo,
                c1, c2, c3, c4, self.src_cts,
                self.rec_top_left_const, self.rec_top_left_var,
@@ -562,7 +566,7 @@ class WavePreparation:
             self.__im1.set_data(wave2)
             self.__im1.set_clim(wave2.min() / 20, wave2.max() / 20)
         self.__stitle.set_text(
-            't = {0:6.3f} (st. no {1:d}/{2:d})'.format(t * self.dt, t + 1, self.nt))
+            't = {0:6.3f} (st. no {1:d}/{2:d})'.format(t * self.dt_ext, t + 1, self.nt_ext))
         plt.pause(0.1)
 
 
@@ -593,9 +597,8 @@ class WavePreparation:
 class WavePropagator(WavePreparation):
     """
     wave_propagator is a class to handle the forward modeling and gradient calculation.
-    
-    This class is the core of PyFWI which performs forward modeling and 
-    adjoint state method to estimate the gradient. 
+
+    [extended_summary]
 
     Parameters
     ----------
@@ -607,14 +610,12 @@ class WavePropagator(WavePreparation):
         Location of the receivers
     model_shape : tuple
         Shape of the model
-    component:
-        Seismic output
     n_well_rec: int
         Number of receivers in the well
     chpr : percentage
         Checkpoint ratio in percentage
-    set_env_variable: bool
-        If it's required to set the variable for OpenCL.
+    component:
+        Seismic output
     """
     def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=0, set_env_variable=True):
         WavePreparation.__init__(self, inpa=inpa, src=src, rec_loc=rec_loc, model_shape=model_shape, components=components, 
@@ -647,54 +648,64 @@ class WavePropagator(WavePreparation):
             for par in self.seismogram:
                 self.seismogram[par][:, :self.n_well_rec] = np.flip(self.seismogram[par][:, :self.n_well_rec], axis=1)
         return self.seismogram
+    
+    def __injSrc(self, t, s):
+        src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
 
+        self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
+                        self.vx_b, self.vz_b,
+                            self.taux_b, self.tauz_b, self.tauxz_b,
+                        self.seismogramid_vx_b, self.seismogramid_vz_b,
+                        self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
+                        self.dxr,
+                        self.srcx[s], self.srcz[s],
+                        src_kv_x, src_kv_z,
+                        src_kt_x, src_kt_z, 
+                        t)
+        
+    def __update_fwd(self, coeff):
+        self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
+                                coeff,
+                                self.vx_b,
+                                self.taux_b, self.tauxz_b,
+                                self.rho_b,
+                                self.vdx_pml_b, self.vdz_pml_b
+                                )
+
+        self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
+                                coeff,
+                                self.vz_b,
+                                self.tauz_b, self.tauxz_b,
+                                self.rho_b,
+                                self.vdx_pml_b, self.vdz_pml_b
+                                 )
+
+        self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
+                                coeff,
+                                self.vx_b, self.vz_b,
+                                self.taux_b, self.tauz_b,
+                                self.lam_b, self.mu_b,
+                                self.vdx_pml_b, self.vdz_pml_b
+                                 )
+
+        self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
+                                coeff,
+                                self.vx_b, self.vz_b,
+                                self.tauxz_b,
+                                self.mu_b,
+                                self.vdx_pml_b, self.vdz_pml_b
+                                  )
+            
     def __kernel(self, s, coeff=+1):
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
         chpc = 0
-        for t in range(self.nt):
-            src_kv_x, src_kv_z, src_kt_x, src_kt_z, src_kt_xz = np.float32(self.src(t))
+        t_src = np.int32(0)
+        for t in np.arange(self.nt):
+            if t % self.dt_scale == 0:
+                self.__injSrc(t_src, s)
+                t_src += 1
 
-            self.prg.injSrc(self.queue, (self.tnz, self.tnx), None,
-                            self.vx_b, self.vz_b,
-                            self.taux_b, self.tauz_b, self.tauxz_b,
-                            self.seismogramid_vx_b, self.seismogramid_vz_b,
-                            self.seismogramid_taux_b, self.seismogramid_tauz_b, self.seismogramid_tauxz_b,
-                            self.dxr,
-                            self.srcx[s], self.srcz[s],
-                            src_kv_x, src_kv_z,
-                            src_kt_x, src_kt_z)
-
-            self.prg.update_velx(self.queue, (self.tnz, self.tnx), None,
-                                 coeff,
-                                 self.vx_b,
-                                 self.taux_b, self.tauxz_b,
-                                 self.rho_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-
-            self.prg.update_velz(self.queue, (self.tnz, self.tnx), None,
-                                 coeff,
-                                 self.vz_b,
-                                 self.tauz_b, self.tauxz_b,
-                                 self.rho_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-
-            self.prg.update_tauz(self.queue, (self.tnz, self.tnx), None,
-                                 coeff,
-                                 self.vx_b, self.vz_b,
-                                 self.taux_b, self.tauz_b,
-                                 self.lam_b, self.mu_b,
-                                 self.vdx_pml_b, self.vdz_pml_b
-                                 )
-
-            self.prg.update_tauxz(self.queue, (self.tnz, self.tnx), None,
-                                  coeff,
-                                  self.vx_b, self.vz_b,
-                                  self.tauxz_b,
-                                  self.mu_b,
-                                  self.vdx_pml_b, self.vdz_pml_b
-                                  )
+            self.__update_fwd(coeff=coeff)
 
             if t in self.chp:
                 copy_purpose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
@@ -715,12 +726,12 @@ class WavePropagator(WavePreparation):
 
                 chpc += 1
 
-            self.make_seismogram(s, t)
 
             if self.forward_show and np.remainder(t, 20) == 0:
                 cl.enqueue_copy(self.queue, showpurose, self.vx_b)
                 self.plot_propagation(showpurose, t)
-
+        self.make_seismogram(s, t)
+        
     def __adjoint_modelling_per_source(self, res):
         self.prg.MakeGradZero(self.queue, (self.tnz, self.tnx), None,
                               self.Gmu_b, self.Glam_b, self.Grho_b,
@@ -745,10 +756,9 @@ class WavePropagator(WavePreparation):
         vx_show = np.zeros((self.tnz, self.tnx), dtype=np.float32)
         adj_vx_show = np.zeros((self.tnz, self.tnx), dtype=np.float32)
 
+        t_src = np.int32(self.nt_ext)
         # time loop
         for t in range(self.nt - 1, 0, -1):  # range(self.nt-1,self.nt-2,-1):#
-            self.make_residual(res, s, t)
-
             if t == self.chp[chpc]:
                 vx = np.copy(self.W['vx'][:, :, s, chpc])
                 cl.enqueue_copy(self.queue, self.vx_b, vx)
@@ -802,12 +812,16 @@ class WavePropagator(WavePreparation):
                                      )
 
             """ Adjoint modeling """
-            self.prg.Adj_injSrc(self.queue, (self.tnz, self.tnx), None,
-                                self.avx_b, self.avz_b,
-                                self.ataux_b, self.atauz_b, self.atauxz_b,
-                                self.res_vx_b, self.res_vz_b,
-                                self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
-                                self.dxr)
+            if t % self.dt_scale == 0:
+                self.make_residual(res, s, t_src)
+                    
+                self.prg.Adj_injSrc(self.queue, (self.tnz, self.tnx), None,
+                                    self.avx_b, self.avz_b,
+                                    self.ataux_b, self.atauz_b, self.atauxz_b,
+                                    self.res_vx_b, self.res_vz_b,
+                                    self.res_taux_b, self.res_tauz_b, self.res_tauxz_b,
+                                    self.dxr)
+                t_src -= 1
 
             self.prg.Adj_update_tau(self.queue, (self.tnz, self.tnx), None,
                                     self.avx_b, self.avz_b,
@@ -834,12 +848,12 @@ class WavePropagator(WavePreparation):
                              )
 
             # Plotting wave propagation
-            if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt - 2):
+            if self.backward_show and (np.remainder(t, 20) == 0 or t == self.nt_ext - 2):
                 cl.enqueue_copy(self.queue, vx_show, self.taux_b)
 
                 cl.enqueue_copy(self.queue, adj_vx_show, self.ataux_b)
 
-                self.plot_propagation(vx_show, t, adj_vx_show)
+                self.plot_propagation(vx_show, t_src, adj_vx_show)
 
 
     def forward_modeling(self, model0, show=False):

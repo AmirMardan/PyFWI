@@ -5,7 +5,8 @@ __kernel void injSrc(__global float *vx,__global float *vz,
                      int dxr,
                      int sourcex, int sourcez,
                      float vsrcx, float vsrcz,
-                     float tsrcx, float tsrcz)
+                     float tsrcx, float tsrcz,
+                      int nt)
 
 
 {
@@ -22,11 +23,11 @@ __kernel void injSrc(__global float *vx,__global float *vz,
 
    if(i%dxr==0 && j == rec_top_right_const){
     int ir =  i/dxr;
-      seismogram_vxi[ir]  =  vx[(i+rec_top_right_var)*Nx + j];
-      seismogram_vzi[ir]  =  vx[(i+rec_top_right_var)*Nx + j];
-      seismogram_tauxi[ir]  =  taux[(i+rec_top_right_var)*Nx + j];
-      seismogram_tauzi[ir]  =  tauz[(i+rec_top_right_var)*Nx + j];
-      seismogram_tauxzi[ir]  =  tauxz[(i+rec_top_right_var)*Nx + j];
+      seismogram_vxi[nt * Nr + ir]  =  vx[(i+rec_top_right_var)*Nx + j];
+      seismogram_vzi[nt * Nr + ir]  =  vx[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauxi[nt * Nr + ir]  =  taux[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauzi[nt * Nr + ir]  =  tauz[(i+rec_top_right_var)*Nx + j];
+      seismogram_tauxzi[nt * Nr + ir]  =  tauxz[(i+rec_top_right_var)*Nx + j];
   }
 
 }
