@@ -10,7 +10,7 @@ import PyFWI.fwi_tools as tools
 from PyFWI.fwi_tools import expand_model
 import PyFWI.acquisition as acq
 from PyFWI.processing import prepare_residual
-from PyFWI.grad_swithcher import grad_lmd_to_vd
+from PyFWI.grad_switcher import grad_lmd_to_vd
 
 
 class WavePreparation:
