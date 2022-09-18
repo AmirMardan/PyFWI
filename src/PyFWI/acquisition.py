@@ -22,7 +22,7 @@ def acq_parameters(ns, rec_dis, offsetx, depth, dh, sdo, acq_type):
     --------
         src_loc: float32
             Location of sources
-        rec-loc: float32
+        rec_loc: float32
             Location of receivers
         n_surface_rec: int
             Number of receivers at the surface

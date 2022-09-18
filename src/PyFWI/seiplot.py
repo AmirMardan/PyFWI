@@ -70,7 +70,7 @@ def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False,
     if t_axis is None:
         t_axis = np.arange(data.shape[0])
 
-    im = ax.pcolor(x_axis, t_axis, data,  cmap='gray', shading='nearest', **kargs)
+    im = ax.pcolor(x_axis, t_axis, data,  cmap='gray', **kargs)
 
     ax.invert_yaxis()
     ax.axis([0, x_axis[-1], t_axis[-1], 0])
