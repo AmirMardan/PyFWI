@@ -20,9 +20,10 @@ py -m pip install PyFWI
 on Windows.
 
 The structure and requirements of PyFWI can be shown as
-<center>
-<img alt="PyFWI_structure" src='docs/PyFWI.png' style="width: 400px;">
-</center>
+<!-- <center>
+<img alt="PyFWI_structure" src='docs/pyfwi_structure.png' style="width: 400px;">
+</center> -->
+![PyFWI_structure](docs/pyfwi_structure.png)
 
 ## Citing PyFWI
 ```
@@ -30,7 +31,7 @@ The structure and requirements of PyFWI can be shown as
   author       = {Mardan Amir and
                   Bernard Giroux and
                   Gabriel Fabien-Ouellet},
-  title        = {{PyFWI}: {Python} A Python package for Full-Waveform Inversion (FWI)},
+  title        = {{PyFWI}: A {Python} package for full-waveform inversion and reservoir monitoring,
   month        = Jan,
   year         = 2022,
   publisher    = {Zenodo},

@@ -566,7 +566,7 @@ class WavePreparation:
             self.__im1.set_data(wave2)
             self.__im1.set_clim(wave2.min() / 20, wave2.max() / 20)
         self.__stitle.set_text(
-            't = {0:6.3f} (st. no {1:d}/{2:d})'.format(t * self.dt_ext, t + 1, self.nt_ext))
+            't = {0:6.3f} (st. no {1:d}/{2:d})'.format(t * self.dt, t + 1, self.nt_ext))
         plt.pause(0.1)
 
 

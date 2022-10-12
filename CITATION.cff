@@ -10,7 +10,8 @@ authors:
 - family-names: "Fabien-Ouellet"
   given-names: "Gabriel"
   orcid: "https://orcid.org/0000-0002-1849-3718"
-title: "PyFWI: Python package for Full-Waveform Inversion (FWI)"
+title: "PyFWI: A Python package for full-waveform inversion
+and reservoir monitoring"
 doi: 10.5281/zenodo.5813637
 url: https://github.com/AmirMardan/PyFWI
 license: GPL-3.0 license
