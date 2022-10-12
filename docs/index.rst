@@ -43,7 +43,7 @@ This package is implemented in time domain and coded using GPU programming (PyOp
 
 .. toctree::
    :maxdepth: 1
-   :caption: PyFWI Within PyTorch
+   :caption: Deep learning
 
    sub_doc/grad_pytorch
 
