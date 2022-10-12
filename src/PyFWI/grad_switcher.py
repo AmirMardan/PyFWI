@@ -332,20 +332,33 @@ def grad_lmd_to_vd(glam, gmu, grho, lam, mu, rho):
     """
     grad_lmr_to_vd switch the gradient.
 
-    This function witch the gradient from (lambda, mu, rho)
-    to (vp, vs, rho).
+    This function switch the gradient from [lambda, mu, rho] (LMD)
+    to [vp, vs, rho] (DV).
 
-    Args:
-        glam (ndarray): Gradient w.r.t. lambda
-        gmu (ndarray): Gradient w.r.t. mu
-        grho (ndarray): Gradient w.r.t. density
-        lam (ndarray): Gradient w.r.t. lambda
-        mu (ndarray): Gradient w.r.t. mu
-        rho (ndarray): Gradient w.r.t. density
-    
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    Parameters
+    ----------
+    glam : float
+        Gradient w.r.t. lambda
+    gmu : 
+        Gradient w.r.t. mu
+    grho : float
+        Gradient w.r.t. density
+    lam : float
+        Gradient w.r.t. lambda
+    mu : float
+        Gradient w.r.t. mu
+    rho : float
+        Gradient w.r.t. density
+        
+    Returns
+    -------
+    gvp : float
+        Gradient of cost function w.r.t. Vp
+    gvs : float
+        Gradient of cost function w.r.t. Vs
+    grho : float
+        Gradient of cost function w.r.t. density
+        
     """
     vp = np.sqrt((lam + 2 * mu) / rho)
     vs = np.sqrt(mu / rho)
@@ -389,21 +402,31 @@ def grad_vrh(prop1, prop2, volume1, method):
 
 def grad_vd_to_lmd(gvp, gvs, grho, vp, vs, rho):
     """
-    grad_vd_to_lmd [summary]
+    grad_vd_to_lmd grad_vd_to_lmd transder the gradient from DV to LMD
 
-    [extended_summary]
+    Parameters
+    ----------
+    gvp : float
+        Gradient of cost function w.r.t. Vp
+    gvs : float
+        Gradient of cost function w.r.t. Vs
+    grho : float
+        Gradient of cost function w.r.t. density
+    vp : float
+        P-wave velocity
+    vs : float
+        S-wave velocity
+    rho : float
+        Density
 
-    Args:
-        glam ([type]): [description]
-        gmu ([type]): [description]
-        grho ([type]): [description]
-        lam ([type]): [description]
-        mu ([type]): [description]
-        rho ([type]): [description]
-    
-    Refrences:
-         1. Hu et al, 2021, Direct updating of rock-physics properties using elastice full-waveform inversion
-         2. Zhou and Lumely, 2021, Central-difference time-lapse 4D seismic full-waveform inversion
+    Returns
+    -------
+    glam : float
+        Gradient of cost function w.r.t. first Lamé parameter (lambda)
+    gmu : float
+        Gradient of cost function w.r.t. second Lamé parameter (mu)
+    grho : float
+        Gradient of cost function w.r.t. density
     """
     
     gvp_lam = gvp / (2 * rho * vp)

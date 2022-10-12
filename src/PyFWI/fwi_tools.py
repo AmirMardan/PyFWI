@@ -134,7 +134,22 @@ def derivative(nx, nz, dx, dz, order):
 
 
 class Regularization:
+    """
+    Regularization Prepares tools for regularizing FWI problem
+
+    Parameters
+    ----------
+    nx : int scalar
+        Number of samples in x-direction
+    nz : int scalar
+        Number of samples in z-direction
+    dx : float scalar
+        Spatial sampling rate in x-direction
+    dz : float scalar
+        Spatial sampling rate in z-direction
+    """
     def __init__(self, nx, nz, dx, dz):
+
         self.idx = 1 / dx
         self.idz = 1 / dz
 
@@ -184,12 +199,23 @@ class Regularization:
 
     def tv(self, x0, eps, alpha_z, alpha_x):
         """
-        Inputs:
-            x: Data
-            eps: small value for make it deffrintiable at zero
-            az: coefficient of Dz
-            ax: coefficient of Dx
-            nz:
+        Parameters
+        ----------
+        x0 : float
+            Data
+        eps : scalar float
+            small value for make it deffrintiable at zero
+        alpha_z : scalar float
+            coefficient of Dz
+        alpha_x : scalar float
+            coefficient of Dx
+            
+        Returns
+        -------
+        rms : scalar float
+            loss
+        grad : scalar float
+            Gradient of loss w.r.t. model parameters
         """
         x = np.copy(x0)
 
@@ -249,10 +275,10 @@ class Regularization:
 
         Returns
         -------
-            rms : float
-                error
-            grad : 1D ndarray
-                gradient of the regularization
+        rms : scalar float
+            loss
+        grad : scalar float
+            Gradient of loss w.r.t. model parameters
         """
         x = np.copy(x0)
         ln = (self.nx * self.nz)
@@ -387,7 +413,7 @@ class Regularization:
             Vector of gradient od the regularization
 
         References
-        -----------
+        ----------
         Asnaashari et al., 2013, Regularized seismic full waveform inversion with prior model information, Geophysics, 78(2), R25-R36, eq. 5.
         """
         if regularization_dict is None:
@@ -1321,13 +1347,35 @@ def cost_seismic(d_pre0, d_obs0, fun,
 
 class CostFunction:
     """
-     This class provides different cost functions.
+    CostFunction provides different cost functions.
 
+
+    Parameters
+    ----------
+    cost_function_type : str, optional
+            Type of cost function, by default "l2"
     """
     def __init__(self, cost_function_type="l2"):
         self.cost_function_method = "self." + cost_function_type
 
     def __call__(self, dest, dobs):
+        """
+        By calling a CostFunction object, the loss is calculated.
+
+        Parameters
+        ----------
+        dest : dict
+            Estimated data
+        dobs : dict
+            Observed data
+
+        Returns
+        -------
+        err : scalar float
+            Error
+        adj_src : dict
+            A dictionary containing adjoint of the residuals
+        """
         err, adj_src = eval(self.cost_function_method)(dest, dobs)
         return err, adj_src
 

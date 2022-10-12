@@ -41,6 +41,11 @@ This package is implemented in time domain and coded using GPU programming (PyOp
 
    sub_doc/rock_physics
 
+.. toctree::
+   :maxdepth: 1
+   :caption: PyFWI Within PyTorch
+
+   sub_doc/grad_pytorch
 
 Citing PyFWI
 ============
@@ -51,7 +56,7 @@ Citing PyFWI
    author       = {Mardan Amir and
                   Bernard Giroux and
                   Gabriel Fabien-Ouellet},
-   title        = {{PyFWI}: {Python} Python package for Full-Waveform Inversion (FWI)},
+   title        = {{PyFWI}: A {Python} package for full-waveform inversion and reservoir monitoring},
    month        = Jan,
    year         = 2022,
    publisher    = {Zenodo},

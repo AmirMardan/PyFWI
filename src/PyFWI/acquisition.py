@@ -327,7 +327,7 @@ def seismic_section(seismo, components=0, shape='3d'):
         data['taux'] = (seismo['taux'] + seismo['tauz']) / 2
         data['tauz'] = (seismo['taux'] + seismo['tauz']) / 2
     if shape == '2d':
-        (nt, nx, ns) = data[[*data][0]].shape
+        (nt, nr, ns) = data[[*data][0]].shape
         for par in data:
-            data[par] = np.reshape(data[par], (nt, nx * ns), 'F')
+            data[par] = np.reshape(data[par], (nt, nr * ns), 'F')
     return data

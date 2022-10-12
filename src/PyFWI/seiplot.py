@@ -60,6 +60,28 @@ def earth_model(model, keys=[],offset=None, depth= None, **kwargs):
     
 
 def seismic_section(ax, data, x_axis=None, t_axis=None, aspect_preserving=False, **kargs):
+    """
+    seismic_section show seismic section
+
+
+    Parameters
+    ----------
+    ax : Axes or array of Axes
+        ax to arrange plots
+    data : float
+        Seismic section
+    x_axis : array
+        X-axis, by default None
+    t_axis : array, optional
+        t-axis, by default None
+    aspect_preserving : bool, optional
+        _description_, by default False
+
+    Returns
+    -------
+    ax : Axis
+        The ax for more adjustment
+    """
     if aspect_preserving:
         aspect = (data.shape[0]/data.shape[1])
         ax.set_aspect(aspect)

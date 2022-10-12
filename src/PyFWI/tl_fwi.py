@@ -542,21 +542,21 @@ class TimeLapse(Wave):
         """
         This function make data which exist in the form of vectorial, in dictionary form.
 
-        Parameters:
+        Parameters
         -----------
-            xk: flaot32
-                the data as the size of [number_of_elements, nz*nx]
+        xk: flaot32
+            The data as the size of [number_of_elements, nz*nx]
 
-            nz: integer
-                Number of samples in z-direction
+        nz: integer
+            Number of samples in z-direction
 
-            nx: integer
-                Number of samples in x-direction
+        nx: integer
+            Number of samples in x-direction
 
-        Returns:
+        Returns
         --------
-            model: dictonary
-                A dictionary containg the model parameters
+        model: dictonary
+            A dictionary containg the model parameters
 
         """
         tn_elements = int(xk.shape[0]/2)
