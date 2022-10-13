@@ -6,7 +6,8 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/pyfwi?period=total&units=none&left_color=grey&right_color=green&left_text=Downloads)](https://pepy.tech/project/pyfwi)
 <img src="https://visitor-badge.laobi.icu/badge?page_id=pyfwi_unique12.pyfwi_unique12"/>
 
-This repository contains Python package for elastic seismic full-waveform inversion (FWI).
+This repository contains Python package for elastic seismic full-waveform inversion (FWI) and time-lapse FWI.
+
 
 ## Installation
 To install this package, run 
@@ -19,10 +20,8 @@ py -m pip install PyFWI
 ```
 on Windows.
 
-The structure and requirements of PyFWI can be shown as
-<!-- <center>
-<img alt="PyFWI_structure" src='docs/pyfwi_structure.png' style="width: 400px;">
-</center> -->
+The structure of PyFWI can be shown as
+
 ![PyFWI_structure](docs/pyfwi_structure.png)
 
 ## Citing PyFWI

@@ -11,6 +11,7 @@ PyFWI.acquisition module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.fwi module
 ----------------
@@ -19,6 +20,7 @@ PyFWI.fwi module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.fwi\_tools module
 -----------------------
@@ -27,6 +29,7 @@ PyFWI.fwi\_tools module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.grad\_switcher module
 ---------------------------
@@ -35,6 +38,7 @@ PyFWI.grad\_switcher module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.model\_dataset module
 ---------------------------
@@ -43,6 +47,7 @@ PyFWI.model\_dataset module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.optimization module
 -------------------------
@@ -51,6 +56,7 @@ PyFWI.optimization module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.processing module
 -----------------------
@@ -59,6 +65,7 @@ PyFWI.processing module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.rock\_physics module
 --------------------------
@@ -67,6 +74,7 @@ PyFWI.rock\_physics module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.seiplot module
 --------------------
@@ -75,6 +83,7 @@ PyFWI.seiplot module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.seismic\_io module
 ------------------------
@@ -83,6 +92,7 @@ PyFWI.seismic\_io module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.tl\_fwi module
 --------------------
@@ -91,6 +101,7 @@ PyFWI.tl\_fwi module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.torchfwi module
 ---------------------
@@ -99,6 +110,7 @@ PyFWI.torchfwi module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.version module
 --------------------
@@ -107,6 +119,7 @@ PyFWI.version module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 PyFWI.wave\_propagation module
 ------------------------------
@@ -115,6 +128,7 @@ PyFWI.wave\_propagation module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 Module contents
 ---------------
@@ -123,3 +137,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:

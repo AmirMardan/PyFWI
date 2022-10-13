@@ -143,7 +143,7 @@ class TimeLapse(Wave):
         """
         This function calculate the gradient of cost function
 
-        Parameters:
+        Parameters
         -----------
         x: float32
             This matrix with the shape of [number of parameters, nz*nx] contains
