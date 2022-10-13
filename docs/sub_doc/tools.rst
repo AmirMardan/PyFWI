@@ -3,7 +3,8 @@ Regularization
 
 .. autoclass:: PyFWI.fwi_tools.Regularization
     :exclude-members:
-
+    :noindex:
+    
 Total variation (TV) 
 --------------------
 
@@ -47,7 +48,7 @@ Cost Function
 =============
 .. autoclass:: PyFWI.fwi_tools.CostFunction
     :members: __call__
-
+    :noindex:
 
 Visualization
 =============
