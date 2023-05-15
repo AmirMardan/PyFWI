@@ -6,7 +6,7 @@ requests
 scikit-build
 # segyio
 datetime
-pyopencl==2023.1
+pyopencl
 sphinx>=1.4
 ipykernel
 nbsphinx
