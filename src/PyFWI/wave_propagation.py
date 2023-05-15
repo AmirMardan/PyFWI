@@ -28,6 +28,7 @@ class WavePreparation:
         self.t = inpa['t']
         self.dt_ext = inpa['dt']
         self.dt = inpa['dt'] / self.dt_scale
+        self.fn = 1.0/2.0/0.0006
 
         self.nt = int(1 + self.t // self.dt)
         self.nt_ext = int(1 + self.t // self.dt_ext)

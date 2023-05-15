@@ -83,9 +83,7 @@ class FWI(Wave):
         else:
             self.tikhonov_properties = None
             
-        self.d_obs = prepare_residual(d_obs, 1)
-        
-        self.fn = inpa['fn']
+        self.d_obs = prepare_residual(d_obs, 1) 
 
         if 'cost_function_type' in keys:
             self.CF = tools.CostFunction(inpa["cost_function_type"])
