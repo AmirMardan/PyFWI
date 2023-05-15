@@ -544,7 +544,7 @@ class TimeLapse(Wave):
 
         Parameters
         -----------
-        xk: flaot32
+        xk: float32
             The data as the size of [number_of_elements, nz*nx]
 
         nz: integer

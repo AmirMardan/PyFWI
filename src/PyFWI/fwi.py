@@ -2,6 +2,7 @@ from scipy.optimize.optimize import MemoizeJac
 import numpy as np
 from scipy.optimize import fmin_cg
 from scipy.optimize.lbfgsb import fmin_l_bfgs_b
+from typing import List
 
 from PyFWI.wave_propagation import WavePropagator as Wave
 from PyFWI.fwi_tools import Regularization
@@ -27,7 +28,7 @@ class FWI(Wave):
         Shape of the model
     n_well_rec : int
         Number of receivers in the well
-    chpr : flaot (percentage)
+    chpr : float (percentage)
         Percentage for check point 
     components : int
         Type of output
@@ -98,7 +99,9 @@ class FWI(Wave):
             
         self.n_elements = self.nz * self.nx
         
-    def __call__(self, m0, method, iter, freqs, n_params, k_0, k_end):
+    def __call__(self, m0, method: str, 
+                 iter: List[int], freqs: List[float], 
+                 n_params, k_0, k_end):
         """
         Calling this object performs the FWI
 
@@ -106,11 +109,11 @@ class FWI(Wave):
         ----------
             m0 : dict
                 The initial model
-            method : int, str
-                The optimization method
-            iter : ndarray)
+            method : str
+                The optimization method. Either should be `cg` for congugate gradient or `lbfgs` for l-BFGS.
+            iter : List[int]
                 An array of iteration for each frequency
-            freqs : float
+            freqs : List[float]
                 Frequencies for multi-scale inversion.
             n_params : int
                 Number of parameter to invert for in each time

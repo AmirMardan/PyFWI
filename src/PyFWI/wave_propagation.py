@@ -550,7 +550,7 @@ class WavePreparation:
         t : float32
             Time step
 
-        wave2 : flaot32, optional = None
+        wave2 : float32, optional = None
             The second wave which is used when we want to show the propagation
             of backward wave as wave1 and adjoint wave as wave2.
 
