@@ -14,6 +14,7 @@ This package is implemented in time domain and coded using GPU programming (PyOp
    :caption: Getting started
 
    sub_doc/example
+   sub_doc/fwi_example
 
 .. toctree::
    :maxdepth: 1
@@ -52,14 +53,13 @@ Citing PyFWI
 
 ::
 
-   @software{PyFWI,
-   author       = {Mardan Amir and
-                  Bernard Giroux and
-                  Gabriel Fabien-Ouellet},
-   title        = {{PyFWI}: A {Python} package for full-waveform inversion and reservoir monitoring},
-   month        = Jan,
-   year         = 2022,
-   publisher    = {Zenodo},
-   doi          = {10.5281/zenodo.5813637},
-   url          = {https://doi.org/10.5281/zenodo.5813637}
-   }
+   @article{mardan2023pyfwi,
+  title = {PyFWI: {A Python} package for full-waveform inversion and reservoir monitoring},
+  author = {Mardan, Amir and Giroux, Bernard and Fabien-Ouellet, Gabriel},
+  journal = {SoftwareX},
+  volume = {22},
+  pages = {101384},
+  year = {2023},
+  publisher = {Elsevier},
+  doi = {10.1016/j.softx.2023.101384}
+}

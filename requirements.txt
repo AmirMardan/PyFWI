@@ -1,12 +1,12 @@
 numpy
-pyopencl
 matplotlib
 scipy
 hdf5storage
 requests
-segyio
+scikit-build
+# segyio
 datetime
-pyopencl==2021.2.10
+pyopencl==2023.1
 sphinx>=1.4
 ipykernel
 nbsphinx
