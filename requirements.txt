@@ -1,13 +1,15 @@
-numpy
-matplotlib
-scipy
+# The code and packages are tested in Python 3.7
+
+numpy==1.21.6
+matplotlib==3.5.3
+scipy==1.7.3
 hdf5storage
 requests
-scikit-build
-# segyio
+scikit-build==0.17.5
+# segyio==1.9.11
 datetime
-pyopencl
+pyopencl==2022.2.4
 sphinx>=1.4
 ipykernel
 nbsphinx
-torch
+torch==1.13.1
