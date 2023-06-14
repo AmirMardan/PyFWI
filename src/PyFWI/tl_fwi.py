@@ -10,8 +10,6 @@ from PyFWI.fwi import FWI
 from PyFWI.processing import prepare_residual
 from PyFWI.wave_propagation import WavePropagator as Wave
 
-
-
 class TimeLapse(Wave):
     """
     TimeLapse is a class to perform time-lapse FWI.
@@ -42,8 +40,12 @@ class TimeLapse(Wave):
     def __init__(self, b_dobs, m_dobs, inpa, src, rec_loc, model_shape, components, chpr, n_well_rec=0, param_functions=None):
         super().__init__(inpa, src, rec_loc, model_shape, n_well_rec=n_well_rec, chpr=chpr, components=components)
         
-        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, model_shape=model_shape,
-                           n_well_rec=n_well_rec, chpr=chpr, components=components, param_functions=param_functions)
+        self.inv_obj = FWI(b_dobs, inpa, src, rec_loc, 
+                           model_shape=model_shape,
+                           n_well_rec=n_well_rec, 
+                           chpr=chpr, 
+                           components=components, 
+                           param_functions=param_functions)
 
         self.b_dobs = copy.deepcopy(b_dobs)
         self.m_dobs = copy.deepcopy(m_dobs)
@@ -66,8 +68,13 @@ class TimeLapse(Wave):
         freqs : list
             Frequencies for multiscale inversion
         tl_method : str
-            Name of time-lapse method ('cc': Cascaded, 'sim': Simultaneous, 'wa': Weighted average,
-                                        'cj': Cascaded joint, 'cd': Central difference, 'cu': Cross updating)
+            Name of time-lapse method
+            - 'cc': Cascaded, 
+            - 'sim': Simultaneous, 
+            - 'wa': Weighted average,
+            - 'cj': Cascaded joint, 
+            - 'cd': Central difference, 
+            - 'cu': Cross updating
         n_params : int
             Number of parameters to invert
         k_0 : int
@@ -465,13 +472,19 @@ class TimeLapse(Wave):
 
         tic = timeit.default_timer()
         self.inv_obj.d_obs = self.b_dobs
-        model_b1, rms1 = self.inv_obj(b_m0, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_b1, rms1 = self.inv_obj(b_m0, method=2, 
+                                      freqs=freqs, iter=iter, 
+                                      n_params=n_params, 
+                                      k_0=k_0, k_end=k_end)
         initial = model_b1.copy() #TODO: WHY?
 
         print('===== Inversion of baseline is done ======')
         
         self.inv_obj.d_obs = self.m_dobs
-        model_m1, rms2 = self.inv_obj(model_b1, method=2, freqs=freqs, iter=iter, n_params=n_params, k_0=k_0, k_end=k_end)
+        model_m1, rms2 = self.inv_obj(model_b1, method=2, 
+                                      freqs=freqs, iter=iter, 
+                                      n_params=n_params, 
+                                      k_0=k_0, k_end=k_end)
 
         process_time = timeit.default_timer() - tic
         inverted = {
