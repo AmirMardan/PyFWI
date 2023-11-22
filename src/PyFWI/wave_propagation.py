@@ -15,7 +15,9 @@ from PyFWI.grad_switcher import grad_lmd_to_vd
 
 class WavePreparation:
 
-    def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=10, set_env_variable=True):
+    def __init__(self, inpa, src, 
+                 rec_loc, model_shape, components=0, 
+                 n_well_rec=0, chpr=10):
         '''
         A class to prepare the variable and basic functions for wave propagation.
 
@@ -23,7 +25,6 @@ class WavePreparation:
         #TODO: work on how ypu specify the acq_type, getting n_well_rec, using that again fpr two .cl files
         keys = [*inpa]
 
-        self.set_env_variable = set_env_variable
         self.dt_scale = np.ceil(inpa['dt']/0.0006)
         self.t = inpa['t']
         self.dt_ext = inpa['dt']
@@ -171,11 +172,6 @@ class WavePreparation:
             device = inpa["device"]
             if device >= len(devices):
                 raise Exception("Bad chosen device. There are {} available device(s).".format(len(devices)))
-        else:
-            device = 0
-            print("Device {} is chosen.".format(device))
-
-        if set_env_variable:
             os.environ['PYOPENCL_CTX'] = str(platform) + ':' + str(device)
             os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
         
@@ -618,10 +614,11 @@ class WavePropagator(WavePreparation):
     component:
         Seismic output
     """
-    def __init__(self, inpa, src, rec_loc, model_shape, components=0, n_well_rec=0, chpr=0, set_env_variable=True):
+    def __init__(self, inpa, src, rec_loc, 
+                 model_shape, components=0, 
+                 n_well_rec=0, chpr=0):
         WavePreparation.__init__(self, inpa=inpa, src=src, rec_loc=rec_loc, model_shape=model_shape, components=components, 
-                                 n_well_rec=n_well_rec, chpr=chpr,
-                                 set_env_variable=set_env_variable)
+                                 n_well_rec=n_well_rec, chpr=chpr)
 
     def forward_propagator(self, model):
         """ This function is in charge of forward modelling for acoustic case
