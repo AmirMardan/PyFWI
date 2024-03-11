@@ -697,10 +697,10 @@ class WavePropagator(WavePreparation):
     def __kernel(self, s, coeff=+1):
         showpurose = np.zeros((self.tnz, self.tnx), dtype=np.float32)
         chpc = 0
-        t_src = np.int32(0)
+        t_src = 0
         for t in np.arange(self.nt):
             if t % self.dt_scale == 0:
-                self.__injSrc(t_src, s)
+                self.__injSrc(np.int32(t_src), s)
                 t_src += 1
 
             self.__update_fwd(coeff=coeff)
