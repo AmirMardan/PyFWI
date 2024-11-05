@@ -771,7 +771,7 @@ class WavePropagator(WavePreparation):
                 cl.enqueue_copy(self.queue, self.tauz_b, tauz)
 
                 tauxz = np.copy(self.W['tauxz'][:, :, s, chpc])
-                cl.enqueue_copy(self.queue, self.tauz_b, tauxz)
+                cl.enqueue_copy(self.queue, self.tauxz_b, tauxz)
 
                 chpc -= 1
 
