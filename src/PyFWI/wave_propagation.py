@@ -617,7 +617,9 @@ class WavePropagator(WavePreparation):
     def __init__(self, inpa, src, rec_loc, 
                  model_shape, components=0, 
                  n_well_rec=0, chpr=0):
-        WavePreparation.__init__(self, inpa=inpa, src=src, rec_loc=rec_loc, model_shape=model_shape, components=components, 
+        WavePreparation.__init__(self, inpa=inpa, src=src, 
+                                 rec_loc=rec_loc, model_shape=model_shape, 
+                                 components=components, 
                                  n_well_rec=n_well_rec, chpr=chpr)
 
     def forward_propagator(self, model):

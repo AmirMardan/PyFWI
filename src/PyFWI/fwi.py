@@ -35,8 +35,17 @@ class FWI(Wave):
     param_functions : dict, optional
         List of functions required in case of inversion with different parameterization than dv, by default None
         """
-    def __init__(self, d_obs, inpa, src, rec_loc, model_shape, components, chpr, n_well_rec=0, param_functions=None):
-        super().__init__(inpa, src, rec_loc, model_shape, n_well_rec=n_well_rec, chpr=chpr, components=components)
+    def __init__(self, d_obs, 
+                 inpa, src, 
+                 rec_loc, 
+                 model_shape, 
+                 components, 
+                 chpr, 
+                 n_well_rec=0, 
+                 param_functions=None):
+        super().__init__(inpa, src, rec_loc, model_shape, 
+                         n_well_rec=n_well_rec, 
+                         chpr=chpr, components=components)
         self.regularization = Regularization(self.nx, self.nz, self.dh, self.dh)
         
         if param_functions is None:
