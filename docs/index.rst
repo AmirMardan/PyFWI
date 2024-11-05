@@ -9,6 +9,13 @@ Welcome to PyFWI's documentation!
 **PyFWI** is an open source Python package to perform seismic modeling and full-waveform inversion (FWI) in elastic media. 
 This package is implemented in time domain and coded using GPU programming (PyOpenCL) to accelerate the computation.
 
+If you have any questions about PyFWI, please use the following this `link <https://github.com/AmirMardan/PyFWI/discussions>`_.
+
+If you have any technical questions about FWI, TL-FWI, or PyFWI, please visit `my personal website <https://amirmardan.github.io/tlfwi.html/>`_.
+All my publications are available there. I will be happy to assist if you contact me via email.
+
+For bugs, developments, and errors, please use issues in the GitHub repository available `here <https://github.com/AmirMardan/PyFWI/issues>`_ to ask your questions.
+
 .. toctree::
    :maxdepth: 1
    :caption: Getting started
@@ -62,4 +69,4 @@ Citing PyFWI
   year = {2023},
   publisher = {Elsevier},
   doi = {10.1016/j.softx.2023.101384}
-}
+   }

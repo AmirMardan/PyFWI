@@ -8,8 +8,6 @@ requires = [
     "scipy",
     "hdf5storage",
     "requests",
-    "segyio",
-    "logging",
     "datetime",
 ]
 build-backend = "setuptools.build_meta"

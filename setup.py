@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
               
 setup(name='PyFWI',
-      version='0.1.9',
+      version='0.1.10',
       packages=['PyFWI'],
       description='PyFWI is a Pyhton package for seismic FWI and reservoir monitoring', 
       long_description=long_description,

@@ -73,8 +73,7 @@ Then we need to create an input dictionary as follow
         't': 0.8,  # Length of operation
         'npml': 20,  # Number of PML 
         'pmlR': 1e-5,  # Coefficient for PML (No need to change)
-        'pml_dir': 2,  # type of boundary layer
-        'device': 1, # The device to run the program. Usually 0: CPU 1: GPU
+        'pml_dir': 2,  # type of boundary layer 
     }
     
     seisout = 0 # Type of output 0: Pressure
